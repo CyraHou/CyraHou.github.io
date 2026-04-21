@@ -8,14 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
-  
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       width: 100vw;
       height: 100vh;
@@ -24,107 +22,94 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
     }
 
+    /* 名字整体容器 */
     .name-container {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       font-size: 80px;
-      letter-spacing: 2px;
-      cursor: default;
-      transition: opacity 0.6s ease;
+      transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .cyra {
-      font-family: 'Lobster', cursive;
-      transition: all 0.3s ease;
-    }
+    /* 双字体 */
+    .cyra { font-family: 'Lobster', cursive; }
+    .hou { font-family: 'Climate Crisis', sans-serif; }
 
-    .hou {
-      font-family: 'Climate Crisis', sans-serif;
-      transition: all 0.3s ease;
-    }
-
-    .letter {
+    /* 字母+黑点统一过渡 */
+    .letter, .dice-dot {
       display: inline-block;
-      transition: all 0.3s ease;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
+    /* 小红书核心：悬停字母 → 其他所有+黑点同步变暗 */
+    .name-container:hover .letter:not(:hover),
+    .name-container:hover .dice-dot {
+      opacity: 0.2;
+      color: #bbb;
+    }
+
+    /* 字母跳动 */
     .letter:hover {
-      transform: translateY(-15px);
+      transform: translateY(-16px);
     }
 
-    .name-container:hover .letter:not(:hover) {
-      color: #d1d1d1;
-    }
-
-    /* ========== 黑点：悬浮放大+旋转 超强动效 ========== */
+    /* 中间圆点（小红书原版：平时不转，只点击变形） */
     .dice-dot {
       width: 26px;
       height: 26px;
-      background: #000;
+      background: #000000;
       border-radius: 50%;
       cursor: pointer;
-      /* 顺滑过渡 */
-      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-      position: relative;
-      z-index: 10;
+      z-index: 15;
     }
 
-    /* 鼠标放上去：放大 + 360旋转 */
-    .dice-dot:hover {
-      transform: scale(1.4) rotate(360deg);
+    /* 名字隐藏 */
+    .name-container.fade {
+      opacity: 0;
+      pointer-events: none;
     }
 
-    /* 顶部导航 停留不收回 */
+    /* 顶部导航 稳定不闪退 */
     .top-nav {
       position: fixed;
       top: -80px;
       left: 0;
       width: 100%;
       height: 70px;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255,255,255,0.96);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 40px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      transition: top 0.5s ease;
+      gap: 42px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      transition: top 0.45s ease;
       z-index: 100;
     }
-
-    .top-nav.active {
-      top: 0;
-    }
-
+    .top-nav.active { top: 0; }
     .top-nav a {
       text-decoration: none;
       font-size: 18px;
-      color: #222;
-      font-family: Arial, sans-serif;
-      transition: color 0.3s;
+      color: #1a1a1a;
+      font-family: system-ui;
     }
+    .top-nav a:hover { color: #444; }
 
-    .top-nav a:hover {
-      color: #555;
-    }
-
+    /* 小红书同款丝滑3D圆角魔方 */
     .dice-wrapper {
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%) scale(0);
-      width: 300px;
-      height: 300px;
-      perspective: 1000px;
-      pointer-events: none;
+      width: 280px;
+      height: 280px;
+      perspective: 1200px;
       opacity: 0;
-      transition: all 0.6s ease;
-      z-index: 1000;
+      pointer-events: none;
+      transition: all 0.65s cubic-bezier(0.2, 1, 0.3, 1);
+      z-index: 200;
     }
-
     .dice-wrapper.active {
       transform: translate(-50%, -50%) scale(1);
       opacity: 1;
@@ -136,36 +121,32 @@
       height: 100%;
       position: relative;
       transform-style: preserve-3d;
-      transition: transform 0.2s ease-out;
+      transition: transform 0.18s ease-out;
     }
 
+    /* 圆角魔方6面 小红书同款柔和质感 */
     .dice-face {
       position: absolute;
-      width: 300px;
-      height: 300px;
-      background: rgba(255, 255, 0.9);
-      border: 3px solid #000;
-      border-radius: 15px;
+      width: 280px;
+      height: 280px;
+      background: #fff;
+      border: 2.5px solid #000;
+      border-radius: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      font-weight: bold;
+      font-size: 24px;
+      font-weight: 500;
       cursor: pointer;
       user-select: none;
     }
 
-    .front  { transform: rotateY(0deg) translateZ(150px); }
-    .back   { transform: rotateY(180deg) translateZ(150px); }
-    .right  { transform: rotateY(90deg) translateZ(150px); }
-    .left   { transform: rotateY(-90deg) translateZ(150px); }
-    .top    { transform: rotateX(90deg) translateZ(150px); }
-    .bottom { transform: rotateX(-90deg) translateZ(150px); }
-
-    .name-container.fade {
-      opacity: 0;
-      pointer-events: none;
-    }
+    .front  { transform: rotateY(0deg) translateZ(140px); }
+    .back   { transform: rotateY(180deg) translateZ(140px); }
+    .right  { transform: rotateY(90deg) translateZ(140px); }
+    .left   { transform: rotateY(-90deg) translateZ(140px); }
+    .top    { transform: rotateX(90deg) translateZ(140px); }
+    .bottom { transform: rotateX(-90deg) translateZ(140px); }
   </style>
 </head>
 
@@ -206,37 +187,32 @@
   </div>
 
   <script>
-    // 顶部导航稳定逻辑
+    // 顶部导航逻辑（停留不收回）
     const nav = document.getElementById('topNav');
-    let isMouseInNav = false;
-
-    document.addEventListener('mousemove', (e) => {
-      if (e.clientY < 20) {
-        nav.classList.add('active');
-      } else if (!isMouseInNav) {
-        nav.classList.remove('active');
-      }
+    let mouseInNav = false;
+    document.addEventListener('mousemove', e => {
+      if (e.clientY < 20) nav.classList.add('active');
+      else if (!mouseInNav) nav.classList.remove('active');
     });
+    nav.addEventListener('mouseenter', () => mouseInNav = true);
+    nav.addEventListener('mouseleave', () => mouseInNav = false);
 
-    nav.addEventListener('mouseenter', () => isMouseInNav = true);
-    nav.addEventListener('mouseleave', () => isMouseInNav = false);
-
-    // 黑点点击展开骰子
+    // 小红书核心：点击圆点 → 名字消失+魔方弹出
+    const nameBox = document.getElementById('nameContainer');
     const dot = document.getElementById('diceDot');
-    const name = document.getElementById('nameContainer');
     const diceWrap = document.getElementById('diceWrapper');
 
     dot.addEventListener('click', () => {
-      name.classList.add('fade');
+      nameBox.classList.add('fade');
       diceWrap.classList.add('active');
     });
 
-    // 鼠标跟随骰子旋转
+    // 鼠标无限丝滑跟随魔方旋转（小红书同款缓动）
     let rx = 0, ry = 0;
     document.addEventListener('mousemove', e => {
       if (!diceWrap.classList.contains('active')) return;
-      ry = (e.clientX / innerWidth - 0.5) * 60;
-      rx = -(e.clientY / innerHeight - 0.5) * 60;
+      ry = (e.clientX / innerWidth - 0.5) * 50;
+      rx = -(e.clientY / innerHeight - 0.5) * 50;
       document.getElementById('dice').style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
     });
 
@@ -245,19 +221,18 @@
       if (!diceWrap.classList.contains('active')) return;
       if (!e.target.closest('.dice')) {
         diceWrap.classList.remove('active');
-        name.classList.remove('fade');
+        nameBox.classList.remove('fade');
       }
     });
 
-    // 骰子面跳转
+    // 魔方面跳转
+    const linkMap = {
+      Home:'#home','About Me':'#about',Portfolio:'#portfolio',
+      Resume:'#resume',Experience:'#experience',Contact:'#contact'
+    };
     document.querySelectorAll('.dice-face').forEach(face => {
-      face.onclick = () => {
-        const map = {
-          Home:'#home','About Me':'#about',Portfolio:'#portfolio',Resume:'#resume',Experience:'#experience',Contact:'#contact'
-        }
-        location.href = map[face.innerText]
-      }
-    })
+      face.onclick = () => window.location.href = linkMap[face.innerText];
+    });
   </script>
 </body>
 </html>
