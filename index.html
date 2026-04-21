@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cyra. HOU</title>
-  <!-- 引入字体 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
@@ -28,61 +27,58 @@
       position: relative;
     }
 
-    /* 名字容器 */
     .name-container {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       font-size: 80px;
       letter-spacing: 2px;
       cursor: default;
       transition: opacity 0.6s ease;
     }
 
-    /* Cyra 字体 */
     .cyra {
       font-family: 'Lobster', cursive;
       transition: all 0.3s ease;
     }
 
-    /* HOU 字体 */
     .hou {
       font-family: 'Climate Crisis', sans-serif;
       transition: all 0.3s ease;
     }
 
-    /* 字母单个样式 */
     .letter {
       display: inline-block;
       transition: all 0.3s ease;
     }
 
-    /* 字母悬停跳动 */
     .letter:hover {
       transform: translateY(-15px);
     }
 
-    /* 其他字母变浅 */
     .name-container:hover .letter:not(:hover) {
       color: #d1d1d1;
     }
 
-    /* 3D骰子点 - 新增完整点击交互 */
+    /* ========== 黑点：悬浮放大+旋转 超强动效 ========== */
     .dice-dot {
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       background: #000;
       border-radius: 50%;
       cursor: pointer;
-      transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      /* 顺滑过渡 */
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
       position: relative;
       z-index: 10;
     }
+
+    /* 鼠标放上去：放大 + 360旋转 */
     .dice-dot:hover {
-      transform: scale(1.2);
+      transform: scale(1.4) rotate(360deg);
     }
 
-    /* 顶部滑出导航栏 - 修复停留不收回逻辑 */
+    /* 顶部导航 停留不收回 */
     .top-nav {
       position: fixed;
       top: -80px;
@@ -98,7 +94,7 @@
       transition: top 0.5s ease;
       z-index: 100;
     }
-    /* 导航展开状态 */
+
     .top-nav.active {
       top: 0;
     }
@@ -112,10 +108,9 @@
     }
 
     .top-nav a:hover {
-      color: #666;
+      color: #555;
     }
 
-    /* 3D魔方容器 */
     .dice-wrapper {
       position: fixed;
       top: 50%;
@@ -130,14 +125,12 @@
       z-index: 1000;
     }
 
-    /* 魔方激活状态 */
     .dice-wrapper.active {
       transform: translate(-50%, -50%) scale(1);
       opacity: 1;
       pointer-events: all;
     }
 
-    /* 3D骰子 */
     .dice {
       width: 100%;
       height: 100%;
@@ -146,12 +139,11 @@
       transition: transform 0.2s ease-out;
     }
 
-    /* 骰子六个面 */
     .dice-face {
       position: absolute;
       width: 300px;
       height: 300px;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 0.9);
       border: 3px solid #000;
       border-radius: 15px;
       display: flex;
@@ -163,7 +155,6 @@
       user-select: none;
     }
 
-    /* 定位六个面 */
     .front  { transform: rotateY(0deg) translateZ(150px); }
     .back   { transform: rotateY(180deg) translateZ(150px); }
     .right  { transform: rotateY(90deg) translateZ(150px); }
@@ -171,7 +162,6 @@
     .top    { transform: rotateX(90deg) translateZ(150px); }
     .bottom { transform: rotateX(-90deg) translateZ(150px); }
 
-    /* 名字渐隐 */
     .name-container.fade {
       opacity: 0;
       pointer-events: none;
@@ -180,7 +170,6 @@
 </head>
 
 <body>
-  <!-- 顶部导航栏 -->
   <div class="top-nav" id="topNav">
     <a href="#home">Home</a>
     <a href="#about">About Me</a>
@@ -190,7 +179,6 @@
     <a href="#contact">Contact</a>
   </div>
 
-  <!-- 名字 -->
   <div class="name-container" id="nameContainer">
     <div class="cyra">
       <span class="letter">C</span>
@@ -206,7 +194,6 @@
     </div>
   </div>
 
-  <!-- 3D骰子魔方 -->
   <div class="dice-wrapper" id="diceWrapper">
     <div class="dice" id="dice">
       <div class="dice-face front">Home</div>
@@ -219,78 +206,58 @@
   </div>
 
   <script>
-    // ========== 修复1：顶部导航 鼠标停留不收回 稳定逻辑 ==========
+    // 顶部导航稳定逻辑
     const nav = document.getElementById('topNav');
-    let isMouseInNavArea = false;
+    let isMouseInNav = false;
 
-    // 鼠标进入顶部区域 展开导航
     document.addEventListener('mousemove', (e) => {
       if (e.clientY < 20) {
         nav.classList.add('active');
-      }
-      // 鼠标离开顶部+离开导航栏 才收回导航
-      else if (!isMouseInNavArea) {
+      } else if (!isMouseInNav) {
         nav.classList.remove('active');
       }
     });
 
-    // 鼠标悬停在导航栏上 保持展开不关闭
-    nav.addEventListener('mouseenter', () => {
-      isMouseInNavArea = true;
-    });
-    // 鼠标离开导航栏 才允许收回
-    nav.addEventListener('mouseleave', () => {
-      isMouseInNavArea = false;
-    });
+    nav.addEventListener('mouseenter', () => isMouseInNav = true);
+    nav.addEventListener('mouseleave', () => isMouseInNav = false);
 
-    // ========== 修复2：中间黑点 完整点击交互生效 ==========
+    // 黑点点击展开骰子
     const dot = document.getElementById('diceDot');
     const name = document.getElementById('nameContainer');
-    const diceWrapper = document.getElementById('diceWrapper');
-    const dice = document.getElementById('dice');
+    const diceWrap = document.getElementById('diceWrapper');
 
     dot.addEventListener('click', () => {
       name.classList.add('fade');
-      diceWrapper.classList.add('active');
+      diceWrap.classList.add('active');
     });
 
-    // 鼠标移动控制骰子丝滑跟随旋转
-    let rotateX = 0, rotateY = 0;
-    document.addEventListener('mousemove', (e) => {
-      if (!diceWrapper.classList.contains('active')) return;
-      const x = (e.clientX / window.innerWidth - 0.5) * 60;
-      const y = (e.clientY / window.innerHeight - 0.5) * 60;
-      rotateY = x;
-      rotateX = -y;
-      dice.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    // 鼠标跟随骰子旋转
+    let rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => {
+      if (!diceWrap.classList.contains('active')) return;
+      ry = (e.clientX / innerWidth - 0.5) * 60;
+      rx = -(e.clientY / innerHeight - 0.5) * 60;
+      document.getElementById('dice').style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
     });
 
-    // 点击空白处 关闭骰子回到首页
-    document.addEventListener('click', (e) => {
-      if (!diceWrapper.classList.contains('active')) return;
+    // 点击空白返回首页
+    document.addEventListener('click', e => {
+      if (!diceWrap.classList.contains('active')) return;
       if (!e.target.closest('.dice')) {
-        diceWrapper.classList.remove('active');
+        diceWrap.classList.remove('active');
         name.classList.remove('fade');
       }
     });
 
-    // 骰子面&导航栏 全部可正常跳转页面
-    const faces = document.querySelectorAll('.dice-face');
-    faces.forEach(face => {
-      face.addEventListener('click', () => {
-        const text = face.innerText;
-        let link = '#home';
-        switch(text) {
-          case 'Home': link = '#home'; break;
-          case 'About Me': link = '#about'; break;
-          case 'Portfolio': link = '#portfolio'; break;
-          case 'Resume': link = '#resume'; break;
-          case 'Experience': link = '#experience'; break;
-          case 'Contact': link = '#contact'; break;
+    // 骰子面跳转
+    document.querySelectorAll('.dice-face').forEach(face => {
+      face.onclick = () => {
+        const map = {
+          Home:'#home','About Me':'#about',Portfolio:'#portfolio',Resume:'#resume',Experience:'#experience',Contact:'#contact'
         }
-        window.location.href = link;
-      });
-    });
+        location.href = map[face.innerText]
+      }
+    })
   </script>
 </body>
 </html>
