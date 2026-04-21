@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cyra. HOU</title>
+  <!-- 引入字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* 名字容器 */
+    .name-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 80px;
+      letter-spacing: 2px;
+      cursor: default;
+    }
+
+    /* Cyra 字体 */
+    .cyra {
+      font-family: 'Lobster', cursive;
+      transition: all 0.3s ease;
+    }
+
+    /* HOU 字体 */
+    .hou {
+      font-family: 'Climate Crisis', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    /* 字母单个样式 */
+    .letter {
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    /* 字母悬停跳动 */
+    .letter:hover {
+      transform: translateY(-15px);
+    }
+
+    /* 其他字母变浅 */
+    .name-container:hover .letter:not(:hover) {
+      color: #d1d1d1;
+    }
+
+    /* 3D骰子点 */
+    .dice-dot {
+      width: 24px;
+      height: 24px;
+      background: #000;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      position: relative;
+      z-index: 10;
+    }
+
+    /* 顶部滑出导航栏 */
+    .top-nav {
+      position: fixed;
+      top: -80px;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: top 0.5s ease;
+      z-index: 100;
+    }
+
+    .top-nav a {
+      text-decoration: none;
+      font-size: 18px;
+      color: #222;
+      font-family: Arial, sans-serif;
+      transition: color 0.3s;
+    }
+
+    .top-nav a:hover {
+      color: #666;
+    }
+
+    /* 3D魔方容器 */
+    .dice-wrapper {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 300px;
+      height: 300px;
+      perspective: 1000px;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.6s ease;
+      z-index: 1000;
+    }
+
+    /* 魔方激活状态 */
+    .dice-wrapper.active {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* 3D骰子 */
+    .dice {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease-out;
+    }
+
+    /* 骰子六个面 */
+    .dice-face {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 3px solid #000;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* 定位六个面 */
+    .front  { transform: rotateY(0deg) translateZ(150px); }
+    .back   { transform: rotateY(180deg) translateZ(150px); }
+    .right  { transform: rotateY(90deg) translateZ(150px); }
+    .left   { transform: rotateY(-90deg) translateZ(150px); }
+    .top    { transform: rotateX(90deg) translateZ(150px); }
+    .bottom { transform: rotateX(-90deg) translateZ(150px); }
+
+    /* 名字渐隐 */
+    .name-container.fade {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 顶部导航栏 -->
+  <div class="top-nav" id="topNav">
+    <a href="#home">Home</a>
+    <a href="#about">About Me</a>
+    <a href="#portfolio">Portfolio</a>
+    <a href="#resume">Resume</a>
+    <a href="#experience">Experience</a>
+    <a href="#contact">Contact</a>
+  </div>
+
+  <!-- 名字 -->
+  <div class="name-container" id="nameContainer">
+    <div class="cyra">
+      <span class="letter">C</span>
+      <span class="letter">y</span>
+      <span class="letter">r</span>
+      <span class="letter">a</span>
+    </div>
+    <div class="dice-dot" id="diceDot"></div>
+    <div class="hou">
+      <span class="letter">H</span>
+      <span class="letter">O</span>
+      <span class="letter">U</span>
+    </div>
+  </div>
+
+  <!-- 3D骰子魔方 -->
+  <div class="dice-wrapper" id="diceWrapper">
+    <div class="dice" id="dice">
+      <div class="dice-face front">Home</div>
+      <div class="dice-face back">Contact</div>
+      <div class="dice-face right">Portfolio</div>
+      <div class="dice-face left">About Me</div>
+      <div class="dice-face top">Resume</div>
+      <div class="dice-face bottom">Experience</div>
+    </div>
+  </div>
+
+  <script>
+    // 1. 鼠标滑到顶部 → 滑出导航栏
+    document.addEventListener('mousemove', (e) => {
+      const nav = document.getElementById('topNav');
+      if (e.clientY < 20) {
+        nav.style.top = '0';
+      } else {
+        nav.style.top = '-80px';
+      }
+    });
+
+    // 2. 点击黑点 → 展开3D骰子
+    const dot = document.getElementById('diceDot');
+    const name = document.getElementById('nameContainer');
+    const diceWrapper = document.getElementById('diceWrapper');
+    const dice = document.getElementById('dice');
+
+    dot.addEventListener('click', () => {
+      name.classList.add('fade');
+      diceWrapper.classList.add('active');
+    });
+
+    // 3. 鼠标移动控制骰子旋转（丝滑3D）
+    let rotateX = 0, rotateY = 0;
+    document.addEventListener('mousemove', (e) => {
+      if (!diceWrapper.classList.contains('active')) return;
+      const x = (e.clientX / window.innerWidth - 0.5) * 60;
+      const y = (e.clientY / window.innerHeight - 0.5) * 60;
+      rotateY = x;
+      rotateX = -y;
+      dice.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    // 4. 点击空白处 → 返回首页
+    document.addEventListener('click', (e) => {
+      if (!diceWrapper.classList.contains('active')) return;
+      if (!e.target.closest('.dice')) {
+        diceWrapper.classList.remove('active');
+        name.classList.remove('fade');
+      }
+    });
+
+    // 5. 骰子面点击跳转（和导航栏一致）
+    const faces = document.querySelectorAll('.dice-face');
+    faces.forEach(face => {
+      face.addEventListener('click', () => {
+        const text = face.innerText;
+        let link = '#';
+        switch(text) {
+          case 'Home': link = '#home'; break;
+          case 'About Me': link = '#about'; break;
+          case 'Portfolio': link = '#portfolio'; break;
+          case 'Resume': link = '#resume'; break;
+          case 'Experience': link = '#experience'; break;
+          case 'Contact': link = '#contact'; break;
+        }
+        window.location.href = link;
+      });
+    });
+  </script>
+</body>
+</html>
