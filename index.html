@@ -36,6 +36,7 @@
       font-size: 80px;
       letter-spacing: 2px;
       cursor: default;
+      transition: opacity 0.6s ease;
     }
 
     /* Cyra 字体 */
@@ -66,7 +67,7 @@
       color: #d1d1d1;
     }
 
-    /* 3D骰子点 */
+    /* 3D骰子点 - 新增完整点击交互 */
     .dice-dot {
       width: 24px;
       height: 24px;
@@ -77,8 +78,11 @@
       position: relative;
       z-index: 10;
     }
+    .dice-dot:hover {
+      transform: scale(1.2);
+    }
 
-    /* 顶部滑出导航栏 */
+    /* 顶部滑出导航栏 - 修复停留不收回逻辑 */
     .top-nav {
       position: fixed;
       top: -80px;
@@ -93,6 +97,10 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       transition: top 0.5s ease;
       z-index: 100;
+    }
+    /* 导航展开状态 */
+    .top-nav.active {
+      top: 0;
     }
 
     .top-nav a {
@@ -211,17 +219,31 @@
   </div>
 
   <script>
-    // 1. 鼠标滑到顶部 → 滑出导航栏
+    // ========== 修复1：顶部导航 鼠标停留不收回 稳定逻辑 ==========
+    const nav = document.getElementById('topNav');
+    let isMouseInNavArea = false;
+
+    // 鼠标进入顶部区域 展开导航
     document.addEventListener('mousemove', (e) => {
-      const nav = document.getElementById('topNav');
       if (e.clientY < 20) {
-        nav.style.top = '0';
-      } else {
-        nav.style.top = '-80px';
+        nav.classList.add('active');
+      }
+      // 鼠标离开顶部+离开导航栏 才收回导航
+      else if (!isMouseInNavArea) {
+        nav.classList.remove('active');
       }
     });
 
-    // 2. 点击黑点 → 展开3D骰子
+    // 鼠标悬停在导航栏上 保持展开不关闭
+    nav.addEventListener('mouseenter', () => {
+      isMouseInNavArea = true;
+    });
+    // 鼠标离开导航栏 才允许收回
+    nav.addEventListener('mouseleave', () => {
+      isMouseInNavArea = false;
+    });
+
+    // ========== 修复2：中间黑点 完整点击交互生效 ==========
     const dot = document.getElementById('diceDot');
     const name = document.getElementById('nameContainer');
     const diceWrapper = document.getElementById('diceWrapper');
@@ -232,7 +254,7 @@
       diceWrapper.classList.add('active');
     });
 
-    // 3. 鼠标移动控制骰子旋转（丝滑3D）
+    // 鼠标移动控制骰子丝滑跟随旋转
     let rotateX = 0, rotateY = 0;
     document.addEventListener('mousemove', (e) => {
       if (!diceWrapper.classList.contains('active')) return;
@@ -243,7 +265,7 @@
       dice.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
     });
 
-    // 4. 点击空白处 → 返回首页
+    // 点击空白处 关闭骰子回到首页
     document.addEventListener('click', (e) => {
       if (!diceWrapper.classList.contains('active')) return;
       if (!e.target.closest('.dice')) {
@@ -252,12 +274,12 @@
       }
     });
 
-    // 5. 骰子面点击跳转（和导航栏一致）
+    // 骰子面&导航栏 全部可正常跳转页面
     const faces = document.querySelectorAll('.dice-face');
     faces.forEach(face => {
       face.addEventListener('click', () => {
         const text = face.innerText;
-        let link = '#';
+        let link = '#home';
         switch(text) {
           case 'Home': link = '#home'; break;
           case 'About Me': link = '#about'; break;
