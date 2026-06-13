@@ -4,146 +4,92 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cyra. HOU</title>
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
 
         body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            width: 100vw; height: 100vh; overflow: hidden;
             background: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
         }
 
         .name-container {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 80px;
-            user-select: none;
-            transition: gap 0.5s ease;
+            display: flex; align-items: center; gap: 14px;
+            font-size: 80px; user-select: none;
         }
 
-        .cyra {
-            font-family: 'Lobster', cursive;
-        }
-
-        .hou {
-            font-family: 'Climate Crisis', sans-serif;
-        }
+        .cyra { font-family: 'Lobster', cursive; }
+        .hou  { font-family: 'Climate Crisis', sans-serif; }
 
         .letter {
             display: inline-block;
-            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+            transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1),
                         opacity 0.4s ease;
         }
 
-        /* 字母悬停效果（仅当魔方未激活时有效） */
-        .name-container:not(.magic-active) .letter:not(:hover) {
+        /* 关键修正：只有鼠标悬停在 name-container 上时，未 hover 的字母才变淡 */
+        .name-container:not(.magic-active):hover .letter:not(:hover) {
             opacity: 0.2;
         }
-
-        .name-container:not(.magic-active) .letter:hover {
+        .name-container:not(.magic-active):hover .letter:hover {
             transform: translateY(-16px);
         }
 
-        /* 当魔方激活时，字母完全消失 */
+        /* 魔方激活时字母完全隐藏 */
         .name-container.magic-active .letter {
-            opacity: 0;
-            pointer-events: none;
+            opacity: 0; pointer-events: none;
         }
 
-        /* ---------- 黑点 / 魔方容器 ---------- */
+        /* 黑点 / 魔方容器 */
         .cube-dot {
-            width: 26px;
-            height: 26px;
-            background: #000;
-            border-radius: 50%;
-            cursor: pointer;
-            position: relative;
-            z-index: 15;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 26px; height: 26px;
+            background: #000; border-radius: 50%;
+            cursor: pointer; position: relative; z-index: 15;
+            transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1);
         }
 
-        /* 激活状态：固定居中、放大为屏幕短边的一半 */
         .cube-dot.active {
             position: fixed;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 50vmin;
-            height: 50vmin;
-            background: transparent;
-            border-radius: 0;
-            cursor: grab;
-            z-index: 200;
+            width: 50vmin; height: 50vmin;
+            background: transparent; border-radius: 0;
+            cursor: grab; z-index: 200;
         }
+        .cube-dot.active:active { cursor: grabbing; }
 
-        .cube-dot.active:active {
-            cursor: grabbing;
-        }
-
-        /* 魔方 canvas 自动填充容器 */
         .cube-dot canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
+            display: block; width: 100%; height: 100%;
         }
 
-        /* ---------- 顶部导航 ---------- */
+        /* 顶部导航 */
         .top-nav {
-            position: fixed;
-            top: -80px;
-            left: 0;
-            width: 100%;
-            height: 70px;
-            background: rgba(255, 255, 255, 0.96);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: fixed; top: -80px; left: 0;
+            width: 100%; height: 70px;
+            background: rgba(255,255,255,0.96);
+            display: flex; align-items: center; justify-content: center;
             gap: 42px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             transition: top 0.45s ease;
             z-index: 100;
         }
-
-        .top-nav.active {
-            top: 0;
-        }
-
+        .top-nav.active { top: 0; }
         .top-nav a {
-            text-decoration: none;
-            font-size: 18px;
-            color: #1a1a1a;
-            font-family: system-ui, sans-serif;
+            text-decoration: none; font-size: 18px;
+            color: #1a1a1a; font-family: system-ui, sans-serif;
             transition: color 0.2s;
         }
+        .top-nav a:hover { color: #444; }
 
-        .top-nav a:hover {
-            color: #444;
-        }
-
-        /* 魔方激活时隐藏导航栏（避免干扰） */
-        .magic-active ~ .top-nav,
-        body:has(.cube-dot.active) .top-nav {
-            opacity: 0;
-            pointer-events: none;
-        }
+        /* 魔方激活时导航暂时隐藏 */
+        .cube-dot.active ~ .top-nav { opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
-    <!-- 顶部导航 -->
     <div class="top-nav" id="topNav">
         <a href="index.html">Home</a>
         <a href="about.html">About me</a>
@@ -153,212 +99,153 @@
         <a href="contact.html">Contact me</a>
     </div>
 
-    <!-- 名字 + 黑点 -->
     <div class="name-container" id="nameContainer">
         <div class="cyra">
-            <span class="letter">C</span>
-            <span class="letter">y</span>
-            <span class="letter">r</span>
-            <span class="letter">a</span>
+            <span class="letter">C</span><span class="letter">y</span><span class="letter">r</span><span class="letter">a</span>
         </div>
-        <!-- 黑点容器 -->
         <div class="cube-dot" id="cubeDot"></div>
         <div class="hou">
-            <span class="letter">H</span>
-            <span class="letter">O</span>
-            <span class="letter">U</span>
+            <span class="letter">H</span><span class="letter">O</span><span class="letter">U</span>
         </div>
     </div>
 
-    <!-- Three.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // ========== 1. 导航栏逻辑 ==========
-        (function() {
+        // 导航栏
+        (function(){
             const nav = document.getElementById('topNav');
             let mouseInNav = false;
-
-            document.addEventListener('mousemove', function(e) {
-                if (e.clientY < 20) {
-                    nav.classList.add('active');
-                } else if (!mouseInNav) {
-                    nav.classList.remove('active');
-                }
+            document.addEventListener('mousemove', e => {
+                if (e.clientY < 20) nav.classList.add('active');
+                else if (!mouseInNav) nav.classList.remove('active');
             });
-
-            nav.addEventListener('mouseenter', function() { mouseInNav = true; });
-            nav.addEventListener('mouseleave', function() {
-                mouseInNav = false;
-                nav.classList.remove('active');
-            });
+            nav.addEventListener('mouseenter', () => mouseInNav = true);
+            nav.addEventListener('mouseleave', () => { mouseInNav = false; nav.classList.remove('active'); });
         })();
 
-        // ========== 2. 黑点 → 魔方（居中放大版） ==========
-        (function() {
-            const cubeDot = document.getElementById('cubeDot');
-            const nameContainer = document.getElementById('nameContainer');
-            let cubeActive = false;
-            let animationId = null;
-            let renderer = null;
-            let scene = null;
-            let camera = null;
-            let controls = null;
-            let isDragging = false;
-            let moved = false;
+        // 黑点 → 魔方
+        (function(){
+            const dot = document.getElementById('cubeDot');
+            const container = document.getElementById('nameContainer');
+            let active = false;
+            let scene, camera, renderer, controls, animId;
+            let isDragging = false, moved = false;
+            let cleanupFunc = null;
 
-            function enterMagic() {
-                if (cubeActive) return;
-                cubeActive = true;
-
-                // 添加激活类：字母消失、黑点居中放大
-                cubeDot.classList.add('active');
-                nameContainer.classList.add('magic-active');
-
-                // 等待 CSS 过渡完成后创建魔方（过渡时间 0.6s，稍等一会儿）
-                setTimeout(createCubeScene, 100);
+            function activate() {
+                if (active) return;
+                active = true;
+                dot.classList.add('active');
+                container.classList.add('magic-active');
+                // 监听容器放大结束，然后创建魔方
+                dot.addEventListener('transitionend', onTransitionEnd, { once: true });
             }
 
-            function leaveMagic() {
-                if (!cubeActive) return;
-                cubeActive = false;
-
-                // 移除激活类
-                cubeDot.classList.remove('active');
-                nameContainer.classList.remove('magic-active');
-
-                // 销毁魔方
-                destroyCubeScene();
+            function deactivate() {
+                if (!active) return;
+                active = false;
+                dot.classList.remove('active');
+                container.classList.remove('magic-active');
+                destroyScene();
             }
 
-            function createCubeScene() {
-                if (!cubeActive) return; // 可能在 setTimeout 期间已经离开
-
-                const size = cubeDot.clientWidth; // 应该是 50vmin 的实际像素值
+            function onTransitionEnd() {
+                if (!active) return; // 可能已经离开
+                const size = dot.clientWidth;
                 if (size === 0) return;
 
+                // 创建场景
                 scene = new THREE.Scene();
                 scene.background = null;
-
-                camera = new THREE.PerspectiveCamera(45, size / size, 0.1, 100);
+                camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
                 camera.position.set(2.2, 1.8, 3.2);
-                camera.lookAt(0, 0, 0);
+                camera.lookAt(0,0,0);
 
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(size, size);
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                cubeDot.appendChild(renderer.domElement);
+                dot.appendChild(renderer.domElement);
 
-                // 控制器（可拖拽 + 自动旋转）
                 controls = new THREE.OrbitControls(camera, renderer.domElement);
                 controls.enableZoom = false;
                 controls.enablePan = false;
                 controls.rotateSpeed = 0.5;
-                controls.target.set(0, 0, 0);
                 controls.autoRotate = true;
-                controls.autoRotateSpeed = 0.8; // 缓慢自转
+                controls.autoRotateSpeed = 0.8;
+                controls.target.set(0,0,0);
                 controls.update();
 
-                // 灯光
-                scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                dirLight.position.set(5, 10, 7);
-                scene.add(dirLight);
+                const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+                const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+                dir.position.set(5,10,7);
+                scene.add(ambient, dir);
 
-                // 魔方（六色）
-                const geometry = new THREE.BoxGeometry(1, 1, 1);
-                const colors = [
-                    0xFF6B6B, 0x4ECDC4, 0xFFD93D,
-                    0x6C5CE7, 0xFF8A5C, 0xA29BFE
-                ];
+                const geo = new THREE.BoxGeometry(1,1,1);
+                const colors = [0xFF6B6B,0x4ECDC4,0xFFD93D,0x6C5CE7,0xFF8A5C,0xA29BFE];
                 const materials = colors.map(c => new THREE.MeshStandardMaterial({
-                    color: c,
-                    roughness: 0.3,
-                    metalness: 0.1,
+                    color: c, roughness: 0.3, metalness: 0.1,
                     emissive: new THREE.Color(c).multiplyScalar(0.15)
                 }));
-                const cube = new THREE.Mesh(geometry, materials);
+                const cube = new THREE.Mesh(geo, materials);
                 scene.add(cube);
+                const edges = new THREE.EdgesGeometry(geo);
+                cube.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0x000000})));
 
-                // 黑色边框
-                const edges = new THREE.EdgesGeometry(geometry);
-                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-                cube.add(line);
-
-                // 动画循环
                 function animate() {
-                    if (!cubeActive) return;
-                    animationId = requestAnimationFrame(animate);
+                    if (!active) return;
+                    animId = requestAnimationFrame(animate);
                     controls.update();
                     renderer.render(scene, camera);
                 }
                 animate();
 
-                // 监听拖拽与点击
-                renderer.domElement.addEventListener('mousedown', onMouseDown);
-                window.addEventListener('mousemove', onMouseMove);
-                window.addEventListener('mouseup', onMouseUp);
-                renderer.domElement.addEventListener('touchstart', onTouchStart);
-                window.addEventListener('touchmove', onTouchMove);
-                window.addEventListener('touchend', onTouchEnd);
-            }
-
-            function destroyCubeScene() {
-                // 停止动画
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                    animationId = null;
+                // 事件：区分拖拽与点击
+                function onDown() { isDragging = true; moved = false; }
+                function onMove() { if (isDragging) moved = true; }
+                function onUp() {
+                    if (isDragging && !moved) {
+                        window.location.href = 'about.html';
+                    }
+                    isDragging = false;
                 }
+                renderer.domElement.addEventListener('mousedown', onDown);
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+                renderer.domElement.addEventListener('touchstart', onDown);
+                window.addEventListener('touchmove', onMove);
+                window.addEventListener('touchend', onUp);
 
-                // 移除事件监听
-                if (renderer) {
-                    renderer.domElement.removeEventListener('mousedown', onMouseDown);
-                    window.removeEventListener('mousemove', onMouseMove);
-                    window.removeEventListener('mouseup', onMouseUp);
-                    renderer.domElement.removeEventListener('touchstart', onTouchStart);
-                    window.removeEventListener('touchmove', onTouchMove);
-                    window.removeEventListener('touchend', onTouchEnd);
-                    // 移除 canvas
-                    if (renderer.domElement.parentNode === cubeDot) {
-                        cubeDot.removeChild(renderer.domElement);
+                cleanupFunc = () => {
+                    cancelAnimationFrame(animId);
+                    renderer.domElement.removeEventListener('mousedown', onDown);
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onUp);
+                    renderer.domElement.removeEventListener('touchstart', onDown);
+                    window.removeEventListener('touchmove', onMove);
+                    window.removeEventListener('touchend', onUp);
+                    if (renderer.domElement.parentNode) {
+                        dot.removeChild(renderer.domElement);
                     }
                     renderer.dispose();
-                }
-
-                if (controls) controls.dispose();
-                if (scene) scene.clear();
-
-                renderer = null;
-                scene = null;
-                camera = null;
-                controls = null;
-                isDragging = false;
-                moved = false;
+                    controls.dispose();
+                    scene.clear();
+                    scene = camera = renderer = controls = null;
+                };
             }
 
-            // 拖拽/点击逻辑
-            function onMouseDown() { isDragging = true; moved = false; }
-            function onMouseMove() { if (isDragging) moved = true; }
-            function onMouseUp() {
-                if (isDragging && !moved) {
-                    window.location.href = 'about.html';
+            function destroyScene() {
+                if (cleanupFunc) {
+                    cleanupFunc();
+                    cleanupFunc = null;
                 }
-                isDragging = false;
+                // 移除可能的 transitionend 监听残留
+                dot.removeEventListener('transitionend', onTransitionEnd);
             }
 
-            function onTouchStart() { isDragging = true; moved = false; }
-            function onTouchMove() { if (isDragging) moved = true; }
-            function onTouchEnd() {
-                if (isDragging && !moved) {
-                    window.location.href = 'about.html';
-                }
-                isDragging = false;
-            }
-
-            // 绑定悬停事件
-            cubeDot.addEventListener('mouseenter', enterMagic);
-            cubeDot.addEventListener('mouseleave', leaveMagic);
+            dot.addEventListener('mouseenter', activate);
+            dot.addEventListener('mouseleave', deactivate);
         })();
     </script>
 </body>
