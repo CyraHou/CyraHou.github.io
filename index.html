@@ -131,9 +131,8 @@
             let scene, camera, renderer, controls, animId;
             let cleanupFunc = null;
 
-            // 拖拽标记（用于区分 click 和拖拽）
-            let isDragging = false;
-            let hasMoved = false;   // 在 mousedown 期间是否有移动
+            // 记录按下时的坐标，用于判断拖拽距离
+            let startX = 0, startY = 0;
 
             function activate() {
                 if (active || transitioning) return;
@@ -150,7 +149,6 @@
                 if (transitioning) return;
                 if (!active) return;
                 active = false;
-                // 确保无论如何都移除 CSS 类，避免白屏
                 dot.classList.remove('active');
                 container.classList.remove('magic-active');
                 destroyScene();
@@ -209,46 +207,35 @@
                 }
                 animate();
 
-                // 事件处理：使用 click 事件 + 拖拽标记
-                function onDown() {
-                    isDragging = true;
-                    hasMoved = false;
+                // --- 事件处理：用坐标距离区分拖拽与点击 ---
+                function recordStart(e) {
+                    const pos = e.touches ? e.touches[0] : e;
+                    startX = pos.clientX;
+                    startY = pos.clientY;
                 }
-                function onMove() {
-                    if (isDragging) hasMoved = true;
-                }
-                function onUp() {
-                    isDragging = false;
-                    // 延迟重置 hasMoved，因为 click 事件会在 mouseup 之后触发
-                    setTimeout(() => { hasMoved = false; }, 10);
-                }
-                function onClick(e) {
-                    e.stopPropagation();
-                    if (!hasMoved) {
+
+                function handleEnd(e) {
+                    const pos = e.changedTouches ? e.changedTouches[0] : e;
+                    const dx = pos.clientX - startX;
+                    const dy = pos.clientY - startY;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    // 移动距离小于 5px 才视为点击
+                    if (distance < 5) {
                         window.location.href = 'about.html';
                     }
-                    hasMoved = false; // 确保重置
                 }
 
-                renderer.domElement.addEventListener('mousedown', onDown);
-                renderer.domElement.addEventListener('mousemove', onMove);
-                renderer.domElement.addEventListener('mouseup', onUp);
-                renderer.domElement.addEventListener('click', onClick);
-
-                renderer.domElement.addEventListener('touchstart', onDown);
-                renderer.domElement.addEventListener('touchmove', onMove);
-                renderer.domElement.addEventListener('touchend', onUp);
-                renderer.domElement.addEventListener('click', onClick); // 移动端也会触发 click
+                renderer.domElement.addEventListener('mousedown', recordStart);
+                renderer.domElement.addEventListener('mouseup', handleEnd);
+                renderer.domElement.addEventListener('touchstart', recordStart, {passive: true});
+                renderer.domElement.addEventListener('touchend', handleEnd);
 
                 cleanupFunc = () => {
                     cancelAnimationFrame(animId);
-                    renderer.domElement.removeEventListener('mousedown', onDown);
-                    renderer.domElement.removeEventListener('mousemove', onMove);
-                    renderer.domElement.removeEventListener('mouseup', onUp);
-                    renderer.domElement.removeEventListener('click', onClick);
-                    renderer.domElement.removeEventListener('touchstart', onDown);
-                    renderer.domElement.removeEventListener('touchmove', onMove);
-                    renderer.domElement.removeEventListener('touchend', onUp);
+                    renderer.domElement.removeEventListener('mousedown', recordStart);
+                    renderer.domElement.removeEventListener('mouseup', handleEnd);
+                    renderer.domElement.removeEventListener('touchstart', recordStart);
+                    renderer.domElement.removeEventListener('touchend', handleEnd);
                     if (renderer.domElement.parentNode) {
                         dot.removeChild(renderer.domElement);
                     }
@@ -263,11 +250,7 @@
 
             function destroyScene() {
                 if (cleanupFunc) {
-                    try {
-                        cleanupFunc();
-                    } catch (e) {
-                        console.error('清理魔方场景时出错:', e);
-                    }
+                    try { cleanupFunc(); } catch (e) { console.error(e); }
                     cleanupFunc = null;
                 }
                 dot.removeEventListener('transitionend', onTransitionEnd);
