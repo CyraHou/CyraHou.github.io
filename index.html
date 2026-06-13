@@ -1,226 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cyra. HOU</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cyra. HOU</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .name-container {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-size: 80px;
-      transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: sans-serif; /* 后备字体 */
+        }
 
-    .cyra { font-family: 'Lobster', cursive; }
-    .hou { font-family: 'Climate Crisis', sans-serif; }
+        .name-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 80px;
+            user-select: none;
+        }
 
-    .letter, .dice-dot {
-      display: inline-block;
-      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
+        .cyra {
+            font-family: 'Lobster', cursive;
+        }
 
-    /* 核心：字母hover → 其他字母+黑点一起变淡 */
-    .name-container:hover .letter:not(:hover),
-    .name-container:hover .dice-dot {
-      opacity: 0.2;
-    }
+        .hou {
+            font-family: 'Climate Crisis', sans-serif;
+        }
 
-    .letter:hover {
-      transform: translateY(-16px);
-    }
+        .letter, .cube-dot {
+            display: inline-block;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
 
-    /* 黑点：悬浮放大 终于正常生效 */
-    .dice-dot {
-      width: 26px;
-      height: 26px;
-      background: #000;
-      border-radius: 50%;
-      cursor: pointer;
-      z-index: 15;
-    }
-    .dice-dot:hover {
-      transform: scale(1.3);
-    }
+        /* 核心悬停效果：容器内所有字母和魔方默认不透明，但当任意字母 hover 时，其余字母和魔方变淡 */
+        .name-container .letter,
+        .name-container .cube-dot {
+            opacity: 1;
+            transition: opacity 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
 
-    .name-container.fade {
-      opacity: 0;
-      pointer-events: none;
-    }
+        /* 当 .name-container 处于 hover 状态（鼠标在任意字母或魔方上）时，
+           所有未被 hover 的 .letter 和 .cube-dot 都变淡 */
+        .name-container:hover .letter:not(:hover),
+        .name-container:hover .cube-dot:not(:hover) {
+            opacity: 0.2;
+        }
 
-    /* 顶部导航 */
-    .top-nav {
-      position: fixed;
-      top: -80px;
-      left: 0;
-      width: 100%;
-      height: 70px;
-      background: rgba(255,255,255,0.96);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 42px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      transition: top 0.45s ease;
-      z-index: 100;
-    }
-    .top-nav.active { top: 0; }
-    .top-nav a {
-      text-decoration: none;
-      font-size: 18px;
-      color: #1a1a1a;
-      font-family: system-ui;
-    }
-    .top-nav a:hover { color: #444; }
+        /* 字母 hover 时向上跳跃 */
+        .letter:hover {
+            transform: translateY(-16px);
+        }
 
-    /* 3D圆角骰子 */
-    .dice-wrapper {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      width: 280px;
-      height: 280px;
-      perspective: 1200px;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.65s cubic-bezier(0.2, 1, 0.3, 1);
-      z-index: 200;
-    }
-    .dice-wrapper.active {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-      pointer-events: all;
-    }
+        /* 魔方容器样式，替代原来的黑点 */
+        .cube-dot {
+            width: 26px;
+            height: 26px;
+            /* 初始大小与原来黑点一致，内部 canvas 会撑大 */
+            cursor: grab;
+            z-index: 15;
+            position: relative;
+        }
 
-    .dice {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform 0.18s ease-out;
-    }
+        .cube-dot:active {
+            cursor: grabbing;
+        }
 
-    .dice-face {
-      position: absolute;
-      width: 280px;
-      height: 280px;
-      background: #fff;
-      border: 2.5px solid #000;
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      font-weight: 500;
-      cursor: pointer;
-      user-select: none;
-    }
+        /* 魔方 hover 时也稍微放大，保留原来感觉 */
+        .cube-dot:hover {
+            transform: scale(1.3);
+        }
 
-    .front  { transform: rotateY(0deg) translateZ(140px); }
-    .back   { transform: rotateY(180deg) translateZ(140px); }
-    .right  { transform: rotateY(90deg) translateZ(140px); }
-    .left   { transform: rotateY(-90deg) translateZ(140px); }
-    .top    { transform: rotateX(90deg) translateZ(140px); }
-    .bottom { transform: rotateX(-90deg) translateZ(140px); }
-  </style>
+        /* 顶部导航栏 */
+        .top-nav {
+            position: fixed;
+            top: -80px;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.96);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 42px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            transition: top 0.45s ease;
+            z-index: 100;
+        }
+
+        .top-nav.active {
+            top: 0;
+        }
+
+        .top-nav a {
+            text-decoration: none;
+            font-size: 18px;
+            color: #1a1a1a;
+            font-family: system-ui, sans-serif;
+            transition: color 0.2s;
+        }
+
+        .top-nav a:hover {
+            color: #444;
+        }
+    </style>
 </head>
-
 <body>
-  <!-- 顶部导航：真实页面跳转 -->
-  <div class="top-nav" id="topNav">
-    <a href="index.html">Home</a>
-    <a href="about.html">About Me</a>
-    <a href="portfolio.html">Portfolio</a>
-    <a href="resume.html">Resume</a>
-    <a href="experience.html">Experience</a>
-    <a href="contact.html">Contact</a>
-  </div>
-
-  <div class="name-container" id="nameContainer">
-    <div class="cyra">
-      <span class="letter">C</span>
-      <span class="letter">y</span>
-      <span class="letter">r</span>
-      <span class="letter">a</span>
+    <!-- 顶部导航 -->
+    <div class="top-nav" id="topNav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About me</a>
+        <a href="skills.html">Skills</a>
+        <a href="projects.html">Projects</a>
+        <a href="others.html">Others</a>
+        <a href="contact.html">Contact me</a>
     </div>
-    <div class="dice-dot" id="diceDot"></div>
-    <div class="hou">
-      <span class="letter">H</span>
-      <span class="letter">O</span>
-      <span class="letter">U</span>
+
+    <div class="name-container" id="nameContainer">
+        <div class="cyra">
+            <span class="letter">C</span>
+            <span class="letter">y</span>
+            <span class="letter">r</span>
+            <span class="letter">a</span>
+        </div>
+        <!-- 原来的黑点替换为魔方容器 -->
+        <div class="cube-dot" id="cubeDot"></div>
+        <div class="hou">
+            <span class="letter">H</span>
+            <span class="letter">O</span>
+            <span class="letter">U</span>
+        </div>
     </div>
-  </div>
 
-  <div class="dice-wrapper" id="diceWrapper">
-    <div class="dice" id="dice">
-      <div class="dice-face front" onclick="window.location.href='index.html'">Home</div>
-      <div class="dice-face back" onclick="window.location.href='contact.html'">Contact</div>
-      <div class="dice-face right" onclick="window.location.href='portfolio.html'">Portfolio</div>
-      <div class="dice-face left" onclick="window.location.href='about.html'">About Me</div>
-      <div class="dice-face top" onclick="window.location.href='resume.html'">Resume</div>
-      <div class="dice-face bottom" onclick="window.location.href='experience.html'">Experience</div>
-    </div>
-  </div>
+    <!-- 引入 Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
 
-  <script>
-    // 顶部导航停留不收回
-    const nav = document.getElementById('topNav');
-    let mouseInNav = false;
-    document.addEventListener('mousemove', e => {
-      if (e.clientY < 20) nav.classList.add('active');
-      else if (!mouseInNav) nav.classList.remove('active');
-    });
-    nav.addEventListener('mouseenter', () => mouseInNav = true);
-    nav.addEventListener('mouseleave', () => mouseInNav = false);
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // 点击圆点 → 名字消失 骰子出现
-    const nameBox = document.getElementById('nameContainer');
-    const dot = document.getElementById('diceDot');
-    const diceWrap = document.getElementById('diceWrapper');
+        // ---------- 导航栏逻辑（沿用你原来的方案） ----------
+        const nav = document.getElementById('topNav');
+        let mouseInNav = false;
 
-    dot.addEventListener('click', () => {
-      nameBox.classList.add('fade');
-      diceWrap.classList.add('active');
-    });
+        document.addEventListener('mousemove', (e) => {
+            if (e.clientY < 20) {
+                nav.classList.add('active');
+            } else if (!mouseInNav) {
+                nav.classList.remove('active');
+            }
+        });
 
-    // 鼠标丝滑跟随骰子旋转
-    let rx = 0, ry = 0;
-    document.addEventListener('mousemove', e => {
-      if (!diceWrap.classList.contains('active')) return;
-      ry = (e.clientX / innerWidth - 0.5) * 50;
-      rx = -(e.clientY / innerHeight - 0.5) * 50;
-      document.getElementById('dice').style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-    });
+        nav.addEventListener('mouseenter', () => { mouseInNav = true; });
+        nav.addEventListener('mouseleave', () => {
+            mouseInNav = false;
+            nav.classList.remove('active');
+        });
 
-    // 点击空白返回首页
-    document.addEventListener('click', e => {
-      if (!diceWrap.classList.contains('active')) return;
-      if (!e.target.closest('.dice')) {
-        diceWrap.classList.remove('active');
-        nameBox.classList.remove('fade');
-      }
-    });
-  </script>
+        // ---------- 3D 魔方 ----------
+        const cubeDot = document.getElementById('cubeDot');
+        
+        // 设置容器大小（让 canvas 完全填充）
+        cubeDot.style.width = '26px';
+        cubeDot.style.height = '26px';
+
+        const scene = new THREE.Scene();
+        scene.background = null; // 透明背景
+
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        camera.position.set(2.5, 2, 3.5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(26, 26);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        cubeDot.appendChild(renderer.domElement);
+
+        // 控制器：可拖拽旋转，不能缩放/平移
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableZoom = false;
+        controls.enablePan = false;
+        controls.rotateSpeed = 0.5;
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        // 灯光
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 7);
+        scene.add(directionalLight);
+
+        // 创建魔方（六个面不同颜色占位）
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const faceColors = [
+            0xFF6B6B, // 右 - 珊瑚红
+            0x4ECDC4, // 左 - 薄荷绿
+            0xFFD93D, // 上 - 明黄
+            0x6C5CE7, // 下 - 紫罗兰
+            0xFF8A5C, // 前 - 暖橙
+            0xA29BFE  // 后 - 浅紫
+        ];
+
+        const materials = faceColors.map(color => new THREE.MeshStandardMaterial({
+            color: color,
+            roughness: 0.3,
+            metalness: 0.1,
+            emissive: new THREE.Color(color).multiplyScalar(0.15)
+        }));
+
+        const cube = new THREE.Mesh(geometry, materials);
+        scene.add(cube);
+
+        // 添加黑色边框，更像魔方
+        const edgesGeometry = new THREE.EdgesGeometry(geometry);
+        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+        const wireframe = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+        cube.add(wireframe);
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 点击魔方跳转 About me（区分拖拽与点击）
+        let isDragging = false;
+        let mouseMoved = false;
+
+        renderer.domElement.addEventListener('mousedown', () => {
+            isDragging = true;
+            mouseMoved = false;
+        });
+
+        window.addEventListener('mousemove', () => {
+            if (isDragging) mouseMoved = true;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging && !mouseMoved) {
+                window.location.href = 'about.html';
+            }
+            isDragging = false;
+        });
+
+        // 触摸设备支持
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            mouseMoved = false;
+        });
+
+        window.addEventListener('touchmove', () => {
+            if (isDragging) mouseMoved = true;
+        });
+
+        window.addEventListener('touchend', () => {
+            if (isDragging && !mouseMoved) {
+                window.location.href = 'about.html';
+            }
+            isDragging = false;
+        });
+    </script>
 </body>
 </html>
