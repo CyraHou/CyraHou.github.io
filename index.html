@@ -122,19 +122,27 @@
                 if (active || transitioning) return;
                 transitioning = true;
                 active = true;
+
                 dot.classList.add('active');
                 container.classList.add('magic-active');
+                // 移除旧的 leave 监听，避免残留
                 dot.removeEventListener('mouseleave', deactivate);
                 dot.addEventListener('transitionend', onTransitionEnd, { once: true });
             }
 
             function deactivate() {
-                if (transitioning) return;
-                if (!active) return;
+                // 避免在过渡中或已经退出时重复操作
+                if (transitioning || !active) return;
                 active = false;
+
+                // 立即恢复字母可见，防止白屏
                 dot.classList.remove('active');
                 container.classList.remove('magic-active');
+
+                // 销毁 3D 场景
                 destroyScene();
+
+                // 重新绑定离开监听（为下一次进入做准备）
                 dot.addEventListener('mouseleave', deactivate);
             }
 
@@ -163,7 +171,6 @@
                 controls.autoRotate = true;
                 controls.autoRotateSpeed = 0.8;
                 controls.target.set(0,0,0);
-                // 禁用默认的双击重置行为，我们自己处理双击
                 controls.enableDblClick = false;
                 controls.update();
 
@@ -191,13 +198,12 @@
                 }
                 animate();
 
-                // --- 新交互：右键/双击跳转 ---
+                // 右键 / 双击跳转
                 function onContextMenu(e) {
-                    e.preventDefault();  // 阻止浏览器右键菜单
+                    e.preventDefault();
                     window.location.href = 'about.html';
                 }
-                function onDblClick(e) {
-                    // 双击跳转（移动端备选，桌面端也可用）
+                function onDblClick() {
                     window.location.href = 'about.html';
                 }
 
@@ -205,30 +211,38 @@
                 renderer.domElement.addEventListener('dblclick', onDblClick);
 
                 cleanupFunc = () => {
-                    cancelAnimationFrame(animId);
-                    renderer.domElement.removeEventListener('contextmenu', onContextMenu);
-                    renderer.domElement.removeEventListener('dblclick', onDblClick);
-                    if (renderer.domElement.parentNode) {
-                        dot.removeChild(renderer.domElement);
+                    try {
+                        cancelAnimationFrame(animId);
+                        renderer.domElement.removeEventListener('contextmenu', onContextMenu);
+                        renderer.domElement.removeEventListener('dblclick', onDblClick);
+                        if (renderer.domElement.parentNode) {
+                            dot.removeChild(renderer.domElement);
+                        }
+                        renderer.dispose();
+                        controls.dispose();
+                        scene.clear();
+                    } catch (e) {
+                        console.error('清理出错:', e);
+                    } finally {
+                        scene = camera = renderer = controls = null;
                     }
-                    renderer.dispose();
-                    controls.dispose();
-                    scene.clear();
-                    scene = camera = renderer = controls = null;
                 };
 
+                // 绑定离开监听
                 dot.addEventListener('mouseleave', deactivate);
             }
 
             function destroyScene() {
                 if (cleanupFunc) {
-                    try { cleanupFunc(); } catch (e) { console.error(e); }
+                    cleanupFunc();
                     cleanupFunc = null;
                 }
+                // 移除可能残留的 transitionend 监听
                 dot.removeEventListener('transitionend', onTransitionEnd);
-                dot.removeEventListener('mouseleave', deactivate);
+                // 确保离开监听绑定正常（deactivate 中会重新添加）
             }
 
+            // 初始绑定
             dot.addEventListener('mouseenter', activate);
             dot.addEventListener('mouseleave', deactivate);
         })();
