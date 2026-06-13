@@ -31,7 +31,7 @@
                         opacity 0.4s ease;
         }
 
-        /* 关键修正：只有鼠标悬停在 name-container 上时，未 hover 的字母才变淡 */
+        /* 鼠标悬停在名字容器上时，未悬停的字母变淡 */
         .name-container:not(.magic-active):hover .letter:not(:hover) {
             opacity: 0.2;
         }
@@ -50,6 +50,8 @@
             background: #000; border-radius: 50%;
             cursor: pointer; position: relative; z-index: 15;
             transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1);
+            /* 防止边缘闪烁：增加透明边框扩大感应区 */
+            box-shadow: 0 0 0 6px transparent;
         }
 
         .cube-dot.active {
@@ -59,6 +61,7 @@
             width: 50vmin; height: 50vmin;
             background: transparent; border-radius: 0;
             cursor: grab; z-index: 200;
+            box-shadow: 0 0 0 12px transparent; /* 同样扩大感应区 */
         }
         .cube-dot.active:active { cursor: grabbing; }
 
@@ -85,7 +88,7 @@
         }
         .top-nav a:hover { color: #444; }
 
-        /* 魔方激活时导航暂时隐藏 */
+        /* 魔方激活时导航隐藏 */
         .cube-dot.active ~ .top-nav { opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -130,33 +133,47 @@
             const dot = document.getElementById('cubeDot');
             const container = document.getElementById('nameContainer');
             let active = false;
+            let transitioning = false;      // 是否正在过渡（此时忽略 mouseleave）
             let scene, camera, renderer, controls, animId;
-            let isDragging = false, moved = false;
             let cleanupFunc = null;
 
+            // 点击/拖拽判定参数
+            let startX = 0, startY = 0, startTime = 0;
+
             function activate() {
-                if (active) return;
+                if (active || transitioning) return;
+                transitioning = true;
                 active = true;
+
                 dot.classList.add('active');
                 container.classList.add('magic-active');
-                // 监听容器放大结束，然后创建魔方
+
+                // 在过渡期间暂时移除 mouseleave 监听，防止闪烁
+                dot.removeEventListener('mouseleave', deactivate);
+
+                // 等待过渡完成后创建魔方，并恢复 mouseleave 监听
                 dot.addEventListener('transitionend', onTransitionEnd, { once: true });
             }
 
             function deactivate() {
+                if (transitioning) return; // 过渡中不允许关闭
                 if (!active) return;
                 active = false;
                 dot.classList.remove('active');
                 container.classList.remove('magic-active');
                 destroyScene();
+                // 重新绑定 mouseleave（为下一次做准备）
+                dot.addEventListener('mouseleave', deactivate);
             }
 
             function onTransitionEnd() {
-                if (!active) return; // 可能已经离开
+                transitioning = false;
+                if (!active) return; // 可能在过渡期间已经离开
+
                 const size = dot.clientWidth;
                 if (size === 0) return;
 
-                // 创建场景
+                // 创建 3D 场景
                 scene = new THREE.Scene();
                 scene.background = null;
                 camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
@@ -188,10 +205,10 @@
                     color: c, roughness: 0.3, metalness: 0.1,
                     emissive: new THREE.Color(c).multiplyScalar(0.15)
                 }));
-                const cube = new THREE.Mesh(geo, materials);
-                scene.add(cube);
+                const cubeMesh = new THREE.Mesh(geo, materials);
+                scene.add(cubeMesh);
                 const edges = new THREE.EdgesGeometry(geo);
-                cube.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0x000000})));
+                cubeMesh.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0x000000})));
 
                 function animate() {
                     if (!active) return;
@@ -201,30 +218,37 @@
                 }
                 animate();
 
-                // 事件：区分拖拽与点击
-                function onDown() { isDragging = true; moved = false; }
-                function onMove() { if (isDragging) moved = true; }
-                function onUp() {
-                    if (isDragging && !moved) {
+                // 事件处理：记录起始位置和时间，用于区分点击/拖拽
+                function onDown(e) {
+                    const pos = e.touches ? e.touches[0] : e;
+                    startX = pos.clientX;
+                    startY = pos.clientY;
+                    startTime = Date.now();
+                }
+                function onUp(e) {
+                    const pos = e.changedTouches ? e.changedTouches[0] : e;
+                    const dx = pos.clientX - startX;
+                    const dy = pos.clientY - startY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const dt = Date.now() - startTime;
+                    // 距离小于5px，时间小于400ms → 视为点击
+                    if (dist < 5 && dt < 400) {
                         window.location.href = 'about.html';
                     }
-                    isDragging = false;
                 }
-                renderer.domElement.addEventListener('mousedown', onDown);
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('mouseup', onUp);
-                renderer.domElement.addEventListener('touchstart', onDown);
-                window.addEventListener('touchmove', onMove);
-                window.addEventListener('touchend', onUp);
 
+                renderer.domElement.addEventListener('mousedown', onDown);
+                renderer.domElement.addEventListener('mouseup', onUp);
+                renderer.domElement.addEventListener('touchstart', onDown, {passive: true});
+                renderer.domElement.addEventListener('touchend', onUp);
+
+                // 清理函数
                 cleanupFunc = () => {
                     cancelAnimationFrame(animId);
                     renderer.domElement.removeEventListener('mousedown', onDown);
-                    window.removeEventListener('mousemove', onMove);
-                    window.removeEventListener('mouseup', onUp);
+                    renderer.domElement.removeEventListener('mouseup', onUp);
                     renderer.domElement.removeEventListener('touchstart', onDown);
-                    window.removeEventListener('touchmove', onMove);
-                    window.removeEventListener('touchend', onUp);
+                    renderer.domElement.removeEventListener('touchend', onUp);
                     if (renderer.domElement.parentNode) {
                         dot.removeChild(renderer.domElement);
                     }
@@ -233,6 +257,9 @@
                     scene.clear();
                     scene = camera = renderer = controls = null;
                 };
+
+                // 过渡完成后，现在可以安全绑定 mouseleave（允许鼠标离开关闭魔方）
+                dot.addEventListener('mouseleave', deactivate);
             }
 
             function destroyScene() {
@@ -240,10 +267,11 @@
                     cleanupFunc();
                     cleanupFunc = null;
                 }
-                // 移除可能的 transitionend 监听残留
                 dot.removeEventListener('transitionend', onTransitionEnd);
+                dot.removeEventListener('mouseleave', deactivate);
             }
 
+            // 初始绑定：鼠标进入黑点激活
             dot.addEventListener('mouseenter', activate);
             dot.addEventListener('mouseleave', deactivate);
         })();
