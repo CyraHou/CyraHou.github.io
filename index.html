@@ -42,19 +42,13 @@
             font-family: 'Climate Crisis', sans-serif;
         }
 
-        .letter, .cube-dot {
+        .letter {
             display: inline-block;
             transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* 悬停逻辑：容器 hover 时，所有未被 hover 的字母和魔方都变淡 */
-        .name-container .letter,
-        .name-container .cube-dot {
-            opacity: 1;
-        }
-
-        .name-container:hover .letter:not(:hover),
-        .name-container:hover .cube-dot:not(:hover) {
+        /* 字母悬停效果：只作用于字母本身 */
+        .name-container:hover .letter:not(:hover) {
             opacity: 0.2;
         }
 
@@ -62,27 +56,40 @@
             transform: translateY(-16px);
         }
 
-        /* 魔方容器 */
+        /* ---------- 黑点 / 魔方容器 ---------- */
         .cube-dot {
-            width: 30px;  /* 稍放大一点点，更好拖拽 */
-            height: 30px;
-            cursor: grab;
+            width: 26px;
+            height: 26px;
+            background: #000;
+            border-radius: 50%;
+            cursor: pointer;
             position: relative;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        border-radius 0.3s,
+                        background 0.3s;
+            z-index: 15;
         }
 
-        .cube-dot:active {
+        /* 悬停时放大，背景变透明，准备放魔方 */
+        .cube-dot.active {
+            transform: scale(3.2);          /* 约 83px 宽高，足够拖拽 */
+            background: transparent;
+            border-radius: 0;
+            cursor: grab;
+        }
+
+        .cube-dot.active:active {
             cursor: grabbing;
         }
 
-        .cube-dot:hover {
-            transform: scale(1.15);
-        }
-
+        /* 确保魔方 canvas 完全填充放大后的容器 */
         .cube-dot canvas {
             display: block;
+            width: 100%;
+            height: 100%;
         }
 
-        /* 顶部导航 */
+        /* ---------- 顶部导航 ---------- */
         .top-nav {
             position: fixed;
             top: -80px;
@@ -117,7 +124,7 @@
     </style>
 </head>
 <body>
-    <!-- 导航栏 -->
+    <!-- 顶部导航 -->
     <div class="top-nav" id="topNav">
         <a href="index.html">Home</a>
         <a href="about.html">About me</a>
@@ -127,7 +134,7 @@
         <a href="contact.html">Contact me</a>
     </div>
 
-    <!-- 名字 + 魔方 -->
+    <!-- 名字 + 黑点 -->
     <div class="name-container" id="nameContainer">
         <div class="cyra">
             <span class="letter">C</span>
@@ -135,6 +142,7 @@
             <span class="letter">r</span>
             <span class="letter">a</span>
         </div>
+        <!-- 黑点容器，初始为黑色圆点 -->
         <div class="cube-dot" id="cubeDot"></div>
         <div class="hou">
             <span class="letter">H</span>
@@ -143,12 +151,12 @@
         </div>
     </div>
 
-    <!-- 传统的 CDN 引入 Three.js 和 OrbitControls -->
+    <!-- Three.js 传统 CDN 引入 -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // 导航栏逻辑（你的原有逻辑，没变）
+        // ========== 1. 导航栏逻辑 ==========
         (function() {
             const nav = document.getElementById('topNav');
             let mouseInNav = false;
@@ -168,105 +176,172 @@
             });
         })();
 
-        // 3D 魔方（使用全局 THREE，不再需要 import）
+        // ========== 2. 黑点 → 魔方 交互 ==========
         (function() {
             const cubeDot = document.getElementById('cubeDot');
-            const width = 30, height = 30;
+            let cubeActive = false;        // 魔方是否正在显示
+            let animationId = null;
+            let renderer = null;
+            let scene = null;
+            let camera = null;
+            let controls = null;
+            let cube = null;
+            let isDragging = false;
+            let moved = false;
 
-            // 场景
-            const scene = new THREE.Scene();
-            scene.background = null;
+            // 鼠标进入黑点：显示魔方
+            cubeDot.addEventListener('mouseenter', function() {
+                if (cubeActive) return; // 已经显示就忽略
+                cubeActive = true;
+                cubeDot.classList.add('active');
 
-            // 相机
-            const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-            camera.position.set(2.2, 1.8, 3.2);
-            camera.lookAt(0, 0, 0);
+                // 创建 3D 场景
+                scene = new THREE.Scene();
+                scene.background = null;
 
-            // 渲染器
-            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(width, height);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            cubeDot.appendChild(renderer.domElement);
+                const size = cubeDot.clientWidth; // 取得放大后的实际尺寸（约 83px）
+                camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+                camera.position.set(2.2, 1.8, 3.2);
+                camera.lookAt(0, 0, 0);
 
-            // 控制器（拖拽旋转）
-            const controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableZoom = false;
-            controls.enablePan = false;
-            controls.rotateSpeed = 0.5;
-            controls.target.set(0, 0, 0);
-            controls.update();
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(size, size);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                cubeDot.appendChild(renderer.domElement);
 
-            // 灯光
-            scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(5, 10, 7);
-            scene.add(dirLight);
-
-            // 魔方几何体
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
-            const colors = [
-                0xFF6B6B, // 右
-                0x4ECDC4, // 左
-                0xFFD93D, // 上
-                0x6C5CE7, // 下
-                0xFF8A5C, // 前
-                0xA29BFE  // 后
-            ];
-            const materials = colors.map(c => new THREE.MeshStandardMaterial({
-                color: c,
-                roughness: 0.3,
-                metalness: 0.1,
-                emissive: new THREE.Color(c).multiplyScalar(0.15)
-            }));
-
-            const cube = new THREE.Mesh(geometry, materials);
-            scene.add(cube);
-
-            // 边框
-            const edges = new THREE.EdgesGeometry(geometry);
-            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-            cube.add(line);
-
-            // 动画循环
-            function animate() {
-                requestAnimationFrame(animate);
+                // 控制器（可拖拽旋转）
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableZoom = false;
+                controls.enablePan = false;
+                controls.rotateSpeed = 0.5;
+                controls.target.set(0, 0, 0);
+                controls.autoRotate = true;           // 自动缓慢旋转
+                controls.autoRotateSpeed = 0.8;       // 速度
                 controls.update();
-                renderer.render(scene, camera);
+
+                // 灯光
+                scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight.position.set(5, 10, 7);
+                scene.add(dirLight);
+
+                // 魔方几何体（六色占位）
+                const geometry = new THREE.BoxGeometry(1, 1, 1);
+                const colors = [
+                    0xFF6B6B, 0x4ECDC4, 0xFFD93D,
+                    0x6C5CE7, 0xFF8A5C, 0xA29BFE
+                ];
+                const materials = colors.map(c => new THREE.MeshStandardMaterial({
+                    color: c,
+                    roughness: 0.3,
+                    metalness: 0.1,
+                    emissive: new THREE.Color(c).multiplyScalar(0.15)
+                }));
+                cube = new THREE.Mesh(geometry, materials);
+                scene.add(cube);
+
+                // 黑色边框
+                const edges = new THREE.EdgesGeometry(geometry);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+                cube.add(line);
+
+                // 动画循环
+                function animate() {
+                    animationId = requestAnimationFrame(animate);
+                    controls.update();
+                    renderer.render(scene, camera);
+                }
+                animate();
+
+                // 监听拖拽与点击
+                renderer.domElement.addEventListener('mousedown', onMouseDown);
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+                // 触摸支持
+                renderer.domElement.addEventListener('touchstart', onTouchStart);
+                window.addEventListener('touchmove', onTouchMove);
+                window.addEventListener('touchend', onTouchEnd);
+            });
+
+            // 鼠标离开黑点区域：魔方消失，恢复黑点
+            cubeDot.addEventListener('mouseleave', function() {
+                if (!cubeActive) return;
+                cleanup();
+            });
+
+            // 清理所有 3D 资源与事件
+            function cleanup() {
+                if (!cubeActive) return;
+                cubeActive = false;
+                cubeDot.classList.remove('active');
+
+                // 停止动画
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+
+                // 移除事件监听
+                if (renderer) {
+                    renderer.domElement.removeEventListener('mousedown', onMouseDown);
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseup', onMouseUp);
+                    renderer.domElement.removeEventListener('touchstart', onTouchStart);
+                    window.removeEventListener('touchmove', onTouchMove);
+                    window.removeEventListener('touchend', onTouchEnd);
+                    // 移除 canvas
+                    if (renderer.domElement.parentNode === cubeDot) {
+                        cubeDot.removeChild(renderer.domElement);
+                    }
+                    renderer.dispose();
+                }
+
+                // 释放 Three.js 对象
+                if (controls) {
+                    controls.dispose();
+                }
+                if (scene) {
+                    scene.clear();
+                }
+
+                renderer = null;
+                scene = null;
+                camera = null;
+                controls = null;
+                cube = null;
+                isDragging = false;
+                moved = false;
             }
-            animate();
 
-            // 点击跳转（区分拖拽与点击）
-            let isDragging = false,
-                moved = false;
-
-            renderer.domElement.addEventListener('mousedown', function() {
+            // 拖拽/点击逻辑
+            function onMouseDown() {
                 isDragging = true;
                 moved = false;
-            });
-            window.addEventListener('mousemove', function() {
+            }
+            function onMouseMove() {
                 if (isDragging) moved = true;
-            });
-            window.addEventListener('mouseup', function() {
+            }
+            function onMouseUp() {
+                if (isDragging && !moved) {
+                    // 点击（非拖拽）→ 跳转
+                    window.location.href = 'about.html';
+                }
+                isDragging = false;
+            }
+
+            function onTouchStart(e) {
+                isDragging = true;
+                moved = false;
+            }
+            function onTouchMove(e) {
+                if (isDragging) moved = true;
+            }
+            function onTouchEnd(e) {
                 if (isDragging && !moved) {
                     window.location.href = 'about.html';
                 }
                 isDragging = false;
-            });
-
-            // 触摸支持
-            renderer.domElement.addEventListener('touchstart', function(e) {
-                isDragging = true;
-                moved = false;
-            });
-            window.addEventListener('touchmove', function() {
-                if (isDragging) moved = true;
-            });
-            window.addEventListener('touchend', function() {
-                if (isDragging && !moved) {
-                    window.location.href = 'about.html';
-                }
-                isDragging = false;
-            });
+            }
         })();
     </script>
 </body>
