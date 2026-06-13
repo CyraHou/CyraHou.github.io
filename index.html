@@ -32,6 +32,7 @@
             gap: 14px;
             font-size: 80px;
             user-select: none;
+            transition: gap 0.5s ease;
         }
 
         .cyra {
@@ -44,16 +45,23 @@
 
         .letter {
             display: inline-block;
-            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        opacity 0.4s ease;
         }
 
-        /* 字母悬停效果：只作用于字母本身 */
-        .name-container:hover .letter:not(:hover) {
+        /* 字母悬停效果（仅当魔方未激活时有效） */
+        .name-container:not(.magic-active) .letter:not(:hover) {
             opacity: 0.2;
         }
 
-        .letter:hover {
+        .name-container:not(.magic-active) .letter:hover {
             transform: translateY(-16px);
+        }
+
+        /* 当魔方激活时，字母完全消失 */
+        .name-container.magic-active .letter {
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* ---------- 黑点 / 魔方容器 ---------- */
@@ -64,25 +72,29 @@
             border-radius: 50%;
             cursor: pointer;
             position: relative;
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        border-radius 0.3s,
-                        background 0.3s;
             z-index: 15;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* 悬停时放大，背景变透明，准备放魔方 */
+        /* 激活状态：固定居中、放大为屏幕短边的一半 */
         .cube-dot.active {
-            transform: scale(3.2);          /* 约 83px 宽高，足够拖拽 */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50vmin;
+            height: 50vmin;
             background: transparent;
             border-radius: 0;
             cursor: grab;
+            z-index: 200;
         }
 
         .cube-dot.active:active {
             cursor: grabbing;
         }
 
-        /* 确保魔方 canvas 完全填充放大后的容器 */
+        /* 魔方 canvas 自动填充容器 */
         .cube-dot canvas {
             display: block;
             width: 100%;
@@ -121,6 +133,13 @@
         .top-nav a:hover {
             color: #444;
         }
+
+        /* 魔方激活时隐藏导航栏（避免干扰） */
+        .magic-active ~ .top-nav,
+        body:has(.cube-dot.active) .top-nav {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -142,7 +161,7 @@
             <span class="letter">r</span>
             <span class="letter">a</span>
         </div>
-        <!-- 黑点容器，初始为黑色圆点 -->
+        <!-- 黑点容器 -->
         <div class="cube-dot" id="cubeDot"></div>
         <div class="hou">
             <span class="letter">H</span>
@@ -151,7 +170,7 @@
         </div>
     </div>
 
-    <!-- Three.js 传统 CDN 引入 -->
+    <!-- Three.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -176,31 +195,53 @@
             });
         })();
 
-        // ========== 2. 黑点 → 魔方 交互 ==========
+        // ========== 2. 黑点 → 魔方（居中放大版） ==========
         (function() {
             const cubeDot = document.getElementById('cubeDot');
-            let cubeActive = false;        // 魔方是否正在显示
+            const nameContainer = document.getElementById('nameContainer');
+            let cubeActive = false;
             let animationId = null;
             let renderer = null;
             let scene = null;
             let camera = null;
             let controls = null;
-            let cube = null;
             let isDragging = false;
             let moved = false;
 
-            // 鼠标进入黑点：显示魔方
-            cubeDot.addEventListener('mouseenter', function() {
-                if (cubeActive) return; // 已经显示就忽略
+            function enterMagic() {
+                if (cubeActive) return;
                 cubeActive = true;
-                cubeDot.classList.add('active');
 
-                // 创建 3D 场景
+                // 添加激活类：字母消失、黑点居中放大
+                cubeDot.classList.add('active');
+                nameContainer.classList.add('magic-active');
+
+                // 等待 CSS 过渡完成后创建魔方（过渡时间 0.6s，稍等一会儿）
+                setTimeout(createCubeScene, 100);
+            }
+
+            function leaveMagic() {
+                if (!cubeActive) return;
+                cubeActive = false;
+
+                // 移除激活类
+                cubeDot.classList.remove('active');
+                nameContainer.classList.remove('magic-active');
+
+                // 销毁魔方
+                destroyCubeScene();
+            }
+
+            function createCubeScene() {
+                if (!cubeActive) return; // 可能在 setTimeout 期间已经离开
+
+                const size = cubeDot.clientWidth; // 应该是 50vmin 的实际像素值
+                if (size === 0) return;
+
                 scene = new THREE.Scene();
                 scene.background = null;
 
-                const size = cubeDot.clientWidth; // 取得放大后的实际尺寸（约 83px）
-                camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+                camera = new THREE.PerspectiveCamera(45, size / size, 0.1, 100);
                 camera.position.set(2.2, 1.8, 3.2);
                 camera.lookAt(0, 0, 0);
 
@@ -209,14 +250,14 @@
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                 cubeDot.appendChild(renderer.domElement);
 
-                // 控制器（可拖拽旋转）
+                // 控制器（可拖拽 + 自动旋转）
                 controls = new THREE.OrbitControls(camera, renderer.domElement);
                 controls.enableZoom = false;
                 controls.enablePan = false;
                 controls.rotateSpeed = 0.5;
                 controls.target.set(0, 0, 0);
-                controls.autoRotate = true;           // 自动缓慢旋转
-                controls.autoRotateSpeed = 0.8;       // 速度
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 0.8; // 缓慢自转
                 controls.update();
 
                 // 灯光
@@ -225,7 +266,7 @@
                 dirLight.position.set(5, 10, 7);
                 scene.add(dirLight);
 
-                // 魔方几何体（六色占位）
+                // 魔方（六色）
                 const geometry = new THREE.BoxGeometry(1, 1, 1);
                 const colors = [
                     0xFF6B6B, 0x4ECDC4, 0xFFD93D,
@@ -237,7 +278,7 @@
                     metalness: 0.1,
                     emissive: new THREE.Color(c).multiplyScalar(0.15)
                 }));
-                cube = new THREE.Mesh(geometry, materials);
+                const cube = new THREE.Mesh(geometry, materials);
                 scene.add(cube);
 
                 // 黑色边框
@@ -247,6 +288,7 @@
 
                 // 动画循环
                 function animate() {
+                    if (!cubeActive) return;
                     animationId = requestAnimationFrame(animate);
                     controls.update();
                     renderer.render(scene, camera);
@@ -257,24 +299,12 @@
                 renderer.domElement.addEventListener('mousedown', onMouseDown);
                 window.addEventListener('mousemove', onMouseMove);
                 window.addEventListener('mouseup', onMouseUp);
-                // 触摸支持
                 renderer.domElement.addEventListener('touchstart', onTouchStart);
                 window.addEventListener('touchmove', onTouchMove);
                 window.addEventListener('touchend', onTouchEnd);
-            });
+            }
 
-            // 鼠标离开黑点区域：魔方消失，恢复黑点
-            cubeDot.addEventListener('mouseleave', function() {
-                if (!cubeActive) return;
-                cleanup();
-            });
-
-            // 清理所有 3D 资源与事件
-            function cleanup() {
-                if (!cubeActive) return;
-                cubeActive = false;
-                cubeDot.classList.remove('active');
-
+            function destroyCubeScene() {
                 // 停止动画
                 if (animationId) {
                     cancelAnimationFrame(animationId);
@@ -296,52 +326,39 @@
                     renderer.dispose();
                 }
 
-                // 释放 Three.js 对象
-                if (controls) {
-                    controls.dispose();
-                }
-                if (scene) {
-                    scene.clear();
-                }
+                if (controls) controls.dispose();
+                if (scene) scene.clear();
 
                 renderer = null;
                 scene = null;
                 camera = null;
                 controls = null;
-                cube = null;
                 isDragging = false;
                 moved = false;
             }
 
             // 拖拽/点击逻辑
-            function onMouseDown() {
-                isDragging = true;
-                moved = false;
-            }
-            function onMouseMove() {
-                if (isDragging) moved = true;
-            }
+            function onMouseDown() { isDragging = true; moved = false; }
+            function onMouseMove() { if (isDragging) moved = true; }
             function onMouseUp() {
                 if (isDragging && !moved) {
-                    // 点击（非拖拽）→ 跳转
                     window.location.href = 'about.html';
                 }
                 isDragging = false;
             }
 
-            function onTouchStart(e) {
-                isDragging = true;
-                moved = false;
-            }
-            function onTouchMove(e) {
-                if (isDragging) moved = true;
-            }
-            function onTouchEnd(e) {
+            function onTouchStart() { isDragging = true; moved = false; }
+            function onTouchMove() { if (isDragging) moved = true; }
+            function onTouchEnd() {
                 if (isDragging && !moved) {
                     window.location.href = 'about.html';
                 }
                 isDragging = false;
             }
+
+            // 绑定悬停事件
+            cubeDot.addEventListener('mouseenter', enterMagic);
+            cubeDot.addEventListener('mouseleave', leaveMagic);
         })();
     </script>
 </body>
