@@ -10,22 +10,80 @@
     <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
+
         body {
             width: 100vw; height: 100vh; overflow: hidden;
             background: #ffffff;
+            font-family: sans-serif;
+        }
+
+        /* ========== 开场动画覆盖层 ========== */
+        #introOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            z-index: 1000;
             display: flex; align-items: center; justify-content: center;
         }
+
+        .skip-btn {
+            position: absolute; top: 20px; right: 30px;
+            font-size: 16px; color: #aaa; cursor: pointer;
+            z-index: 1100; user-select: none;
+            transition: color 0.2s;
+        }
+        .skip-btn:hover { color: #333; }
+
+        .door-line {
+            position: absolute;
+            width: 1px; height: 0;
+            background: #000;
+            left: 50%; top: 50%; transform: translate(-50%, -50%);
+            transition: height 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .peek-group {
+            position: absolute;
+            left: 50%; top: 50%;
+            transform: translate(-50%, -100%);
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .peek-letter {
+            font-family: 'Lobster', cursive;
+            font-size: 80px;
+            line-height: 1;
+            color: #1a1a1a;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s;
+            transform: translateY(30px);
+            opacity: 0;
+        }
+
+        /* 最终首页容器（初始隐藏） */
+        #mainContent {
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex; align-items: center; justify-content: center;
+            height: 100%;
+        }
+        #mainContent.visible { opacity: 1; }
+
         .name-container {
             display: flex; align-items: center; gap: 14px;
             font-size: 80px; user-select: none;
         }
+
         .cyra { font-family: 'Lobster', cursive; }
         .hou  { font-family: 'Climate Crisis', sans-serif; }
+
         .letter {
             display: inline-block;
             transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1),
                         opacity 0.4s ease;
+            cursor: pointer; /* 字母可点击 */
         }
+
         .name-container:not(.magic-active):hover .letter:not(:hover) {
             opacity: 0.2;
         }
@@ -35,6 +93,7 @@
         .name-container.magic-active .letter {
             opacity: 0; pointer-events: none;
         }
+
         .cube-dot {
             width: 26px; height: 26px;
             background: #000; border-radius: 50%;
@@ -53,6 +112,7 @@
         }
         .cube-dot.active:active { cursor: grabbing; }
         .cube-dot canvas { display: block; width: 100%; height: 100%; }
+
         .top-nav {
             position: fixed; top: -80px; left: 0;
             width: 100%; height: 70px;
@@ -74,22 +134,37 @@
     </style>
 </head>
 <body>
-    <div class="top-nav" id="topNav">
-        <a href="index.html">Home</a>
-        <a href="about.html">About me</a>
-        <a href="skills.html">Skills</a>
-        <a href="projects.html">Projects</a>
-        <a href="others.html">Others</a>
-        <a href="contact.html">Contact me</a>
+    <!-- 开场动画层 -->
+    <div id="introOverlay">
+        <div class="skip-btn" id="skipBtn">skip</div>
+        <div class="door-line" id="doorLine"></div>
+        <div class="peek-group" id="peekGroup">
+            <span class="peek-letter" id="peekC">c</span>
+            <span class="peek-letter" id="peekY">y</span>
+            <span class="peek-letter" id="peekR">r</span>
+            <span class="peek-letter" id="peekA">a</span>
+        </div>
     </div>
 
-    <div class="name-container" id="nameContainer">
-        <div class="cyra">
-            <span class="letter">C</span><span class="letter">y</span><span class="letter">r</span><span class="letter">a</span>
+    <!-- 主内容区（隐藏） -->
+    <div id="mainContent">
+        <div class="top-nav" id="topNav">
+            <a href="index.html">Home</a>
+            <a href="about.html">About me</a>
+            <a href="work-experience.html">Work Experience</a>
+            <a href="portfolio.html">Portfolio</a>
+            <a href="others.html">Others</a>
+            <a href="contact.html">Contact me</a>
         </div>
-        <div class="cube-dot" id="cubeDot"></div>
-        <div class="hou">
-            <span class="letter">H</span><span class="letter">O</span><span class="letter">U</span>
+
+        <div class="name-container" id="nameContainer">
+            <div class="cyra" id="cyraGroup">
+                <span class="letter">C</span><span class="letter">y</span><span class="letter">r</span><span class="letter">a</span>
+            </div>
+            <div class="cube-dot" id="cubeDot"></div>
+            <div class="hou" id="houGroup">
+                <span class="letter">H</span><span class="letter">O</span><span class="letter">U</span>
+            </div>
         </div>
     </div>
 
@@ -97,22 +172,96 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // 导航栏
-        (function(){
-            const nav = document.getElementById('topNav');
-            let mouseInNav = false;
-            document.addEventListener('mousemove', e => {
-                if (e.clientY < 20) nav.classList.add('active');
-                else if (!mouseInNav) nav.classList.remove('active');
-            });
-            nav.addEventListener('mouseenter', () => mouseInNav = true);
-            nav.addEventListener('mouseleave', () => { mouseInNav = false; nav.classList.remove('active'); });
+        // ---------- 开场动画逻辑 ----------
+        (function() {
+            const overlay = document.getElementById('introOverlay');
+            const skipBtn = document.getElementById('skipBtn');
+            const doorLine = document.getElementById('doorLine');
+            const peekGroup = document.getElementById('peekGroup');
+            const peekLetters = {
+                c: document.getElementById('peekC'),
+                y: document.getElementById('peekY'),
+                r: document.getElementById('peekR'),
+                a: document.getElementById('peekA')
+            };
+            const mainContent = document.getElementById('mainContent');
+            let animationTimer = null;
+
+            function endIntro() {
+                if (animationTimer) clearTimeout(animationTimer);
+                overlay.style.display = 'none';
+                mainContent.classList.add('visible');
+                initCubeInteraction();
+                initLetterClick();
+            }
+
+            skipBtn.addEventListener('click', endIntro);
+
+            function startAnimation() {
+                doorLine.style.height = '80px';
+                setTimeout(() => {
+                    doorLine.style.opacity = '0';
+                    peekGroup.style.opacity = '1';
+
+                    const order = ['c','y','r','a'];
+                    let delay = 0;
+                    order.forEach((char, i) => {
+                        setTimeout(() => {
+                            peekLetters[char].style.transform = 'translateY(0)';
+                            peekLetters[char].style.opacity = '1';
+                            setTimeout(() => {
+                                peekLetters[char].style.transform = 'translateY(-40px)';
+                            }, 150);
+                        }, delay);
+                        delay += 400;
+                    });
+
+                    setTimeout(() => {
+                        peekGroup.style.display = 'none';
+                        mainContent.classList.add('visible');
+                        const cubeDot = document.getElementById('cubeDot');
+                        cubeDot.style.transition = 'all 0.8s cubic-bezier(0.34,1.56,0.64,1)';
+                        cubeDot.style.width = '40px';
+                        cubeDot.style.height = '40px';
+                        cubeDot.style.margin = '0 10px';
+                        setTimeout(() => {
+                            cubeDot.style.width = '26px';
+                            cubeDot.style.height = '26px';
+                            cubeDot.style.margin = '0';
+                        }, 300);
+                        setTimeout(() => {
+                            initCubeInteraction();
+                            initLetterClick();
+                        }, 1200);
+                    }, delay + 600);
+                }, 600);
+            }
+
+            startAnimation();
+            window.endIntro = endIntro;
         })();
 
-        // 黑点 → 魔方
-        (function(){
+        // ---------- 字母点击跳转 About me ----------
+        function initLetterClick() {
+            const letters = document.querySelectorAll('.letter');
+            letters.forEach(letter => {
+                letter.removeEventListener('click', letterClickHandler);
+                letter.addEventListener('click', letterClickHandler);
+            });
+        }
+
+        function letterClickHandler(e) {
+            e.stopPropagation();
+            window.location.href = 'about.html';
+        }
+
+        // ---------- 魔方交互（右键/双击跳转 Portfolio） ----------
+        function initCubeInteraction() {
             const dot = document.getElementById('cubeDot');
             const container = document.getElementById('nameContainer');
+            if (dot.dataset.initialized === 'true') return;
+            dot.dataset.initialized = 'true';
+
             let active = false;
             let transitioning = false;
             let scene, camera, renderer, controls, animId;
@@ -122,27 +271,18 @@
                 if (active || transitioning) return;
                 transitioning = true;
                 active = true;
-
                 dot.classList.add('active');
                 container.classList.add('magic-active');
-                // 移除旧的 leave 监听，避免残留
                 dot.removeEventListener('mouseleave', deactivate);
                 dot.addEventListener('transitionend', onTransitionEnd, { once: true });
             }
 
             function deactivate() {
-                // 避免在过渡中或已经退出时重复操作
                 if (transitioning || !active) return;
                 active = false;
-
-                // 立即恢复字母可见，防止白屏
                 dot.classList.remove('active');
                 container.classList.remove('magic-active');
-
-                // 销毁 3D 场景
                 destroyScene();
-
-                // 重新绑定离开监听（为下一次进入做准备）
                 dot.addEventListener('mouseleave', deactivate);
             }
 
@@ -152,13 +292,11 @@
                 const size = dot.clientWidth;
                 if (size === 0) return;
 
-                // 3D 场景
                 scene = new THREE.Scene();
                 scene.background = null;
                 camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
                 camera.position.set(2.2, 1.8, 3.2);
                 camera.lookAt(0,0,0);
-
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(size, size);
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -171,7 +309,7 @@
                 controls.autoRotate = true;
                 controls.autoRotateSpeed = 0.8;
                 controls.target.set(0,0,0);
-                controls.enableDblClick = false;
+                controls.enableDblClick = false; // 禁用默认双击
                 controls.update();
 
                 const ambient = new THREE.AmbientLight(0xffffff, 0.9);
@@ -198,13 +336,14 @@
                 }
                 animate();
 
-                // 右键 / 双击跳转
+                // 右键跳转 Portfolio
                 function onContextMenu(e) {
                     e.preventDefault();
-                    window.location.href = 'about.html';
+                    window.location.href = 'portfolio.html';
                 }
+                // 双击跳转 Portfolio（移动端备选）
                 function onDblClick() {
-                    window.location.href = 'about.html';
+                    window.location.href = 'portfolio.html';
                 }
 
                 renderer.domElement.addEventListener('contextmenu', onContextMenu);
@@ -215,36 +354,37 @@
                         cancelAnimationFrame(animId);
                         renderer.domElement.removeEventListener('contextmenu', onContextMenu);
                         renderer.domElement.removeEventListener('dblclick', onDblClick);
-                        if (renderer.domElement.parentNode) {
-                            dot.removeChild(renderer.domElement);
-                        }
+                        if (renderer.domElement.parentNode) dot.removeChild(renderer.domElement);
                         renderer.dispose();
                         controls.dispose();
                         scene.clear();
-                    } catch (e) {
-                        console.error('清理出错:', e);
-                    } finally {
+                    } catch(e) {} finally {
                         scene = camera = renderer = controls = null;
                     }
                 };
-
-                // 绑定离开监听
                 dot.addEventListener('mouseleave', deactivate);
             }
 
             function destroyScene() {
-                if (cleanupFunc) {
-                    cleanupFunc();
-                    cleanupFunc = null;
-                }
-                // 移除可能残留的 transitionend 监听
+                if (cleanupFunc) { cleanupFunc(); cleanupFunc = null; }
                 dot.removeEventListener('transitionend', onTransitionEnd);
-                // 确保离开监听绑定正常（deactivate 中会重新添加）
+                dot.removeEventListener('mouseleave', deactivate);
             }
 
-            // 初始绑定
             dot.addEventListener('mouseenter', activate);
             dot.addEventListener('mouseleave', deactivate);
+        }
+
+        // 导航栏逻辑
+        (function(){
+            const nav = document.getElementById('topNav');
+            let mouseInNav = false;
+            document.addEventListener('mousemove', e => {
+                if (e.clientY < 20) nav.classList.add('active');
+                else if (!mouseInNav) nav.classList.remove('active');
+            });
+            nav.addEventListener('mouseenter', () => mouseInNav = true);
+            nav.addEventListener('mouseleave', () => { mouseInNav = false; nav.classList.remove('active'); });
         })();
     </script>
 </body>
