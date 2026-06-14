@@ -17,7 +17,7 @@
             font-family: sans-serif;
         }
 
-        /* ========== 开场动画覆盖层 ========== */
+        /* 开场动画覆盖层 */
         #introOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #ffffff;
@@ -32,7 +32,6 @@
         }
         .skip-btn:hover { color: #333; }
 
-        /* 门线：右侧竖线，从无到有延伸，时间1s */
         .door-line {
             position: absolute;
             left: 75%;
@@ -45,7 +44,6 @@
             z-index: 20;
         }
 
-        /* 门右侧白色遮罩，遮挡字母右半部分 */
         .door-mask {
             position: absolute;
             left: 75%;
@@ -56,7 +54,6 @@
             z-index: 15;
         }
 
-        /* 动画元素容器 */
         .anim-letters {
             position: absolute;
             top: 0; left: 0;
@@ -78,7 +75,6 @@
         .cyra-font { font-family: 'Lobster', cursive; }
         .hou-font  { font-family: 'Climate Crisis', sans-serif; }
 
-        /* 黑点动画元素 */
         .anim-dot {
             position: absolute;
             width: 26px; height: 26px;
@@ -90,7 +86,7 @@
                         transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* ========== 主内容区（动画时占位隐藏，但不影响布局） ========== */
+        /* 主内容区 */
         #mainContent {
             visibility: hidden;
             display: flex; align-items: center; justify-content: center;
@@ -166,7 +162,6 @@
     </style>
 </head>
 <body>
-    <!-- 开场动画层 -->
     <div id="introOverlay">
         <div class="skip-btn" id="skipBtn">skip</div>
         <div class="door-line" id="doorLine"></div>
@@ -174,7 +169,6 @@
         <div class="anim-letters" id="animLetters"></div>
     </div>
 
-    <!-- 主内容区（占位隐藏） -->
     <div id="mainContent">
         <div class="top-nav" id="topNav">
             <a href="index.html">Home</a>
@@ -200,7 +194,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // ========== 辅助函数：获取元素在页面中的坐标 ==========
+        // 获取元素中心坐标
         function getElementCenter(el) {
             const rect = el.getBoundingClientRect();
             return {
@@ -209,7 +203,7 @@
             };
         }
 
-        // ========== 开场动画逻辑（方案B） ==========
+        // 开场动画
         (function() {
             const overlay = document.getElementById('introOverlay');
             const skipBtn = document.getElementById('skipBtn');
@@ -218,11 +212,10 @@
             const animContainer = document.getElementById('animLetters');
             const mainContent = document.getElementById('mainContent');
 
-            // 主内容字母和黑点的 B 坐标（存储为相对视口中心的偏移，便于动画计算）
             let bPositions = {};
+            let commonY = 0;
 
             function captureBPositions() {
-                // 主内容必须可见且占据布局（当前 visibility:hidden，不影响尺寸和位置）
                 const cyraLetters = [
                     document.getElementById('letterC'),
                     document.getElementById('letterY'),
@@ -236,22 +229,24 @@
                 ];
                 const cubeDot = document.getElementById('cubeDot');
 
+                const cCenter = getElementCenter(cyraLetters[0]);
+                commonY = cCenter.y;
+
                 cyraLetters.forEach((el, i) => {
                     const center = getElementCenter(el);
-                    bPositions[`cyra${i}`] = { x: center.x, y: center.y };
+                    bPositions[`cyra${i}`] = { x: center.x, y: commonY };
                 });
                 houLetters.forEach((el, i) => {
                     const center = getElementCenter(el);
-                    bPositions[`hou${i}`] = { x: center.x, y: center.y };
+                    bPositions[`hou${i}`] = { x: center.x, y: commonY };
                 });
+
                 const dotCenter = getElementCenter(cubeDot);
-                bPositions.dot = { x: dotCenter.x, y: dotCenter.y };
+                bPositions.dot = { x: dotCenter.x, y: commonY };
             }
 
-            // 跳过动画
             function endIntro() {
                 if (introTimer) clearTimeout(introTimer);
-                // 移除动画元素
                 animContainer.innerHTML = '';
                 overlay.style.display = 'none';
                 mainContent.classList.add('visible');
@@ -264,15 +259,10 @@
             let introTimer = null;
 
             function startAnimation() {
-                // 先捕获 B 坐标（主内容已占位但不可见）
                 captureBPositions();
-
-                // 阶段1：竖线延伸，高度320px，时间1s
                 doorLine.style.height = '320px';
 
-                // 等待竖线动画完成（1s + 少量偏移）
                 setTimeout(() => {
-                    // 创建动画字母和黑点
                     const cyraData = [
                         { char: 'c', font: 'cyra-font', id: 'cyra0' },
                         { char: 'y', font: 'cyra-font', id: 'cyra1' },
@@ -287,16 +277,14 @@
 
                     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-                    // 创建 cyra 字母元素，初始在门右侧（遮罩下）
+                    // cyra 探头位置从下往上：c在最下，a在最上
                     const cyraEls = cyraData.map((data, i) => {
                         const el = document.createElement('span');
                         el.className = `anim-letter ${data.font}`;
                         el.textContent = data.char;
-                        // 竖向排列，基于门中心
-                        const top = `calc(50% + ${(i - 1.5) * 80}px)`;
-                        el.style.top = top;
+                        const offset = (1.5 - i) * 80; // i=0 -> +120最下, i=3 -> -120最上
+                        el.style.top = `calc(50% + ${offset}px)`;
                         el.style.left = '75%';
-                        // 初始完全在右侧，被遮罩挡住
                         el.style.transform = 'translateX(30px)';
                         el.style.opacity = '0';
                         el.dataset.id = data.id;
@@ -304,14 +292,12 @@
                         return el;
                     });
 
-                    // 创建 HOU 字母元素，横向排列，初始在门右侧
+                    // HOU 横向排列
                     const houEls = houData.map((data, i) => {
                         const el = document.createElement('span');
                         el.className = `anim-letter ${data.font}`;
                         el.textContent = data.char;
-                        // 横向排列，y 位置固定为门中心附近，x 偏移避免重叠
-                        const top = `calc(50% - 40px)`; // 一行
-                        el.style.top = top;
+                        el.style.top = 'calc(50% - 40px)';
                         el.style.left = '75%';
                         el.style.transform = `translateX(${30 + i * 50}px)`;
                         el.style.opacity = '0';
@@ -320,7 +306,7 @@
                         return el;
                     });
 
-                    // 创建黑点动画元素
+                    // 黑点
                     const dotEl = document.createElement('div');
                     dotEl.className = 'anim-dot';
                     dotEl.style.top = '50%';
@@ -328,12 +314,10 @@
                     dotEl.style.transform = 'translate(-50%, -50%) scale(0)';
                     animContainer.appendChild(dotEl);
 
-                    // 阶段2：cyra 倾斜探头露出一半（60°倾斜）
                     async function peekCyra() {
                         for (let i = 0; i < 4; i++) {
                             const el = cyraEls[i];
                             el.style.opacity = '1';
-                            // 计算露出一半的平移量：字母宽度的一半
                             const halfWidth = el.offsetWidth / 2;
                             el.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
                             el.style.transform = `translateX(-${halfWidth}px) rotate(-60deg)`;
@@ -341,35 +325,25 @@
                         }
                     }
 
-                    // 阶段3：cyra 依次跳出到 B 位置（倾斜归零）
                     async function jumpCyra() {
                         for (let i = 0; i < 4; i++) {
                             const el = cyraEls[i];
                             const target = bPositions[`cyra${i}`];
-                            // 先让倾斜归零
                             el.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
                             el.style.transform = 'rotate(0deg)';
-                            // 移动位置
                             el.style.left = target.x + 'px';
                             el.style.top = target.y + 'px';
-                            // 稍作延迟以产生序列感
                             await delay(300);
                         }
                     }
 
-                    // 阶段4：HOU 整体滑出然后跳到 B
                     async function jumpHou() {
-                        // 先将所有 HOU 字母滑出到完全可见（向左移动足够距离）
                         for (let el of houEls) {
                             el.style.opacity = '1';
                             el.style.transition = 'transform 0.6s ease';
-                            // 向左平移，使整体脱离遮罩
-                            const currentTransform = el.style.transform;
-                            // 移除原来的 translateX，统一左移
                             el.style.transform = 'translateX(-80px)';
                         }
                         await delay(400);
-                        // 然后跳到各自 B 位置
                         for (let i = 0; i < 3; i++) {
                             const el = houEls[i];
                             const target = bPositions[`hou${i}`];
@@ -381,35 +355,27 @@
                         await delay(600);
                     }
 
-                    // 阶段5：黑点从 A 滚到 B，推开字母，门线消失
                     async function finalPush() {
-                        // 黑点出现并移动
                         dotEl.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
                         dotEl.style.left = bPositions.dot.x + 'px';
                         dotEl.style.top = bPositions.dot.y + 'px';
                         dotEl.style.transform = 'translate(-50%, -50%) scale(1)';
-                        // 同时微调字母位置，让出黑点空间
-                        // cyra 向左再移一点
+
                         for (let i = 0; i < 4; i++) {
                             const el = cyraEls[i];
-                            const currentLeft = parseFloat(el.style.left);
-                            el.style.left = (currentLeft - 10) + 'px';
+                            el.style.left = (parseFloat(el.style.left) - 10) + 'px';
                         }
-                        // hou 向右再移一点
                         for (let i = 0; i < 3; i++) {
                             const el = houEls[i];
-                            const currentLeft = parseFloat(el.style.left);
-                            el.style.left = (currentLeft + 10) + 'px';
+                            el.style.left = (parseFloat(el.style.left) + 10) + 'px';
                         }
-                        // 门线消失
+
                         doorLine.style.opacity = '0';
                         doorMask.style.opacity = '0';
                         await delay(500);
-                        // 动画结束，无缝切换
                         endIntro();
                     }
 
-                    // 执行动画序列
                     (async () => {
                         await peekCyra();
                         await delay(200);
@@ -420,10 +386,9 @@
                         await finalPush();
                     })();
 
-                }, 1000); // 等待竖线延伸完毕（1s）
+                }, 1000);
             }
 
-            // 页面加载后稍等一帧，确保主内容布局完成再捕获坐标
             window.addEventListener('load', () => {
                 requestAnimationFrame(() => {
                     startAnimation();
@@ -431,7 +396,7 @@
             });
         })();
 
-        // ========== 字母点击跳转 About me ==========
+        // 字母点击跳转 About me
         function initLetterClick() {
             const letters = document.querySelectorAll('.letter');
             letters.forEach(letter => {
@@ -445,16 +410,21 @@
             window.location.href = 'about.html';
         }
 
-        // ========== 魔方交互（正确版） ==========
+        // 魔方交互（强制居中）
         function initCubeInteraction() {
             const dot = document.getElementById('cubeDot');
             const container = document.getElementById('nameContainer');
             if (dot.dataset.initialized === 'true') return;
             dot.dataset.initialized = 'true';
 
-            // 确保黑点尺寸正确
+            // 彻底清除可能影响居中的内联样式
+            dot.style.cssText = '';
             dot.style.width = '26px';
             dot.style.height = '26px';
+            dot.style.position = 'relative';
+            dot.style.top = '';
+            dot.style.left = '';
+            dot.style.transform = '';
 
             let active = false;
             let transitioning = false;
@@ -483,9 +453,7 @@
             function onTransitionEnd() {
                 transitioning = false;
                 if (!active) return;
-                // 同步读取尺寸（正确做法）
                 let size = dot.clientWidth;
-                // 安全备用：如果尺寸异常小，手动计算 50vmin
                 if (size < 50) {
                     const vmin = Math.min(window.innerWidth, window.innerHeight);
                     size = vmin * 0.5;
@@ -572,7 +540,7 @@
             dot.addEventListener('mouseleave', deactivate);
         }
 
-        // ========== 导航栏逻辑 ==========
+        // 导航栏
         (function(){
             const nav = document.getElementById('topNav');
             let mouseInNav = false;
