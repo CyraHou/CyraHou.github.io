@@ -22,7 +22,6 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #ffffff;
             z-index: 1000;
-            display: flex; align-items: center; justify-content: center;
         }
 
         .skip-btn {
@@ -33,34 +32,63 @@
         }
         .skip-btn:hover { color: #333; }
 
+        /* 门线：一条从无到有的竖线 */
         .door-line {
             position: absolute;
-            width: 1px; height: 0;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 1px;
+            height: 0;
             background: #000;
-            left: 50%; top: 50%; transform: translate(-50%, -50%);
             transition: height 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 20;
         }
 
-        .peek-group {
+        /* 门右侧白色遮罩，用于遮挡字母的右半部分 */
+        .door-mask {
             position: absolute;
-            left: 50%; top: 50%;
-            transform: translate(-50%, -100%);
-            display: flex; flex-direction: column; align-items: center;
-            opacity: 0;
-            pointer-events: none;
+            left: 50%;
+            top: 0;
+            width: 50vw;
+            height: 100%;
+            background: #ffffff;
+            z-index: 15;
         }
 
-        .peek-letter {
-            font-family: 'Lobster', cursive;
+        /* 字母容器，所有动画字母都放在这里面，z-index低于遮罩 */
+        .anim-letters {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
+        }
+
+        .anim-letter {
+            position: absolute;
             font-size: 80px;
             line-height: 1;
-            color: #1a1a1a;
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s;
-            transform: translateY(30px);
-            opacity: 0;
+            white-space: nowrap;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        opacity 0.5s;
         }
 
-        /* 最终首页容器（初始隐藏） */
+        .cyra-font { font-family: 'Lobster', cursive; }
+        .hou-font  { font-family: 'Climate Crisis', sans-serif; }
+
+        /* 黑点动画元素 */
+        .anim-dot {
+            position: absolute;
+            width: 26px; height: 26px;
+            background: #000;
+            border-radius: 50%;
+            z-index: 25;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ========== 主内容区（初始隐藏） ========== */
         #mainContent {
             opacity: 0;
             transition: opacity 0.3s;
@@ -81,7 +109,7 @@
             display: inline-block;
             transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1),
                         opacity 0.4s ease;
-            cursor: pointer; /* 字母可点击 */
+            cursor: pointer;
         }
 
         .name-container:not(.magic-active):hover .letter:not(:hover) {
@@ -138,11 +166,9 @@
     <div id="introOverlay">
         <div class="skip-btn" id="skipBtn">skip</div>
         <div class="door-line" id="doorLine"></div>
-        <div class="peek-group" id="peekGroup">
-            <span class="peek-letter" id="peekC">c</span>
-            <span class="peek-letter" id="peekY">y</span>
-            <span class="peek-letter" id="peekR">r</span>
-            <span class="peek-letter" id="peekA">a</span>
+        <div class="door-mask" id="doorMask"></div>
+        <div class="anim-letters" id="animLetters">
+            <!-- 动态生成字母和黑点 -->
         </div>
     </div>
 
@@ -172,76 +198,145 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // ---------- 开场动画逻辑 ----------
+        // ========== 全局状态 ==========
+        let introTimer = null;
+
+        // ========== 开场动画逻辑 ==========
         (function() {
             const overlay = document.getElementById('introOverlay');
             const skipBtn = document.getElementById('skipBtn');
             const doorLine = document.getElementById('doorLine');
-            const peekGroup = document.getElementById('peekGroup');
-            const peekLetters = {
-                c: document.getElementById('peekC'),
-                y: document.getElementById('peekY'),
-                r: document.getElementById('peekR'),
-                a: document.getElementById('peekA')
-            };
+            const doorMask = document.getElementById('doorMask');
+            const animContainer = document.getElementById('animLetters');
             const mainContent = document.getElementById('mainContent');
-            let animationTimer = null;
 
+            // 清除动画并展示主页面
             function endIntro() {
-                if (animationTimer) clearTimeout(animationTimer);
+                if (introTimer) clearTimeout(introTimer);
                 overlay.style.display = 'none';
                 mainContent.classList.add('visible');
+                // 初始化后续交互
                 initCubeInteraction();
                 initLetterClick();
             }
 
             skipBtn.addEventListener('click', endIntro);
 
+            // 开始动画序列
             function startAnimation() {
-                doorLine.style.height = '80px';
-                setTimeout(() => {
-                    doorLine.style.opacity = '0';
-                    peekGroup.style.opacity = '1';
+                // 阶段1：竖线从无到有，高度变为320px（约4个字母总高）
+                doorLine.style.height = '320px';
 
-                    const order = ['c','y','r','a'];
-                    let delay = 0;
-                    order.forEach((char, i) => {
-                        setTimeout(() => {
-                            peekLetters[char].style.transform = 'translateY(0)';
-                            peekLetters[char].style.opacity = '1';
-                            setTimeout(() => {
-                                peekLetters[char].style.transform = 'translateY(-40px)';
-                            }, 150);
-                        }, delay);
-                        delay += 400;
+                // 等待竖线动画完成 (0.6s)
+                setTimeout(() => {
+                    // 动态创建字母元素 (cyra 四个，hou 三个) 和黑点
+                    const lettersData = [
+                        { char: 'c', font: 'cyra-font', top: 'calc(50% - 160px)' },
+                        { char: 'y', font: 'cyra-font', top: 'calc(50% - 80px)' },
+                        { char: 'r', font: 'cyra-font', top: 'calc(50% - 0px)' },
+                        { char: 'a', font: 'cyra-font', top: 'calc(50% + 80px)' },
+                        { char: 'H', font: 'hou-font', top: 'calc(50% - 120px)' },
+                        { char: 'O', font: 'hou-font', top: 'calc(50% - 40px)' },
+                        { char: 'U', font: 'hou-font', top: 'calc(50% + 40px)' }
+                    ];
+
+                    const letterEls = [];
+                    lettersData.forEach((data, index) => {
+                        const el = document.createElement('span');
+                        el.className = `anim-letter ${data.font}`;
+                        el.textContent = data.char;
+                        el.style.top = data.top;
+                        el.style.left = '50%';
+                        // 初始全部在门右侧（被遮罩挡住），通过translateX(100%)使其完全在遮罩下
+                        el.style.transform = 'translateX(100%)';
+                        el.style.opacity = '0';
+                        animContainer.appendChild(el);
+                        letterEls.push(el);
                     });
 
-                    setTimeout(() => {
-                        peekGroup.style.display = 'none';
-                        mainContent.classList.add('visible');
-                        const cubeDot = document.getElementById('cubeDot');
-                        cubeDot.style.transition = 'all 0.8s cubic-bezier(0.34,1.56,0.64,1)';
-                        cubeDot.style.width = '40px';
-                        cubeDot.style.height = '40px';
-                        cubeDot.style.margin = '0 10px';
-                        setTimeout(() => {
-                            cubeDot.style.width = '26px';
-                            cubeDot.style.height = '26px';
-                            cubeDot.style.margin = '0';
-                        }, 300);
-                        setTimeout(() => {
-                            initCubeInteraction();
-                            initLetterClick();
-                        }, 1200);
-                    }, delay + 600);
-                }, 600);
+                    // 黑点元素
+                    const dotEl = document.createElement('div');
+                    dotEl.className = 'anim-dot';
+                    dotEl.style.top = '50%';
+                    dotEl.style.left = '50%';
+                    dotEl.style.transform = 'translate(-50%, -50%) scale(0)';
+                    animContainer.appendChild(dotEl);
+
+                    // 辅助函数：延迟
+                    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+                    // 阶段2：cyra字母依次露头一半
+                    async function peekLetters() {
+                        for (let i = 0; i < 4; i++) {
+                            const el = letterEls[i];
+                            el.style.opacity = '1';
+                            // 向左移动25px（大约字母宽度的一半），露出一半
+                            el.style.transform = 'translateX(-25px)';
+                            await delay(400); // 每个字母间隔400ms
+                        }
+                    }
+
+                    // 阶段3：cyra字母依次跳出到最终位置（门线左侧远处，即屏幕中央附近）
+                    async function jumpOutCyra() {
+                        for (let i = 0; i < 4; i++) {
+                            const el = letterEls[i];
+                            // 跳出：水平移动到远左方，并略微向上弹跳（通过调整translateY）
+                            el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            el.style.transform = 'translateX(-200px)';
+                            await delay(300);
+                        }
+                    }
+
+                    // 阶段4：HOU字母直接跳出
+                    async function jumpOutHou() {
+                        for (let i = 4; i < 7; i++) {
+                            const el = letterEls[i];
+                            el.style.opacity = '1';
+                            el.style.transform = 'translateX(50px)'; // 向右跳出
+                            await delay(200);
+                        }
+                    }
+
+                    // 阶段5：黑点滚出并推开字母，门线消失
+                    async function finalPush() {
+                        // 黑点出现并移动到中间
+                        dotEl.style.transform = 'translate(-50%, -50%) scale(1)';
+                        // 等待黑点动画稳定
+                        await delay(400);
+                        // 推开字母：让cyra更左，hou更右
+                        letterEls[0].style.transform = 'translateX(-250px)';
+                        letterEls[1].style.transform = 'translateX(-250px)';
+                        letterEls[2].style.transform = 'translateX(-250px)';
+                        letterEls[3].style.transform = 'translateX(-250px)';
+                        letterEls[4].style.transform = 'translateX(100px)';
+                        letterEls[5].style.transform = 'translateX(100px)';
+                        letterEls[6].style.transform = 'translateX(100px)';
+                        // 门线消失
+                        doorLine.style.opacity = '0';
+                        doorMask.style.opacity = '0';
+                        await delay(500);
+                        // 动画结束，显示主内容
+                        endIntro();
+                    }
+
+                    // 执行动画序列
+                    (async () => {
+                        await peekLetters();
+                        await delay(200);
+                        await jumpOutCyra();
+                        await delay(100);
+                        await jumpOutHou();
+                        await delay(200);
+                        await finalPush();
+                    })();
+
+                }, 600); // 门线出现后等待600ms
             }
 
             startAnimation();
-            window.endIntro = endIntro;
         })();
 
-        // ---------- 字母点击跳转 About me ----------
+        // ========== 字母点击跳转 About me ==========
         function initLetterClick() {
             const letters = document.querySelectorAll('.letter');
             letters.forEach(letter => {
@@ -255,12 +350,16 @@
             window.location.href = 'about.html';
         }
 
-        // ---------- 魔方交互（右键/双击跳转 Portfolio） ----------
+        // ========== 魔方交互（右键/双击跳转 Portfolio） ==========
         function initCubeInteraction() {
             const dot = document.getElementById('cubeDot');
             const container = document.getElementById('nameContainer');
             if (dot.dataset.initialized === 'true') return;
             dot.dataset.initialized = 'true';
+
+            // 确保黑点尺寸正确
+            dot.style.width = '26px';
+            dot.style.height = '26px';
 
             let active = false;
             let transitioning = false;
@@ -289,80 +388,81 @@
             function onTransitionEnd() {
                 transitioning = false;
                 if (!active) return;
-                const size = dot.clientWidth;
-                if (size === 0) return;
+                // 等待一帧确保布局完成
+                requestAnimationFrame(() => {
+                    const size = dot.clientWidth;
+                    if (size === 0) return;
 
-                scene = new THREE.Scene();
-                scene.background = null;
-                camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-                camera.position.set(2.2, 1.8, 3.2);
-                camera.lookAt(0,0,0);
-                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                renderer.setSize(size, size);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                dot.appendChild(renderer.domElement);
+                    scene = new THREE.Scene();
+                    scene.background = null;
+                    camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+                    camera.position.set(2.2, 1.8, 3.2);
+                    camera.lookAt(0,0,0);
+                    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                    renderer.setSize(size, size);
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                    dot.appendChild(renderer.domElement);
 
-                controls = new THREE.OrbitControls(camera, renderer.domElement);
-                controls.enableZoom = false;
-                controls.enablePan = false;
-                controls.rotateSpeed = 0.5;
-                controls.autoRotate = true;
-                controls.autoRotateSpeed = 0.8;
-                controls.target.set(0,0,0);
-                controls.enableDblClick = false; // 禁用默认双击
-                controls.update();
-
-                const ambient = new THREE.AmbientLight(0xffffff, 0.9);
-                const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-                dir.position.set(5,10,7);
-                scene.add(ambient, dir);
-
-                const geo = new THREE.BoxGeometry(1,1,1);
-                const colors = [0xFF6B6B,0x4ECDC4,0xFFD93D,0x6C5CE7,0xFF8A5C,0xA29BFE];
-                const materials = colors.map(c => new THREE.MeshStandardMaterial({
-                    color: c, roughness: 0.3, metalness: 0.1,
-                    emissive: new THREE.Color(c).multiplyScalar(0.15)
-                }));
-                const cubeMesh = new THREE.Mesh(geo, materials);
-                scene.add(cubeMesh);
-                const edges = new THREE.EdgesGeometry(geo);
-                cubeMesh.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0x000000})));
-
-                function animate() {
-                    if (!active) return;
-                    animId = requestAnimationFrame(animate);
+                    controls = new THREE.OrbitControls(camera, renderer.domElement);
+                    controls.enableZoom = false;
+                    controls.enablePan = false;
+                    controls.rotateSpeed = 0.5;
+                    controls.autoRotate = true;
+                    controls.autoRotateSpeed = 0.8;
+                    controls.target.set(0,0,0);
+                    controls.enableDblClick = false;
                     controls.update();
-                    renderer.render(scene, camera);
-                }
-                animate();
 
-                // 右键跳转 Portfolio
-                function onContextMenu(e) {
-                    e.preventDefault();
-                    window.location.href = 'portfolio.html';
-                }
-                // 双击跳转 Portfolio（移动端备选）
-                function onDblClick() {
-                    window.location.href = 'portfolio.html';
-                }
+                    const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+                    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+                    dir.position.set(5,10,7);
+                    scene.add(ambient, dir);
 
-                renderer.domElement.addEventListener('contextmenu', onContextMenu);
-                renderer.domElement.addEventListener('dblclick', onDblClick);
+                    const geo = new THREE.BoxGeometry(1,1,1);
+                    const colors = [0xFF6B6B,0x4ECDC4,0xFFD93D,0x6C5CE7,0xFF8A5C,0xA29BFE];
+                    const materials = colors.map(c => new THREE.MeshStandardMaterial({
+                        color: c, roughness: 0.3, metalness: 0.1,
+                        emissive: new THREE.Color(c).multiplyScalar(0.15)
+                    }));
+                    const cubeMesh = new THREE.Mesh(geo, materials);
+                    scene.add(cubeMesh);
+                    const edges = new THREE.EdgesGeometry(geo);
+                    cubeMesh.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0x000000})));
 
-                cleanupFunc = () => {
-                    try {
-                        cancelAnimationFrame(animId);
-                        renderer.domElement.removeEventListener('contextmenu', onContextMenu);
-                        renderer.domElement.removeEventListener('dblclick', onDblClick);
-                        if (renderer.domElement.parentNode) dot.removeChild(renderer.domElement);
-                        renderer.dispose();
-                        controls.dispose();
-                        scene.clear();
-                    } catch(e) {} finally {
-                        scene = camera = renderer = controls = null;
+                    function animate() {
+                        if (!active) return;
+                        animId = requestAnimationFrame(animate);
+                        controls.update();
+                        renderer.render(scene, camera);
                     }
-                };
-                dot.addEventListener('mouseleave', deactivate);
+                    animate();
+
+                    function onContextMenu(e) {
+                        e.preventDefault();
+                        window.location.href = 'portfolio.html';
+                    }
+                    function onDblClick() {
+                        window.location.href = 'portfolio.html';
+                    }
+
+                    renderer.domElement.addEventListener('contextmenu', onContextMenu);
+                    renderer.domElement.addEventListener('dblclick', onDblClick);
+
+                    cleanupFunc = () => {
+                        try {
+                            cancelAnimationFrame(animId);
+                            renderer.domElement.removeEventListener('contextmenu', onContextMenu);
+                            renderer.domElement.removeEventListener('dblclick', onDblClick);
+                            if (renderer.domElement.parentNode) dot.removeChild(renderer.domElement);
+                            renderer.dispose();
+                            controls.dispose();
+                            scene.clear();
+                        } catch(e) {} finally {
+                            scene = camera = renderer = controls = null;
+                        }
+                    };
+                    dot.addEventListener('mouseleave', deactivate);
+                });
             }
 
             function destroyScene() {
@@ -375,7 +475,7 @@
             dot.addEventListener('mouseleave', deactivate);
         }
 
-        // 导航栏逻辑
+        // ========== 导航栏逻辑 ==========
         (function(){
             const nav = document.getElementById('topNav');
             let mouseInNav = false;
