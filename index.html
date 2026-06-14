@@ -32,10 +32,10 @@
         }
         .skip-btn:hover { color: #333; }
 
-        /* 门线：一条从无到有的竖线 */
+        /* 门线：一条从无到有的竖线，位于右侧 */
         .door-line {
             position: absolute;
-            left: 50%;
+            left: 75%;
             top: 50%;
             transform: translate(-50%, -50%);
             width: 1px;
@@ -45,18 +45,18 @@
             z-index: 20;
         }
 
-        /* 门右侧白色遮罩，用于遮挡字母的右半部分 */
+        /* 门右侧白色遮罩，遮挡字母的右半部分 */
         .door-mask {
             position: absolute;
-            left: 50%;
+            left: 75%;
             top: 0;
-            width: 50vw;
+            width: 25vw;
             height: 100%;
             background: #ffffff;
             z-index: 15;
         }
 
-        /* 字母容器，所有动画字母都放在这里面，z-index低于遮罩 */
+        /* 动画元素容器 */
         .anim-letters {
             position: absolute;
             top: 0; left: 0;
@@ -70,7 +70,7 @@
             line-height: 1;
             white-space: nowrap;
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        opacity 0.5s;
+                        opacity 0.4s;
         }
 
         .cyra-font { font-family: 'Lobster', cursive; }
@@ -167,12 +167,10 @@
         <div class="skip-btn" id="skipBtn">skip</div>
         <div class="door-line" id="doorLine"></div>
         <div class="door-mask" id="doorMask"></div>
-        <div class="anim-letters" id="animLetters">
-            <!-- 动态生成字母和黑点 -->
-        </div>
+        <div class="anim-letters" id="animLetters"></div>
     </div>
 
-    <!-- 主内容区（隐藏） -->
+    <!-- 主内容区 -->
     <div id="mainContent">
         <div class="top-nav" id="topNav">
             <a href="index.html">Home</a>
@@ -198,10 +196,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // ========== 全局状态 ==========
-        let introTimer = null;
-
-        // ========== 开场动画逻辑 ==========
+        // ========== 开场动画逻辑（方案B） ==========
         (function() {
             const overlay = document.getElementById('introOverlay');
             const skipBtn = document.getElementById('skipBtn');
@@ -209,128 +204,148 @@
             const doorMask = document.getElementById('doorMask');
             const animContainer = document.getElementById('animLetters');
             const mainContent = document.getElementById('mainContent');
+            let introTimer = null;
 
-            // 清除动画并展示主页面
             function endIntro() {
                 if (introTimer) clearTimeout(introTimer);
                 overlay.style.display = 'none';
                 mainContent.classList.add('visible');
-                // 初始化后续交互
                 initCubeInteraction();
                 initLetterClick();
             }
 
             skipBtn.addEventListener('click', endIntro);
 
-            // 开始动画序列
             function startAnimation() {
-                // 阶段1：竖线从无到有，高度变为320px（约4个字母总高）
+                // 阶段1：右侧竖线从无到有，高度320px（覆盖四个字母总高）
                 doorLine.style.height = '320px';
 
-                // 等待竖线动画完成 (0.6s)
                 setTimeout(() => {
-                    // 动态创建字母元素 (cyra 四个，hou 三个) 和黑点
-                    const lettersData = [
-                        { char: 'c', font: 'cyra-font', top: 'calc(50% - 160px)' },
-                        { char: 'y', font: 'cyra-font', top: 'calc(50% - 80px)' },
-                        { char: 'r', font: 'cyra-font', top: 'calc(50% - 0px)' },
-                        { char: 'a', font: 'cyra-font', top: 'calc(50% + 80px)' },
-                        { char: 'H', font: 'hou-font', top: 'calc(50% - 120px)' },
-                        { char: 'O', font: 'hou-font', top: 'calc(50% - 40px)' },
-                        { char: 'U', font: 'hou-font', top: 'calc(50% + 40px)' }
+                    // 创建字母元素
+                    const cyraData = [
+                        { char: 'c', font: 'cyra-font' },
+                        { char: 'y', font: 'cyra-font' },
+                        { char: 'r', font: 'cyra-font' },
+                        { char: 'a', font: 'cyra-font' }
+                    ];
+                    const houData = [
+                        { char: 'H', font: 'hou-font' },
+                        { char: 'O', font: 'hou-font' },
+                        { char: 'U', font: 'hou-font' }
                     ];
 
-                    const letterEls = [];
-                    lettersData.forEach((data, index) => {
+                    // 辅助函数：延迟
+                    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+                    // 创建cyra字母元素，初始位于门右侧（遮罩下）
+                    const cyraEls = cyraData.map((data, i) => {
                         const el = document.createElement('span');
                         el.className = `anim-letter ${data.font}`;
                         el.textContent = data.char;
-                        el.style.top = data.top;
-                        el.style.left = '50%';
-                        // 初始全部在门右侧（被遮罩挡住），通过translateX(100%)使其完全在遮罩下
-                        el.style.transform = 'translateX(100%)';
+                        // 竖向排列：从下往上，top 基于门中心
+                        el.style.top = `calc(50% + ${(i - 1.5) * 80}px)`;
+                        el.style.left = '75%'; // 门线位置
+                        el.style.transform = 'translateX(30px)'; // 初始在门右侧，被遮罩挡住
                         el.style.opacity = '0';
                         animContainer.appendChild(el);
-                        letterEls.push(el);
+                        return el;
+                    });
+
+                    // 创建HOU字母元素，同样初始在门右侧
+                    const houEls = houData.map((data, i) => {
+                        const el = document.createElement('span');
+                        el.className = `anim-letter ${data.font}`;
+                        el.textContent = data.char;
+                        el.style.top = `calc(50% + ${(i - 1) * 80}px)`;
+                        el.style.left = '75%';
+                        el.style.transform = 'translateX(30px)';
+                        el.style.opacity = '0';
+                        animContainer.appendChild(el);
+                        return el;
                     });
 
                     // 黑点元素
                     const dotEl = document.createElement('div');
                     dotEl.className = 'anim-dot';
                     dotEl.style.top = '50%';
-                    dotEl.style.left = '50%';
+                    dotEl.style.left = '75%';
                     dotEl.style.transform = 'translate(-50%, -50%) scale(0)';
                     animContainer.appendChild(dotEl);
 
-                    // 辅助函数：延迟
-                    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-                    // 阶段2：cyra字母依次露头一半
-                    async function peekLetters() {
+                    // 阶段2：cyra依次探头露出一半
+                    async function peekCyra() {
                         for (let i = 0; i < 4; i++) {
-                            const el = letterEls[i];
+                            const el = cyraEls[i];
                             el.style.opacity = '1';
-                            // 向左移动25px（大约字母宽度的一半），露出一半
+                            // 向左滑出，露出一半（字母宽度一半约25px）
                             el.style.transform = 'translateX(-25px)';
-                            await delay(400); // 每个字母间隔400ms
+                            await delay(400);
                         }
                     }
 
-                    // 阶段3：cyra字母依次跳出到最终位置（门线左侧远处，即屏幕中央附近）
-                    async function jumpOutCyra() {
+                    // 阶段3：cyra依次跳出到flex布局位置（屏幕中央偏左）
+                    async function jumpCyra() {
                         for (let i = 0; i < 4; i++) {
-                            const el = letterEls[i];
-                            // 跳出：水平移动到远左方，并略微向上弹跳（通过调整translateY）
-                            el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                            el.style.transform = 'translateX(-200px)';
+                            const el = cyraEls[i];
+                            // 跳出：最终位置大约 left: 35%, top 根据索引调整（模拟flex居中）
+                            el.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            el.style.left = '35%';
+                            el.style.top = `calc(50% + ${(i - 1.5) * 80}px)`;
+                            el.style.transform = 'translateX(0)';
                             await delay(300);
                         }
                     }
 
-                    // 阶段4：HOU字母直接跳出
-                    async function jumpOutHou() {
-                        for (let i = 4; i < 7; i++) {
-                            const el = letterEls[i];
+                    // 阶段4：HOU一起从门后滑出，完全离开门线后跳走
+                    async function jumpHou() {
+                        // 一起滑出到门左侧（完全可见）
+                        for (let el of houEls) {
                             el.style.opacity = '1';
-                            el.style.transform = 'translateX(50px)'; // 向右跳出
-                            await delay(200);
+                            el.style.transform = 'translateX(-80px)'; // 完全到门左侧
                         }
+                        await delay(400);
+                        // 然后跳走
+                        for (let i = 0; i < 3; i++) {
+                            houEls[i].style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            houEls[i].style.left = '65%';
+                            houEls[i].style.top = `calc(50% + ${(i - 1) * 80}px)`;
+                            houEls[i].style.transform = 'translateX(0)';
+                        }
+                        await delay(600);
                     }
 
-                    // 阶段5：黑点滚出并推开字母，门线消失
+                    // 阶段5：黑点滚出推开字母，门线消失
                     async function finalPush() {
-                        // 黑点出现并移动到中间
+                        // 黑点从门位置出现并移动到两字母组中间
                         dotEl.style.transform = 'translate(-50%, -50%) scale(1)';
-                        // 等待黑点动画稳定
+                        dotEl.style.left = '50%'; // 移动到屏幕中央
                         await delay(400);
-                        // 推开字母：让cyra更左，hou更右
-                        letterEls[0].style.transform = 'translateX(-250px)';
-                        letterEls[1].style.transform = 'translateX(-250px)';
-                        letterEls[2].style.transform = 'translateX(-250px)';
-                        letterEls[3].style.transform = 'translateX(-250px)';
-                        letterEls[4].style.transform = 'translateX(100px)';
-                        letterEls[5].style.transform = 'translateX(100px)';
-                        letterEls[6].style.transform = 'translateX(100px)';
+                        // 推开：cyra更左，hou更右
+                        for (let el of cyraEls) {
+                            el.style.left = '30%';
+                        }
+                        for (let el of houEls) {
+                            el.style.left = '70%';
+                        }
                         // 门线消失
                         doorLine.style.opacity = '0';
                         doorMask.style.opacity = '0';
-                        await delay(500);
-                        // 动画结束，显示主内容
+                        await delay(300);
                         endIntro();
                     }
 
-                    // 执行动画序列
+                    // 执行序列
                     (async () => {
-                        await peekLetters();
+                        await peekCyra();
                         await delay(200);
-                        await jumpOutCyra();
+                        await jumpCyra();
                         await delay(100);
-                        await jumpOutHou();
+                        await jumpHou();
                         await delay(200);
                         await finalPush();
                     })();
 
-                }, 600); // 门线出现后等待600ms
+                }, 600); // 等待门线动画完成
             }
 
             startAnimation();
@@ -357,9 +372,10 @@
             if (dot.dataset.initialized === 'true') return;
             dot.dataset.initialized = 'true';
 
-            // 确保黑点尺寸正确
+            // 强制重置黑点尺寸（覆盖动画残留）
             dot.style.width = '26px';
             dot.style.height = '26px';
+            dot.style.margin = '0';
 
             let active = false;
             let transitioning = false;
@@ -388,10 +404,10 @@
             function onTransitionEnd() {
                 transitioning = false;
                 if (!active) return;
-                // 等待一帧确保布局完成
+                // 等待一帧确保布局稳定
                 requestAnimationFrame(() => {
                     const size = dot.clientWidth;
-                    if (size === 0) return;
+                    if (size === 0 || size < 10) return; // 忽略无效尺寸
 
                     scene = new THREE.Scene();
                     scene.background = null;
