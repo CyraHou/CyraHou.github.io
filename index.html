@@ -17,84 +17,12 @@
             font-family: sans-serif;
         }
 
-        /* 开场动画覆盖层 */
-        #introOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff;
-            z-index: 1000;
-        }
-
-        .skip-btn {
-            position: absolute; top: 20px; right: 30px;
-            font-size: 16px; color: #aaa; cursor: pointer;
-            z-index: 1100; user-select: none;
-            transition: color 0.2s;
-        }
-        .skip-btn:hover { color: #333; }
-
-        .door-line {
-            position: absolute;
-            left: 75%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 1px;
-            height: 0;
-            background: #000;
-            transition: height 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            z-index: 20;
-        }
-
-        .door-mask {
-            position: absolute;
-            left: 75%;
-            top: 0;
-            width: 25vw;
-            height: 100%;
-            background: #ffffff;
-            z-index: 15;
-        }
-
-        .anim-letters {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 10;
-        }
-
-        .anim-letter {
-            position: absolute;
-            font-size: 80px;
-            line-height: 1;
-            white-space: nowrap;
-            transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        opacity 0.4s;
-        }
-
-        .cyra-font { font-family: 'Lobster', cursive; }
-        .hou-font  { font-family: 'Climate Crisis', sans-serif; }
-
-        .anim-dot {
-            position: absolute;
-            width: 26px; height: 26px;
-            background: #000;
-            border-radius: 50%;
-            z-index: 25;
-            transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* 主内容区 */
+        /* ---------- 主内容区（一直可见，但被动画遮住） ---------- */
         #mainContent {
-            visibility: hidden;
+            position: relative;
+            width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
-            height: 100%;
-        }
-        #mainContent.visible {
-            visibility: visible;
-            opacity: 1;
+            z-index: 1; /* 低于动画覆盖层 */
         }
 
         .name-container {
@@ -159,16 +87,79 @@
         }
         .top-nav a:hover { color: #444; }
         .cube-dot.active ~ .top-nav { opacity: 0; pointer-events: none; }
+
+        /* ---------- 开场动画覆盖层 ---------- */
+        #introOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            z-index: 1000; /* 盖住主内容 */
+        }
+
+        .skip-btn {
+            position: absolute; top: 20px; right: 30px;
+            font-size: 16px; color: #aaa; cursor: pointer;
+            z-index: 1100; user-select: none;
+            transition: color 0.2s;
+        }
+        .skip-btn:hover { color: #333; }
+
+        .door-line {
+            position: absolute;
+            left: 75%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 1px;
+            height: 0;
+            background: #000;
+            transition: height 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 20;
+        }
+
+        .door-mask {
+            position: absolute;
+            left: 75%;
+            top: 0;
+            width: 25vw;
+            height: 100%;
+            background: #ffffff;
+            z-index: 15;
+        }
+
+        .anim-letters {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
+        }
+
+        .anim-letter {
+            position: absolute;
+            font-size: 80px;
+            line-height: 1;
+            white-space: nowrap;
+            transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        opacity 0.4s;
+        }
+
+        .cyra-font { font-family: 'Lobster', cursive; }
+        .hou-font  { font-family: 'Climate Crisis', sans-serif; }
+
+        .anim-dot {
+            position: absolute;
+            width: 26px; height: 26px;
+            background: #000;
+            border-radius: 50%;
+            z-index: 25;
+            transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
     </style>
 </head>
 <body>
-    <div id="introOverlay">
-        <div class="skip-btn" id="skipBtn">skip</div>
-        <div class="door-line" id="doorLine"></div>
-        <div class="door-mask" id="doorMask"></div>
-        <div class="anim-letters" id="animLetters"></div>
-    </div>
-
+    <!-- 主内容区（一直存在，但被动画遮住） -->
     <div id="mainContent">
         <div class="top-nav" id="topNav">
             <a href="index.html">Home</a>
@@ -190,241 +181,30 @@
         </div>
     </div>
 
+    <!-- 开场动画覆盖层 -->
+    <div id="introOverlay">
+        <div class="skip-btn" id="skipBtn">skip</div>
+        <div class="door-line" id="doorLine"></div>
+        <div class="door-mask" id="doorMask"></div>
+        <div class="anim-letters" id="animLetters"></div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // 获取元素中心坐标
+        // ========== 辅助函数 ==========
         function getElementCenter(el) {
             const rect = el.getBoundingClientRect();
-            return {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2
-            };
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
         }
 
-        // 开场动画
-        (function() {
-            const overlay = document.getElementById('introOverlay');
-            const skipBtn = document.getElementById('skipBtn');
-            const doorLine = document.getElementById('doorLine');
-            const doorMask = document.getElementById('doorMask');
-            const animContainer = document.getElementById('animLetters');
-            const mainContent = document.getElementById('mainContent');
-
-            let bPositions = {};
-            let commonY = 0;
-
-            function captureBPositions() {
-                const cyraLetters = [
-                    document.getElementById('letterC'),
-                    document.getElementById('letterY'),
-                    document.getElementById('letterR'),
-                    document.getElementById('letterA')
-                ];
-                const houLetters = [
-                    document.getElementById('letterH'),
-                    document.getElementById('letterO'),
-                    document.getElementById('letterU')
-                ];
-                const cubeDot = document.getElementById('cubeDot');
-
-                const cCenter = getElementCenter(cyraLetters[0]);
-                commonY = cCenter.y;
-
-                cyraLetters.forEach((el, i) => {
-                    const center = getElementCenter(el);
-                    bPositions[`cyra${i}`] = { x: center.x, y: commonY };
-                });
-                houLetters.forEach((el, i) => {
-                    const center = getElementCenter(el);
-                    bPositions[`hou${i}`] = { x: center.x, y: commonY };
-                });
-
-                const dotCenter = getElementCenter(cubeDot);
-                bPositions.dot = { x: dotCenter.x, y: commonY };
-            }
-
-            function endIntro() {
-                if (introTimer) clearTimeout(introTimer);
-                animContainer.innerHTML = '';
-                overlay.style.display = 'none';
-                mainContent.classList.add('visible');
-                initCubeInteraction();
-                initLetterClick();
-            }
-
-            skipBtn.addEventListener('click', endIntro);
-
-            let introTimer = null;
-
-            function startAnimation() {
-                captureBPositions();
-                doorLine.style.height = '320px';
-
-                setTimeout(() => {
-                    const cyraData = [
-                        { char: 'c', font: 'cyra-font', id: 'cyra0' },
-                        { char: 'y', font: 'cyra-font', id: 'cyra1' },
-                        { char: 'r', font: 'cyra-font', id: 'cyra2' },
-                        { char: 'a', font: 'cyra-font', id: 'cyra3' }
-                    ];
-                    const houData = [
-                        { char: 'H', font: 'hou-font', id: 'hou0' },
-                        { char: 'O', font: 'hou-font', id: 'hou1' },
-                        { char: 'U', font: 'hou-font', id: 'hou2' }
-                    ];
-
-                    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-                    // cyra 探头位置从下往上：c在最下，a在最上
-                    const cyraEls = cyraData.map((data, i) => {
-                        const el = document.createElement('span');
-                        el.className = `anim-letter ${data.font}`;
-                        el.textContent = data.char;
-                        const offset = (1.5 - i) * 80; // i=0 -> +120最下, i=3 -> -120最上
-                        el.style.top = `calc(50% + ${offset}px)`;
-                        el.style.left = '75%';
-                        el.style.transform = 'translateX(30px)';
-                        el.style.opacity = '0';
-                        el.dataset.id = data.id;
-                        animContainer.appendChild(el);
-                        return el;
-                    });
-
-                    // HOU 横向排列
-                    const houEls = houData.map((data, i) => {
-                        const el = document.createElement('span');
-                        el.className = `anim-letter ${data.font}`;
-                        el.textContent = data.char;
-                        el.style.top = 'calc(50% - 40px)';
-                        el.style.left = '75%';
-                        el.style.transform = `translateX(${30 + i * 50}px)`;
-                        el.style.opacity = '0';
-                        el.dataset.id = data.id;
-                        animContainer.appendChild(el);
-                        return el;
-                    });
-
-                    // 黑点
-                    const dotEl = document.createElement('div');
-                    dotEl.className = 'anim-dot';
-                    dotEl.style.top = '50%';
-                    dotEl.style.left = '75%';
-                    dotEl.style.transform = 'translate(-50%, -50%) scale(0)';
-                    animContainer.appendChild(dotEl);
-
-                    async function peekCyra() {
-                        for (let i = 0; i < 4; i++) {
-                            const el = cyraEls[i];
-                            el.style.opacity = '1';
-                            const halfWidth = el.offsetWidth / 2;
-                            el.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                            el.style.transform = `translateX(-${halfWidth}px) rotate(-60deg)`;
-                            await delay(400);
-                        }
-                    }
-
-                    async function jumpCyra() {
-                        for (let i = 0; i < 4; i++) {
-                            const el = cyraEls[i];
-                            const target = bPositions[`cyra${i}`];
-                            el.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                            el.style.transform = 'rotate(0deg)';
-                            el.style.left = target.x + 'px';
-                            el.style.top = target.y + 'px';
-                            await delay(300);
-                        }
-                    }
-
-                    async function jumpHou() {
-                        for (let el of houEls) {
-                            el.style.opacity = '1';
-                            el.style.transition = 'transform 0.6s ease';
-                            el.style.transform = 'translateX(-80px)';
-                        }
-                        await delay(400);
-                        for (let i = 0; i < 3; i++) {
-                            const el = houEls[i];
-                            const target = bPositions[`hou${i}`];
-                            el.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                            el.style.left = target.x + 'px';
-                            el.style.top = target.y + 'px';
-                            el.style.transform = 'rotate(0deg)';
-                        }
-                        await delay(600);
-                    }
-
-                    async function finalPush() {
-                        dotEl.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                        dotEl.style.left = bPositions.dot.x + 'px';
-                        dotEl.style.top = bPositions.dot.y + 'px';
-                        dotEl.style.transform = 'translate(-50%, -50%) scale(1)';
-
-                        for (let i = 0; i < 4; i++) {
-                            const el = cyraEls[i];
-                            el.style.left = (parseFloat(el.style.left) - 10) + 'px';
-                        }
-                        for (let i = 0; i < 3; i++) {
-                            const el = houEls[i];
-                            el.style.left = (parseFloat(el.style.left) + 10) + 'px';
-                        }
-
-                        doorLine.style.opacity = '0';
-                        doorMask.style.opacity = '0';
-                        await delay(500);
-                        endIntro();
-                    }
-
-                    (async () => {
-                        await peekCyra();
-                        await delay(200);
-                        await jumpCyra();
-                        await delay(100);
-                        await jumpHou();
-                        await delay(200);
-                        await finalPush();
-                    })();
-
-                }, 1000);
-            }
-
-            window.addEventListener('load', () => {
-                requestAnimationFrame(() => {
-                    startAnimation();
-                });
-            });
-        })();
-
-        // 字母点击跳转 About me
-        function initLetterClick() {
-            const letters = document.querySelectorAll('.letter');
-            letters.forEach(letter => {
-                letter.removeEventListener('click', letterClickHandler);
-                letter.addEventListener('click', letterClickHandler);
-            });
-        }
-
-        function letterClickHandler(e) {
-            e.stopPropagation();
-            window.location.href = 'about.html';
-        }
-
-        // 魔方交互（强制居中）
+        // ========== 魔方交互（一开始就初始化，与动画无关） ==========
         function initCubeInteraction() {
             const dot = document.getElementById('cubeDot');
             const container = document.getElementById('nameContainer');
             if (dot.dataset.initialized === 'true') return;
             dot.dataset.initialized = 'true';
-
-            // 彻底清除可能影响居中的内联样式
-            dot.style.cssText = '';
-            dot.style.width = '26px';
-            dot.style.height = '26px';
-            dot.style.position = 'relative';
-            dot.style.top = '';
-            dot.style.left = '';
-            dot.style.transform = '';
 
             let active = false;
             let transitioning = false;
@@ -540,7 +320,21 @@
             dot.addEventListener('mouseleave', deactivate);
         }
 
-        // 导航栏
+        // ========== 字母点击跳转 About me（一开始就绑定） ==========
+        function initLetterClick() {
+            const letters = document.querySelectorAll('.letter');
+            letters.forEach(letter => {
+                letter.removeEventListener('click', letterClickHandler);
+                letter.addEventListener('click', letterClickHandler);
+            });
+        }
+
+        function letterClickHandler(e) {
+            e.stopPropagation();
+            window.location.href = 'about.html';
+        }
+
+        // ========== 导航栏逻辑 ==========
         (function(){
             const nav = document.getElementById('topNav');
             let mouseInNav = false;
@@ -550,6 +344,198 @@
             });
             nav.addEventListener('mouseenter', () => mouseInNav = true);
             nav.addEventListener('mouseleave', () => { mouseInNav = false; nav.classList.remove('active'); });
+        })();
+
+        // ========== 开场动画（完全独立，不影响主内容） ==========
+        (function() {
+            const overlay = document.getElementById('introOverlay');
+            const skipBtn = document.getElementById('skipBtn');
+            const doorLine = document.getElementById('doorLine');
+            const doorMask = document.getElementById('doorMask');
+            const animContainer = document.getElementById('animLetters');
+
+            let bPositions = {};
+            let commonY = 0;
+
+            // 读取主内容字母和黑点的坐标（此时主内容已完全渲染）
+            function captureBPositions() {
+                const cyraLetters = [
+                    document.getElementById('letterC'),
+                    document.getElementById('letterY'),
+                    document.getElementById('letterR'),
+                    document.getElementById('letterA')
+                ];
+                const houLetters = [
+                    document.getElementById('letterH'),
+                    document.getElementById('letterO'),
+                    document.getElementById('letterU')
+                ];
+                const cubeDot = document.getElementById('cubeDot');
+
+                const cCenter = getElementCenter(cyraLetters[0]);
+                commonY = cCenter.y;
+
+                cyraLetters.forEach((el, i) => {
+                    const center = getElementCenter(el);
+                    bPositions[`cyra${i}`] = { x: center.x, y: commonY };
+                });
+                houLetters.forEach((el, i) => {
+                    const center = getElementCenter(el);
+                    bPositions[`hou${i}`] = { x: center.x, y: commonY };
+                });
+                const dotCenter = getElementCenter(cubeDot);
+                bPositions.dot = { x: dotCenter.x, y: commonY };
+            }
+
+            function endIntro() {
+                if (introTimer) clearTimeout(introTimer);
+                animContainer.innerHTML = '';
+                overlay.style.display = 'none'; // 露出主内容
+            }
+
+            skipBtn.addEventListener('click', endIntro);
+
+            let introTimer = null;
+
+            function startAnimation() {
+                captureBPositions();
+
+                doorLine.style.height = '320px'; // 竖线从无到有
+
+                setTimeout(() => {
+                    const cyraData = [
+                        { char: 'c', font: 'cyra-font', id: 'cyra0' },
+                        { char: 'y', font: 'cyra-font', id: 'cyra1' },
+                        { char: 'r', font: 'cyra-font', id: 'cyra2' },
+                        { char: 'a', font: 'cyra-font', id: 'cyra3' }
+                    ];
+                    const houData = [
+                        { char: 'H', font: 'hou-font', id: 'hou0' },
+                        { char: 'O', font: 'hou-font', id: 'hou1' },
+                        { char: 'U', font: 'hou-font', id: 'hou2' }
+                    ];
+
+                    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+                    // 创建 cyra 字母（从下往上探头：c在最下）
+                    const cyraEls = cyraData.map((data, i) => {
+                        const el = document.createElement('span');
+                        el.className = `anim-letter ${data.font}`;
+                        el.textContent = data.char;
+                        const offset = (1.5 - i) * 80;
+                        el.style.top = `calc(50% + ${offset}px)`;
+                        el.style.left = '75%';
+                        el.style.transform = 'translateX(30px)';
+                        el.style.opacity = '0';
+                        el.dataset.id = data.id;
+                        animContainer.appendChild(el);
+                        return el;
+                    });
+
+                    // 创建 HOU 字母（横向排列）
+                    const houEls = houData.map((data, i) => {
+                        const el = document.createElement('span');
+                        el.className = `anim-letter ${data.font}`;
+                        el.textContent = data.char;
+                        el.style.top = 'calc(50% - 40px)';
+                        el.style.left = '75%';
+                        el.style.transform = `translateX(${30 + i * 50}px)`;
+                        el.style.opacity = '0';
+                        el.dataset.id = data.id;
+                        animContainer.appendChild(el);
+                        return el;
+                    });
+
+                    // 黑点
+                    const dotEl = document.createElement('div');
+                    dotEl.className = 'anim-dot';
+                    dotEl.style.top = '50%';
+                    dotEl.style.left = '75%';
+                    dotEl.style.transform = 'translate(-50%, -50%) scale(0)';
+                    animContainer.appendChild(dotEl);
+
+                    async function peekCyra() {
+                        for (let i = 0; i < 4; i++) {
+                            const el = cyraEls[i];
+                            el.style.opacity = '1';
+                            const halfWidth = el.offsetWidth / 2;
+                            el.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            el.style.transform = `translateX(-${halfWidth}px) rotate(-60deg)`;
+                            await delay(400);
+                        }
+                    }
+
+                    async function jumpCyra() {
+                        for (let i = 0; i < 4; i++) {
+                            const el = cyraEls[i];
+                            const target = bPositions[`cyra${i}`];
+                            el.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            el.style.transform = 'rotate(0deg)';
+                            el.style.left = target.x + 'px';
+                            el.style.top = target.y + 'px';
+                            await delay(300);
+                        }
+                    }
+
+                    async function jumpHou() {
+                        for (let el of houEls) {
+                            el.style.opacity = '1';
+                            el.style.transition = 'transform 0.6s ease';
+                            el.style.transform = 'translateX(-80px)';
+                        }
+                        await delay(400);
+                        for (let i = 0; i < 3; i++) {
+                            const el = houEls[i];
+                            const target = bPositions[`hou${i}`];
+                            el.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            el.style.left = target.x + 'px';
+                            el.style.top = target.y + 'px';
+                            el.style.transform = 'rotate(0deg)';
+                        }
+                        await delay(600);
+                    }
+
+                    async function finalPush() {
+                        dotEl.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                        dotEl.style.left = bPositions.dot.x + 'px';
+                        dotEl.style.top = bPositions.dot.y + 'px';
+                        dotEl.style.transform = 'translate(-50%, -50%) scale(1)';
+
+                        for (let i = 0; i < 4; i++) {
+                            const el = cyraEls[i];
+                            el.style.left = (parseFloat(el.style.left) - 10) + 'px';
+                        }
+                        for (let i = 0; i < 3; i++) {
+                            const el = houEls[i];
+                            el.style.left = (parseFloat(el.style.left) + 10) + 'px';
+                        }
+
+                        doorLine.style.opacity = '0';
+                        doorMask.style.opacity = '0';
+                        await delay(500);
+                        endIntro();
+                    }
+
+                    (async () => {
+                        await peekCyra();
+                        await delay(200);
+                        await jumpCyra();
+                        await delay(100);
+                        await jumpHou();
+                        await delay(200);
+                        await finalPush();
+                    })();
+                }, 1000);
+            }
+
+            // 页面加载完成后启动动画（此时主内容已渲染，坐标可读）
+            window.addEventListener('load', () => {
+                initCubeInteraction();   // 魔方早早初始化
+                initLetterClick();       // 字母点击早早绑定
+                requestAnimationFrame(() => {
+                    startAnimation();
+                });
+            });
         })();
     </script>
 </body>
