@@ -77,14 +77,43 @@
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             transition: top 0.45s ease;
             z-index: 100;
+            backdrop-filter: blur(8px);
         }
         .top-nav.active { top: 0; }
-        .top-nav a {
+        .top-nav a, .dropdown-toggle {
             text-decoration: none; font-size: 18px;
             color: #1a1a1a; font-family: system-ui, sans-serif;
-            transition: color 0.2s;
+            transition: color 0.2s; cursor: pointer; background: none; border: none;
         }
-        .top-nav a:hover { color: #444; }
+        .top-nav a:hover, .dropdown-toggle:hover { color: #444; }
+
+        /* 下拉菜单 */
+        .dropdown {
+            position: relative; display: inline-block;
+        }
+        .dropdown-menu {
+            position: absolute; top: 100%; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(8px);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 0.5rem 0;
+            min-width: 150px;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 200;
+        }
+        .dropdown:hover .dropdown-menu {
+            opacity: 1; visibility: visible;
+        }
+        .dropdown-menu a {
+            display: block; padding: 0.5rem 1.5rem;
+            font-size: 16px; color: #1a1a1a;
+            text-align: center; white-space: nowrap;
+        }
+        .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
+
         .cube-dot.active ~ .top-nav { opacity: 0; pointer-events: none; }
 
         /* 开场动画覆盖层 */
@@ -132,7 +161,6 @@
             font-size: 80px;
             line-height: 1;
             white-space: nowrap;
-            /* 统一中心定位 */
             transform: translate(-50%, -50%);
             transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
                         top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -154,85 +182,55 @@
                         top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
                         transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        /* ========== 移动端响应式 ========== */
-@media (max-width: 768px) {
-    .name-container {
-        font-size: clamp(32px, 10vw, 48px);
-        gap: clamp(6px, 2vw, 10px);
-    }
-    .cube-dot {
-        width: clamp(14px, 3vw, 20px);
-        height: clamp(14px, 3vw, 20px);
-    }
-    .letter:hover {
-        transform: translateY(-8px);
-    }
-    .top-nav {
-        height: 60px;
-        gap: 20px;
-    }
-    .top-nav a {
-        font-size: 14px;
-    }
-    .anim-letter {
-        font-size: clamp(32px, 10vw, 48px);
-    }
-    .anim-dot {
-        width: clamp(14px, 3vw, 20px);
-        height: clamp(14px, 3vw, 20px);
-    }
-    .skip-btn {
-        font-size: 14px;
-        top: 15px;
-        right: 20px;
-    }
-}
 
-@media (max-width: 480px) {
-    .name-container {
-        font-size: clamp(24px, 8vw, 32px);
-        gap: 4px;
-    }
-    .cube-dot {
-        width: 12px;
-        height: 12px;
-    }
-    .letter:hover {
-        transform: translateY(-4px);
-    }
-    .top-nav {
-        height: 50px;
-        gap: 12px;
-    }
-    .top-nav a {
-        font-size: 12px;
-    }
-    .anim-letter {
-        font-size: clamp(24px, 8vw, 32px);
-    }
-    .anim-dot {
-        width: 12px;
-        height: 12px;
-    }
-}
-.dropdown:hover .dropdown-menu {
-    opacity: 1; visibility: visible;
-}
-.dropdown-menu a:hover {
-    background: #f0f0f0; color: #ad3737;
-}
+        /* ========== 移动端响应式 ========== */
+        @media (max-width: 768px) {
+            .name-container {
+                font-size: clamp(32px, 10vw, 48px);
+                gap: clamp(6px, 2vw, 10px);
+            }
+            .cube-dot {
+                width: clamp(14px, 3vw, 20px);
+                height: clamp(14px, 3vw, 20px);
+            }
+            .letter:hover { transform: translateY(-8px); }
+            .top-nav { height: 60px; gap: 20px; }
+            .top-nav a, .dropdown-toggle { font-size: 14px; }
+            .dropdown-menu a { font-size: 14px; padding: 0.4rem 1rem; }
+            .anim-letter { font-size: clamp(32px, 10vw, 48px); }
+            .anim-dot {
+                width: clamp(14px, 3vw, 20px);
+                height: clamp(14px, 3vw, 20px);
+            }
+            .skip-btn { font-size: 14px; top: 15px; right: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .name-container {
+                font-size: clamp(24px, 8vw, 32px);
+                gap: 4px;
+            }
+            .cube-dot { width: 12px; height: 12px; }
+            .letter:hover { transform: translateY(-4px); }
+            .top-nav { height: 50px; gap: 12px; }
+            .top-nav a, .dropdown-toggle { font-size: 12px; }
+            .dropdown-menu a { font-size: 12px; }
+            .anim-letter { font-size: clamp(24px, 8vw, 32px); }
+            .anim-dot { width: 12px; height: 12px; }
+        }
     </style>
 </head>
 <body>
+    <!-- 主内容区 -->
     <div id="mainContent">
         <div class="top-nav" id="topNav">
             <a href="index.html">Home</a>
             <a href="about.html">About me</a>
-            <div class="dropdown" style="position:relative; display:inline-block;">
-                <span class="dropdown-toggle" style="cursor:pointer;">Experience ▾</span>
-                <div class="dropdown-menu" style="position:absolute; top:100%; left:50%; transform:translateX(-50%); background:rgba(255,255,255,0.96); backdrop-filter:blur(8px); border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:0.5rem 0; min-width:150px; opacity:0; visibility:hidden; transition:0.2s; z-index:200;">
-                    <a href="education.html" style="display:block; padding:0.5rem 1.5rem; font-size:16px; color:#1a1a1a; text-decoration:none;">Education</a>
-                    <a href="work-experience.html" style="display:block; padding:0.5rem 1.5rem; font-size:16px; color:#1a1a1a; text-decoration:none;">Work</a>
+            <div class="dropdown">
+                <span class="dropdown-toggle">Experience ▾</span>
+                <div class="dropdown-menu">
+                    <a href="education.html">Education</a>
+                    <a href="work-experience.html">Work</a>
                 </div>
             </div>
             <a href="portfolio.html">Portfolio</a>
@@ -251,6 +249,7 @@
         </div>
     </div>
 
+    <!-- 开场动画覆盖层 -->
     <div id="introOverlay">
         <div class="skip-btn" id="skipBtn">skip</div>
         <div class="door-line" id="doorLine"></div>
@@ -268,7 +267,7 @@
             return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
         }
 
-        // 魔方交互（已修正居中）
+        // 魔方交互（已修正居中 + 移动端跳转）
         function initCubeInteraction() {
             const dot = document.getElementById('cubeDot');
             const container = document.getElementById('nameContainer');
@@ -312,7 +311,7 @@
                 if (!active) return;
                 let size = dot.clientWidth;
                 if (size < 50) {
-                    const vmin = Math.min(.innerWidth, .innerHeight);
+                    const vmin = Math.min(window.innerWidth, window.innerHeight);
                     size = vmin * 0.5;
                 }
 
@@ -323,7 +322,7 @@
                 camera.lookAt(0,0,0);
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(size, size);
-                renderer.setPixelRatio(Math.min(.devicePixelRatio, 2));
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                 dot.appendChild(renderer.domElement);
 
                 controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -380,14 +379,13 @@
 
                 function onPointerUp(e) {
                     if (!moved) {
-                        // 没有移动，视为点击 → 跳转
-                        .location.href = 'portfolio.html';
+                        window.location.href = 'portfolio.html';
                     }
                 }
 
                 function onContextMenu(e) {
                     e.preventDefault();
-                    .location.href = 'portfolio.html';
+                    window.location.href = 'portfolio.html';
                 }
 
                 renderer.domElement.addEventListener('mousedown', onPointerDown);
@@ -429,7 +427,7 @@
             dot.addEventListener('mouseleave', deactivate);
         }
 
-        // 字母点击跳转
+        // 字母点击跳转 About me
         function initLetterClick() {
             document.querySelectorAll('.letter').forEach(letter => {
                 letter.addEventListener('click', function(e) {
@@ -439,7 +437,7 @@
             });
         }
 
-        // 导航栏
+        // 导航栏显示/隐藏
         (function(){
             const nav = document.getElementById('topNav');
             let mouseInNav = false;
@@ -459,7 +457,6 @@
             const doorMask = document.getElementById('doorMask');
             const animContainer = document.getElementById('animLetters');
 
-            // 存储每个字母和黑点的最终中心坐标
             let bPositions = {};
 
             function captureBPositions() {
@@ -503,16 +500,15 @@
                     const houData = ['H','O','U'];
                     const delay = ms => new Promise(r => setTimeout(r, ms));
 
-                    // 创建 cyra 字母（从下往上探头：c在最下）
+                    // 创建 cyra 字母（从下往上探头：C在最下）
                     const cyraEls = cyraData.map((char, i) => {
                         const el = document.createElement('span');
                         el.className = 'anim-letter cyra-font';
                         el.textContent = char;
-                        // 初始位于门右侧，垂直排列，中心定位
                         const offset = (1.5 - i) * 80; // i=0 -> +120 (最下)
                         el.style.top = `calc(50% + ${offset}px)`;
                         el.style.left = '75%';
-                        el.style.transform = 'translate(-50%, -50%)'; // 中心定位
+                        el.style.transform = 'translate(-50%, -50%)';
                         el.style.opacity = '0';
                         el.dataset.id = `cyra${i}`;
                         animContainer.appendChild(el);
@@ -526,7 +522,7 @@
                         el.textContent = char;
                         el.style.top = 'calc(50% - 40px)';
                         el.style.left = '75%';
-                        el.style.transform = 'translate(-50%, -50%)'; // 中心定位
+                        el.style.transform = 'translate(-50%, -50%)';
                         el.style.opacity = '0';
                         el.dataset.id = `hou${i}`;
                         animContainer.appendChild(el);
@@ -541,20 +537,17 @@
                     dotEl.style.transform = 'translate(-50%, -50%) scale(0)';
                     animContainer.appendChild(dotEl);
 
-                    // 阶段2：探头（倾斜60°，中心定位基础上水平偏移）
                     async function peekCyra() {
                         for (let i = 0; i < 4; i++) {
                             const el = cyraEls[i];
                             el.style.opacity = '1';
                             const halfWidth = el.offsetWidth / 2;
                             el.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                            // 中心定位 + 向左偏移半个宽度 + 旋转
                             el.style.transform = `translate(calc(-50% - ${halfWidth}px), -50%) rotate(-60deg)`;
                             await delay(400);
                         }
                     }
 
-                    // 阶段3：cyra 依次跳到 B 点（各自最终中心坐标）
                     async function jumpCyra() {
                         for (let i = 0; i < 4; i++) {
                             const el = cyraEls[i];
@@ -562,22 +555,19 @@
                             el.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
                             el.style.left = target.x + 'px';
                             el.style.top = target.y + 'px';
-                            el.style.transform = 'translate(-50%, -50%) rotate(0deg)'; // 归正
+                            el.style.transform = 'translate(-50%, -50%) rotate(0deg)';
                             await delay(300);
                         }
                     }
 
-                    // 阶段4：HOU 滑出再跳
                     async function jumpHou() {
-                        // 先整体向左滑动（中心定位 + 水平偏移）
                         for (let i = 0; i < 3; i++) {
                             const el = houEls[i];
                             el.style.opacity = '1';
                             el.style.transition = 'transform 0.6s ease';
-                            el.style.transform = 'translate(calc(-50% - 80px), -50%)'; // 左移80px
+                            el.style.transform = 'translate(calc(-50% - 80px), -50%)';
                         }
                         await delay(400);
-                        // 再跳到各自最终位置
                         for (let i = 0; i < 3; i++) {
                             const el = houEls[i];
                             const target = bPositions[`hou${i}`];
@@ -589,14 +579,12 @@
                         await delay(600);
                     }
 
-                    // 阶段5：黑点滚出，微调字母X
                     async function finalPush() {
                         dotEl.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
                         dotEl.style.left = bPositions.dot.x + 'px';
                         dotEl.style.top = bPositions.dot.y + 'px';
                         dotEl.style.transform = 'translate(-50%, -50%) scale(1)';
 
-                        // 微调X，让出黑点空间
                         for (let i = 0; i < 4; i++) {
                             cyraEls[i].style.left = (parseFloat(cyraEls[i].style.left) - 10) + 'px';
                         }
