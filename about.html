@@ -10,15 +10,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-
         body {
             width: 100vw; min-height: 100vh;
             background: #ffffff;
             font-family: system-ui, -apple-system, sans-serif;
             overflow-x: hidden;
         }
-
-        /* 导航栏 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.96);
@@ -35,11 +32,7 @@
         }
         .top-nav a:hover, .dropdown-toggle:hover { color: #444; }
         .top-nav a.active { color: #ad3737; font-weight: 600; }
-
-        /* 下拉菜单 */
-        .dropdown {
-            position: relative; display: inline-block;
-        }
+        .dropdown { position: relative; display: inline-block; }
         .dropdown-menu {
             position: absolute; top: 100%; left: 50%;
             transform: translateX(-50%);
@@ -53,28 +46,20 @@
             transition: opacity 0.2s, visibility 0.2s;
             z-index: 200;
         }
-        .dropdown:hover .dropdown-menu {
-            opacity: 1; visibility: visible;
-        }
+        .dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; }
         .dropdown-menu a {
             display: block; padding: 0.5rem 1.5rem;
             font-size: 16px; color: #1a1a1a;
             text-align: center; white-space: nowrap;
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
-
-        /* 地图容器 */
         #map-container {
             width: 100%;
             height: calc(100vh - 70px);
             margin-top: 70px;
             background: #ffffff;
         }
-        #map-chart {
-            width: 100%; height: 100%;
-        }
-
-        /* 移动端 */
+        #map-chart { width: 100%; height: 100%; }
         @media (max-width: 768px) {
             .top-nav { gap: 20px; height: 60px; }
             .top-nav a, .dropdown-toggle { font-size: 14px; }
@@ -89,7 +74,6 @@
     </style>
 </head>
 <body>
-
     <nav class="top-nav">
         <a href="index.html">Home</a>
         <a href="about.html" class="active">About me</a>
@@ -111,14 +95,44 @@
 
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script>
-        // 使用绝对路径确保一定加载到
-        fetch('https://cyrahou.github.io/china-cities.json')
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error('网络响应错误: ' + res.status);
-                }
-                return res.json();
-            })
+        // 优先加载在线地级市 GeoJSON，5秒超时回退本地
+        function loadGeoJSON() {
+            const onlineUrl = 'https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json';
+            const localUrl = 'china-cities.json';
+
+            return new Promise((resolve, reject) => {
+                let timedOut = false;
+                const timer = setTimeout(() => {
+                    timedOut = true;
+                    console.warn('在线地图加载超时，切换本地文件');
+                    fetch(localUrl)
+                        .then(res => res.json())
+                        .then(resolve)
+                        .catch(reject);
+                }, 5000);
+
+                fetch(onlineUrl)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!timedOut) {
+                            clearTimeout(timer);
+                            resolve(data);
+                        }
+                    })
+                    .catch(err => {
+                        if (!timedOut) {
+                            clearTimeout(timer);
+                            console.warn('在线地图加载失败，尝试本地文件');
+                            fetch(localUrl)
+                                .then(res => res.json())
+                                .then(resolve)
+                                .catch(reject);
+                        }
+                    });
+            });
+        }
+
+        loadGeoJSON()
             .then(geoJson => {
                 echarts.registerMap('china', geoJson);
 
@@ -127,66 +141,32 @@
 
                 const option = {
                     backgroundColor: '#ffffff',
+                    geo: {
+                        map: 'china',
+                        roam: false,
+                        center: [122, 42],   // 聚焦东北华北
+                        zoom: 2.5,           // 放大比例
+                        itemStyle: {
+                            areaColor: '#ebebeb',
+                            borderColor: '#eb713d',
+                            borderWidth: 0.8
+                        },
+                        label: { show: false },
+                        regions: [
+                            // 省背景浅橘色
+                            { name: '黑龙江省', itemStyle: { areaColor: '#f3ae85' } },
+                            { name: '北京市',   itemStyle: { areaColor: '#f3ae85' } },
+                            { name: '山东省',   itemStyle: { areaColor: '#f3ae85' } },
+                            // 市高亮草绿色（覆盖在省之上）
+                            { name: '牡丹江市', itemStyle: { areaColor: '#c6dd6d' } },
+                            { name: '哈尔滨市', itemStyle: { areaColor: '#c6dd6d' } },
+                            { name: '东营市',   itemStyle: { areaColor: '#c6dd6d' } }
+                        ]
+                    },
                     series: [
-                        {
-                            type: 'map',
-                            map: 'china',
-                            roam: false,
-                            zoom: 1.2,
-                            center: [118, 41],
-                            itemStyle: {
-                                areaColor: '#ebebeb',
-                                borderColor: '#eb713d',
-                                borderWidth: 0.8
-                            },
-                            label: { show: false },
-                            data: []
-                        },
-                        {
-                            type: 'map',
-                            map: 'china',
-                            roam: false,
-                            zoom: 1.2,
-                            center: [118, 41],
-                            itemStyle: {
-                                areaColor: '#f3ae85',
-                                borderColor: '#eb713d',
-                                borderWidth: 1
-                            },
-                            label: { show: false },
-                            data: [
-                                { name: '黑龙江省', itemStyle: { areaColor: '#f3ae85' } },
-                                { name: '北京市',   itemStyle: { areaColor: '#f3ae85' } },
-                                { name: '山东省',   itemStyle: { areaColor: '#f3ae85' } }
-                            ]
-                        },
-                        {
-                            type: 'map',
-                            map: 'china',
-                            roam: false,
-                            zoom: 1.2,
-                            center: [118, 41],
-                            itemStyle: {
-                                areaColor: '#c6dd6d',
-                                borderColor: '#eb713d',
-                                borderWidth: 1.2
-                            },
-                            label: {
-                                show: true,
-                                color: '#333',
-                                fontSize: 12
-                            },
-                            data: [
-                                { name: '牡丹江市' },
-                                { name: '哈尔滨市' },
-                                { name: '北京市' },
-                                { name: '东营市' }
-                            ]
-                        },
                         {
                             type: 'scatter',
                             coordinateSystem: 'geo',
-                            geoIndex: 0,
                             symbol: 'circle',
                             symbolSize: 12,
                             itemStyle: {
@@ -215,22 +195,22 @@
                 myChart.setOption(option);
                 window.addEventListener('resize', () => myChart.resize());
 
+                // 点击事件（针对散点，也可监听区域）
                 myChart.on('click', function(params) {
-                    if (params.componentType === 'series' && params.seriesType === 'map') {
+                    if (params.componentType === 'series' && params.seriesType === 'scatter') {
                         const cityName = params.name;
-                        if (cityName === '哈尔滨市') {
+                        if (cityName === '哈尔滨') {
                             window.location.href = 'education.html';
-                        } else if (cityName === '北京市' || cityName === '东营市') {
+                        } else if (cityName === '北京' || cityName === '东营') {
                             window.location.href = 'work-experience.html';
                         }
-                        // 牡丹江无跳转
                     }
                 });
             })
             .catch(err => {
                 console.error('地图加载失败:', err);
                 document.getElementById('map-chart').innerHTML =
-                    '<p style="text-align:center;padding:40px;">地图加载失败：' + err.message + '，请确认已上传 china-cities.json 至仓库根目录</p>';
+                    '<p style="text-align:center;padding:40px;">地图加载失败，请检查网络并确认 china-cities.json 已上传</p>';
             });
     </script>
 </body>
