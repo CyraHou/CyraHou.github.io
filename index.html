@@ -312,7 +312,7 @@
                 if (!active) return;
                 let size = dot.clientWidth;
                 if (size < 50) {
-                    const vmin = Math.min(window.innerWidth, window.innerHeight);
+                    const vmin = Math.min(.innerWidth, .innerHeight);
                     size = vmin * 0.5;
                 }
 
@@ -323,7 +323,7 @@
                 camera.lookAt(0,0,0);
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(size, size);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.setPixelRatio(Math.min(.devicePixelRatio, 2));
                 dot.appendChild(renderer.domElement);
 
                 controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -381,13 +381,13 @@
                 function onPointerUp(e) {
                     if (!moved) {
                         // 没有移动，视为点击 → 跳转
-                        window.location.href = 'portfolio.html';
+                        .location.href = 'portfolio.html';
                     }
                 }
 
                 function onContextMenu(e) {
                     e.preventDefault();
-                    window.location.href = 'portfolio.html';
+                    .location.href = 'portfolio.html';
                 }
 
                 renderer.domElement.addEventListener('mousedown', onPointerDown);
