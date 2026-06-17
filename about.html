@@ -15,7 +15,16 @@
             width: 100vw; height: 100vh;
             overflow: hidden;
             font-family: system-ui, -apple-system, sans-serif;
-            background: #000; /* 图片加载前/后的后备色 */
+            background: #000;
+        }
+
+        /* ---------- 背景图片：用 <img> 铺满 ---------- */
+        .map-image {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            object-fit: cover;       /* 覆盖全屏，保持比例裁剪 */
+            z-index: 1;
         }
 
         /* ---------- 导航栏 ---------- */
@@ -59,17 +68,6 @@
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
 
-        /* ---------- 背景图片容器 ---------- */
-        #map-bg {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background-image: url('map-bg.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            z-index: 1; /* 低于导航栏 */
-        }
-
         /* 移动端适配 */
         @media (max-width: 768px) {
             .top-nav { gap: 20px; height: 60px; }
@@ -83,8 +81,8 @@
     </style>
 </head>
 <body>
-    <!-- 背景图片 -->
-    <div id="map-bg"></div>
+    <!-- 铺满全屏的背景图片 -->
+    <img class="map-image" src="map-bg.png" alt="Hand-drawn map of Northeast China">
 
     <!-- 导航栏 -->
     <nav class="top-nav">
@@ -102,22 +100,20 @@
         <a href="contact.html">Contact me</a>
     </nav>
 
-    <!-- 坐标获取脚本 -->
+    <!-- 坐标获取脚本（正式版会移除） -->
     <script>
-        // 注意：此脚本仅用于开发阶段获取城市坐标，正式版会移除
         window.addEventListener('load', function() {
-            const bg = document.getElementById('map-bg');
-            if (!bg) return;
+            const img = document.querySelector('.map-image');
+            if (!img) return;
 
-            // 提示用户
             console.log('🗺️ 点击地图上的城市位置（牡丹江、哈尔滨、北京、东营），将自动输出百分比坐标。');
-            console.log('点击顺序不限，只需在对应位置各点一次。');
+            console.log('请按顺序点击，每次点击对应一个城市。');
 
             const cities = ['牡丹江', '哈尔滨', '北京', '东营'];
             let clickCount = 0;
 
-            bg.addEventListener('click', function(e) {
-                const rect = bg.getBoundingClientRect();
+            img.addEventListener('click', function(e) {
+                const rect = img.getBoundingClientRect();
                 const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
                 const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
 
