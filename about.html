@@ -17,18 +17,15 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* ---------- 地图背景 ---------- */
-        #map-container {
+        /* ---------- 地图图片 ---------- */
+        .map-image {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
-            background-image: url('https://cyrahou.github.io/map-bg.png?t=20240615');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            object-fit: cover;
             z-index: 1;
         }
 
-        /* ---------- 城市标点（红色圆点 + 呼吸动画） ---------- */
+        /* ---------- 城市标点（红色圆点 + 呼吸） ---------- */
         .city-marker {
             position: absolute;
             width: 20px; height: 20px;
@@ -50,34 +47,25 @@
             box-shadow: 0 0 0 8px rgba(173, 55, 55, 0.3);
         }
 
-        /* ---------- 弹出卡片 ---------- */
-        .popup-overlay {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
-            z-index: 200;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-        .popup-overlay.active {
-            opacity: 1; visibility: visible;
-        }
+        /* ---------- 右侧弹出卡片（无遮罩） ---------- */
         .popup-card {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
             background: #fff;
             border-radius: 12px;
             padding: 2rem;
-            max-width: 400px;
-            width: 80%;
+            width: 280px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-            position: relative;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
             text-align: center;
-            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        @keyframes popIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        .popup-card.active {
+            opacity: 1; visibility: visible;
         }
         .popup-card h3 {
             font-size: 1.5rem;
@@ -115,7 +103,6 @@
         .top-nav a:hover, .dropdown-toggle:hover { color: #444; }
         .top-nav a.active { color: #ad3737; font-weight: 600; }
 
-        /* 下拉菜单 */
         .dropdown { position: relative; display: inline-block; }
         .dropdown-menu {
             position: absolute; top: 100%; left: 50%;
@@ -138,12 +125,11 @@
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
 
-        /* 移动端 */
         @media (max-width: 768px) {
             .top-nav { gap: 20px; height: 60px; }
             .top-nav a, .dropdown-toggle { font-size: 14px; }
             .city-marker { width: 16px; height: 16px; }
-            .popup-card { padding: 1.5rem; }
+            .popup-card { width: 220px; right: 10px; padding: 1.5rem; }
         }
         @media (max-width: 480px) {
             .top-nav { gap: 12px; }
@@ -153,23 +139,19 @@
     </style>
 </head>
 <body>
-    <!-- 地图背景 -->
-    <div id="map-container">
-        <!-- 城市标点（使用获取的坐标百分比） -->
-        <div class="city-marker" data-city="mudanjiang" style="left: 52.97%; top: 33.79%;"></div>
-        <div class="city-marker" data-city="haerbin" style="left: 50.84%; top: 32.53%;"></div>
-        <div class="city-marker" data-city="beijing" style="left: 40.66%; top: 46.90%;"></div>
-        <div class="city-marker" data-city="dongying" style="left: 43.08%; top: 52.47%;"></div>
+    <!-- 地图图片（用 img，坐标基于此元素） -->
+    <img class="map-image" src="https://cyrahou.github.io/map-bg.png?t=20240615" alt="Hand-drawn map" id="mapImage">
+
+    <!-- 标点容器（相对于 img 定位） -->
+    <div id="markersContainer" style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10; pointer-events:none;">
+        <!-- 标点将由 JS 动态添加，以便更新坐标 -->
     </div>
 
-    <!-- 弹出卡片（牡丹江） -->
-    <div class="popup-overlay" id="popupOverlay">
-        <div class="popup-card">
-            <button class="popup-close" id="popupClose">&times;</button>
-            <h3>牡丹江</h3>
-            <p>我出生并成长在这里，度过了童年和少年时光。</p>
-            <!-- 这里后期可替换为图片/动画 -->
-        </div>
+    <!-- 右侧弹出卡片（牡丹江） -->
+    <div class="popup-card" id="popupCard">
+        <button class="popup-close" id="popupClose">&times;</button>
+        <h3>牡丹江</h3>
+        <p>我出生并成长在这里，度过了童年和少年时光。</p>
     </div>
 
     <!-- 导航栏 -->
@@ -189,36 +171,87 @@
     </nav>
 
     <script>
-        // 弹出卡片逻辑（牡丹江）
-        const overlay = document.getElementById('popupOverlay');
-        const closeBtn = document.getElementById('popupClose');
+        // ---------- 坐标获取（临时） ----------
+        const mapImg = document.getElementById('mapImage');
+        const markersContainer = document.getElementById('markersContainer');
 
-        // 点击标点
-        document.querySelectorAll('.city-marker').forEach(marker => {
-            marker.addEventListener('click', function(e) {
-                const city = this.dataset.city;
-                if (city === 'mudanjiang') {
-                    // 牡丹江 → 弹出卡片
-                    overlay.classList.add('active');
-                } else if (city === 'haerbin') {
-                    // 哈尔滨 → education.html
-                    window.location.href = 'education.html';
-                } else if (city === 'beijing' || city === 'dongying') {
-                    // 北京 / 东营 → work-experience.html
-                    window.location.href = 'work-experience.html';
-                }
+        // 当前已知坐标（你之前的，先保留，但会提示重新获取）
+        let cityCoordinates = {
+            mudanjiang: { x: 52.97, y: 33.79 },
+            haerbin: { x: 50.84, y: 32.53 },
+            beijing: { x: 40.66, y: 46.90 },
+            dongying: { x: 43.08, y: 52.47 }
+        };
+
+        // 创建标点的函数
+        function renderMarkers() {
+            markersContainer.innerHTML = '';
+            Object.entries(cityCoordinates).forEach(([city, pos]) => {
+                const marker = document.createElement('div');
+                marker.className = 'city-marker';
+                marker.style.left = pos.x + '%';
+                marker.style.top = pos.y + '%';
+                marker.style.pointerEvents = 'auto';
+                marker.dataset.city = city;
+                marker.addEventListener('click', handleMarkerClick);
+                markersContainer.appendChild(marker);
             });
-        });
+        }
+
+        // 点击标点处理
+        function handleMarkerClick(e) {
+            const city = e.currentTarget.dataset.city;
+            if (city === 'mudanjiang') {
+                // 显示右侧卡片
+                document.getElementById('popupCard').classList.add('active');
+            } else if (city === 'haerbin') {
+                window.location.href = 'education.html';
+            } else if (city === 'beijing' || city === 'dongying') {
+                window.location.href = 'work-experience.html';
+            }
+        }
 
         // 关闭卡片
-        closeBtn.addEventListener('click', function() {
-            overlay.classList.remove('active');
+        document.getElementById('popupClose').addEventListener('click', () => {
+            document.getElementById('popupCard').classList.remove('active');
+        });
+        // 点击地图空白处关闭卡片（可选）
+        mapImg.addEventListener('click', () => {
+            document.getElementById('popupCard').classList.remove('active');
         });
 
-        // 点击遮罩关闭
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                overlay.classList.remove('active');
+        // 渲染标点（使用当前坐标）
+        renderMarkers();
+
+        // ---------- 重新获取坐标（控制台提示） ----------
+        console.log('🔧 若标点位置偏移，请按顺序重新点击地图上的四个城市（牡丹江→哈尔滨→北京→东营），新坐标将自动更新标点。');
+        console.log('点击后新坐标会存储并覆盖旧位置，刷新页面后恢复默认坐标。如需永久保存，请将控制台输出的最终坐标发给我。');
+
+        let clickCount = 0;
+        const cityOrder = ['mudanjiang', 'haerbin', 'beijing', 'dongying'];
+        const cityNames = ['牡丹江', '哈尔滨', '北京', '东营'];
+        let newCoords = {};
+
+        mapImg.addEventListener('click', function(e) {
+            if (clickCount >= 4) return; // 只记录前4次点击
+
+            const rect = mapImg.getBoundingClientRect();
+            const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
+            const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
+
+            const cityKey = cityOrder[clickCount];
+            newCoords[cityKey] = { x: parseFloat(xPercent), y: parseFloat(yPercent) };
+            console.log(`✅ ${cityNames[clickCount]}: x: ${xPercent}%, y: ${yPercent}%`);
+
+            clickCount++;
+            if (clickCount === 4) {
+                // 更新坐标并重新渲染标点
+                cityCoordinates = newCoords;
+                renderMarkers();
+                console.log('🎉 标点已更新为新坐标！请检查位置是否正确。如需永久保存，请将上方 4 行数据复制发送给我。');
+                // 重置点击计数，允许重新调整
+                clickCount = 0;
+                newCoords = {};
             }
         });
     </script>
