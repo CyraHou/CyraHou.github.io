@@ -10,24 +10,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-
         body {
             width: 100vw; height: 100vh;
             overflow: hidden;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: system-ui, sans-serif;
             background: #000;
         }
-
-        /* ---------- 背景图片：用 <img> 铺满 ---------- */
-        .map-image {
-            position: fixed;
-            top: 0; left: 0;
+        /* 背景图容器 */
+        #map-container {
+            position: fixed; top:0; left:0;
             width: 100vw; height: 100vh;
-            object-fit: cover;       /* 覆盖全屏，保持比例裁剪 */
+            background-image: url('https://cyrahou.github.io/map-bg.png?t=20240615');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             z-index: 1;
         }
-
-        /* ---------- 导航栏 ---------- */
+        /* 导航栏 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.9);
@@ -44,8 +43,6 @@
         }
         .top-nav a:hover, .dropdown-toggle:hover { color: #444; }
         .top-nav a.active { color: #ad3737; font-weight: 600; }
-
-        /* 下拉菜单 */
         .dropdown { position: relative; display: inline-block; }
         .dropdown-menu {
             position: absolute; top: 100%; left: 50%;
@@ -67,12 +64,9 @@
             text-align: center; white-space: nowrap;
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
-
-        /* 移动端适配 */
         @media (max-width: 768px) {
             .top-nav { gap: 20px; height: 60px; }
             .top-nav a, .dropdown-toggle { font-size: 14px; }
-            .dropdown-menu a { font-size: 14px; padding: 0.4rem 1rem; }
         }
         @media (max-width: 480px) {
             .top-nav { gap: 12px; }
@@ -81,10 +75,8 @@
     </style>
 </head>
 <body>
-    <!-- 铺满全屏的背景图片 -->
-    <img class="map-image" src="map-bg.png" alt="Hand-drawn map of Northeast China">
+    <div id="map-container"></div>
 
-    <!-- 导航栏 -->
     <nav class="top-nav">
         <a href="index.html">Home</a>
         <a href="about.html" class="active">About me</a>
@@ -99,32 +91,5 @@
         <a href="others.html">Others</a>
         <a href="contact.html">Contact me</a>
     </nav>
-
-    <!-- 坐标获取脚本（正式版会移除） -->
-    <script>
-        window.addEventListener('load', function() {
-            const img = document.querySelector('.map-image');
-            if (!img) return;
-
-            console.log('🗺️ 点击地图上的城市位置（牡丹江、哈尔滨、北京、东营），将自动输出百分比坐标。');
-            console.log('请按顺序点击，每次点击对应一个城市。');
-
-            const cities = ['牡丹江', '哈尔滨', '北京', '东营'];
-            let clickCount = 0;
-
-            img.addEventListener('click', function(e) {
-                const rect = img.getBoundingClientRect();
-                const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
-                const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
-
-                if (clickCount < cities.length) {
-                    console.log(`✅ ${cities[clickCount]}: x: ${xPercent}%, y: ${yPercent}%`);
-                    clickCount++;
-                } else {
-                    console.log(`额外点击: x: ${xPercent}%, y: ${yPercent}%`);
-                }
-            });
-        });
-    </script>
 </body>
 </html>
