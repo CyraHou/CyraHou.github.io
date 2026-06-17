@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-
         body {
             width: 100vw; height: 100vh;
             overflow: hidden;
@@ -85,6 +84,21 @@
         }
         .popup-close:hover { color: #333; }
 
+        /* ---------- 获取坐标提示按钮 ---------- */
+        .coord-btn {
+            position: fixed; bottom: 20px; right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 300;
+            backdrop-filter: blur(4px);
+        }
+        .coord-btn:hover { background: rgba(0,0,0,0.9); }
+
         /* ---------- 导航栏 ---------- */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
@@ -102,7 +116,6 @@
         }
         .top-nav a:hover, .dropdown-toggle:hover { color: #444; }
         .top-nav a.active { color: #ad3737; font-weight: 600; }
-
         .dropdown { position: relative; display: inline-block; }
         .dropdown-menu {
             position: absolute; top: 100%; left: 50%;
@@ -139,12 +152,12 @@
     </style>
 </head>
 <body>
-    <!-- 地图图片（用 img，坐标基于此元素） -->
+    <!-- 地图图片 -->
     <img class="map-image" src="https://cyrahou.github.io/map-bg.png?t=20240615" alt="Hand-drawn map" id="mapImage">
 
-    <!-- 标点容器（相对于 img 定位） -->
+    <!-- 标点容器（与图片完全重叠） -->
     <div id="markersContainer" style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10; pointer-events:none;">
-        <!-- 标点将由 JS 动态添加，以便更新坐标 -->
+        <!-- 动态填充 -->
     </div>
 
     <!-- 右侧弹出卡片（牡丹江） -->
@@ -153,6 +166,9 @@
         <h3>牡丹江</h3>
         <p>我出生并成长在这里，度过了童年和少年时光。</p>
     </div>
+
+    <!-- 获取坐标按钮 -->
+    <button class="coord-btn" id="showCoordsBtn">📋 输出最新坐标到控制台</button>
 
     <!-- 导航栏 -->
     <nav class="top-nav">
@@ -171,19 +187,19 @@
     </nav>
 
     <script>
-        // ---------- 坐标获取（临时） ----------
-        const mapImg = document.getElementById('mapImage');
-        const markersContainer = document.getElementById('markersContainer');
-
-        // 当前已知坐标（你之前的，先保留，但会提示重新获取）
+        // ---------- 坐标存储（当前为旧坐标，会被新点击覆盖） ----------
         let cityCoordinates = {
             mudanjiang: { x: 52.97, y: 33.79 },
-            haerbin: { x: 50.84, y: 32.53 },
-            beijing: { x: 40.66, y: 46.90 },
-            dongying: { x: 43.08, y: 52.47 }
+            haerbin:    { x: 50.84, y: 32.53 },
+            beijing:    { x: 40.66, y: 46.90 },
+            dongying:   { x: 43.08, y: 52.47 }
         };
 
-        // 创建标点的函数
+        const mapImg = document.getElementById('mapImage');
+        const markersContainer = document.getElementById('markersContainer');
+        const popupCard = document.getElementById('popupCard');
+
+        // 渲染标点
         function renderMarkers() {
             markersContainer.innerHTML = '';
             Object.entries(cityCoordinates).forEach(([city, pos]) => {
@@ -198,12 +214,11 @@
             });
         }
 
-        // 点击标点处理
+        // 标点点击逻辑
         function handleMarkerClick(e) {
             const city = e.currentTarget.dataset.city;
             if (city === 'mudanjiang') {
-                // 显示右侧卡片
-                document.getElementById('popupCard').classList.add('active');
+                popupCard.classList.add('active');
             } else if (city === 'haerbin') {
                 window.location.href = 'education.html';
             } else if (city === 'beijing' || city === 'dongying') {
@@ -213,27 +228,28 @@
 
         // 关闭卡片
         document.getElementById('popupClose').addEventListener('click', () => {
-            document.getElementById('popupCard').classList.remove('active');
+            popupCard.classList.remove('active');
         });
-        // 点击地图空白处关闭卡片（可选）
-        mapImg.addEventListener('click', () => {
-            document.getElementById('popupCard').classList.remove('active');
+        mapImg.addEventListener('click', (e) => {
+            // 如果点击的不是标点，关闭卡片
+            if (!e.target.classList.contains('city-marker')) {
+                popupCard.classList.remove('active');
+            }
         });
 
-        // 渲染标点（使用当前坐标）
         renderMarkers();
 
-        // ---------- 重新获取坐标（控制台提示） ----------
-        console.log('🔧 若标点位置偏移，请按顺序重新点击地图上的四个城市（牡丹江→哈尔滨→北京→东营），新坐标将自动更新标点。');
-        console.log('点击后新坐标会存储并覆盖旧位置，刷新页面后恢复默认坐标。如需永久保存，请将控制台输出的最终坐标发给我。');
-
+        // ---------- 正常视口获取坐标（无需打开控制台） ----------
         let clickCount = 0;
         const cityOrder = ['mudanjiang', 'haerbin', 'beijing', 'dongying'];
         const cityNames = ['牡丹江', '哈尔滨', '北京', '东营'];
         let newCoords = {};
 
+        // 点击图片获取坐标
         mapImg.addEventListener('click', function(e) {
-            if (clickCount >= 4) return; // 只记录前4次点击
+            // 如果点击的是标点，不记录坐标（避免干扰）
+            if (e.target.classList.contains('city-marker')) return;
+            if (clickCount >= 4) return;
 
             const rect = mapImg.getBoundingClientRect();
             const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
@@ -241,18 +257,29 @@
 
             const cityKey = cityOrder[clickCount];
             newCoords[cityKey] = { x: parseFloat(xPercent), y: parseFloat(yPercent) };
+
             console.log(`✅ ${cityNames[clickCount]}: x: ${xPercent}%, y: ${yPercent}%`);
 
             clickCount++;
             if (clickCount === 4) {
-                // 更新坐标并重新渲染标点
+                // 更新坐标并重绘标点
                 cityCoordinates = newCoords;
                 renderMarkers();
-                console.log('🎉 标点已更新为新坐标！请检查位置是否正确。如需永久保存，请将上方 4 行数据复制发送给我。');
-                // 重置点击计数，允许重新调整
+                console.log('🎉 标点已更新！若位置满意，请点击右下角按钮输出最终坐标，或直接复制上方4行数据发给我。');
+                // 重置，允许重新调整
                 clickCount = 0;
                 newCoords = {};
             }
+        });
+
+        // 按钮：输出当前坐标到控制台
+        document.getElementById('showCoordsBtn').addEventListener('click', function() {
+            console.log('📌 当前标点坐标（请复制以下4行）：');
+            const names = ['牡丹江', '哈尔滨', '北京', '东营'];
+            Object.entries(cityCoordinates).forEach(([key, pos], i) => {
+                console.log(`${names[i]}: x: ${pos.x.toFixed(2)}%, y: ${pos.y.toFixed(2)}%`);
+            });
+            alert('坐标已输出到控制台（F12 → Console），请复制后发给我。');
         });
     </script>
 </body>
