@@ -24,6 +24,19 @@
             z-index: 1;
         }
 
+        /* ---------- 标点容器（初始隐藏） ---------- */
+        #markersContainer {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        #markersContainer.visible {
+            opacity: 1;
+        }
+
         /* ---------- 城市标点（红色圆点 + 呼吸） ---------- */
         .city-marker {
             position: absolute;
@@ -32,9 +45,9 @@
             border-radius: 50%;
             transform: translate(-50%, -50%);
             cursor: pointer;
-            z-index: 10;
             box-shadow: 0 0 0 0 rgba(173, 55, 55, 0.5);
             animation: pulse 2s infinite;
+            pointer-events: auto;
         }
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(173, 55, 55, 0.5); }
@@ -83,21 +96,6 @@
             color: #999;
         }
         .popup-close:hover { color: #333; }
-
-        /* ---------- 获取坐标提示按钮 ---------- */
-        .coord-btn {
-            position: fixed; bottom: 20px; right: 20px;
-            background: rgba(0,0,0,0.7);
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 300;
-            backdrop-filter: blur(4px);
-        }
-        .coord-btn:hover { background: rgba(0,0,0,0.9); }
 
         /* ---------- 导航栏 ---------- */
         .top-nav {
@@ -152,12 +150,16 @@
     </style>
 </head>
 <body>
-    <!-- 地图图片 -->
+    <!-- 地图图片（加载完成后触发显示标点） -->
     <img class="map-image" src="https://cyrahou.github.io/map-bg.png?t=20240615" alt="Hand-drawn map" id="mapImage">
 
-    <!-- 标点容器（与图片完全重叠） -->
-    <div id="markersContainer" style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10; pointer-events:none;">
-        <!-- 动态填充 -->
+    <!-- 标点容器（初始隐藏，地图加载后显示） -->
+    <div id="markersContainer">
+        <!-- 已固化的坐标 -->
+        <div class="city-marker" data-city="mudanjiang" style="left: 52.40%; top: 32.32%;"></div>
+        <div class="city-marker" data-city="haerbin"    style="left: 50.52%; top: 29.70%;"></div>
+        <div class="city-marker" data-city="beijing"    style="left: 42.45%; top: 46.17%;"></div>
+        <div class="city-marker" data-city="dongying"   style="left: 44.11%; top: 52.15%;"></div>
     </div>
 
     <!-- 右侧弹出卡片（牡丹江） -->
@@ -166,9 +168,6 @@
         <h3>牡丹江</h3>
         <p>我出生并成长在这里，度过了童年和少年时光。</p>
     </div>
-
-    <!-- 获取坐标按钮 -->
-    <button class="coord-btn" id="showCoordsBtn">📋 输出最新坐标到控制台</button>
 
     <!-- 导航栏 -->
     <nav class="top-nav">
@@ -187,100 +186,50 @@
     </nav>
 
     <script>
-        // ---------- 坐标存储（当前为旧坐标，会被新点击覆盖） ----------
-        let cityCoordinates = {
-            mudanjiang: { x: 52.97, y: 33.79 },
-            haerbin:    { x: 50.84, y: 32.53 },
-            beijing:    { x: 40.66, y: 46.90 },
-            dongying:   { x: 43.08, y: 52.47 }
-        };
+        (function() {
+            const mapImg = document.getElementById('mapImage');
+            const markersContainer = document.getElementById('markersContainer');
+            const popupCard = document.getElementById('popupCard');
 
-        const mapImg = document.getElementById('mapImage');
-        const markersContainer = document.getElementById('markersContainer');
-        const popupCard = document.getElementById('popupCard');
-
-        // 渲染标点
-        function renderMarkers() {
-            markersContainer.innerHTML = '';
-            Object.entries(cityCoordinates).forEach(([city, pos]) => {
-                const marker = document.createElement('div');
-                marker.className = 'city-marker';
-                marker.style.left = pos.x + '%';
-                marker.style.top = pos.y + '%';
-                marker.style.pointerEvents = 'auto';
-                marker.dataset.city = city;
-                marker.addEventListener('click', handleMarkerClick);
-                markersContainer.appendChild(marker);
-            });
-        }
-
-        // 标点点击逻辑
-        function handleMarkerClick(e) {
-            const city = e.currentTarget.dataset.city;
-            if (city === 'mudanjiang') {
-                popupCard.classList.add('active');
-            } else if (city === 'haerbin') {
-                window.location.href = 'education.html';
-            } else if (city === 'beijing' || city === 'dongying') {
-                window.location.href = 'work-experience.html';
+            // 地图加载完成后显示标点
+            if (mapImg.complete) {
+                // 图片已缓存，立即显示
+                markersContainer.classList.add('visible');
+            } else {
+                mapImg.addEventListener('load', function() {
+                    markersContainer.classList.add('visible');
+                });
             }
-        }
+            // 如果加载失败，也显示标点（避免永远不出现）
+            mapImg.addEventListener('error', function() {
+                markersContainer.classList.add('visible');
+            });
 
-        // 关闭卡片
-        document.getElementById('popupClose').addEventListener('click', () => {
-            popupCard.classList.remove('active');
-        });
-        mapImg.addEventListener('click', (e) => {
-            // 如果点击的不是标点，关闭卡片
-            if (!e.target.classList.contains('city-marker')) {
+            // 标点点击逻辑
+            document.querySelectorAll('.city-marker').forEach(marker => {
+                marker.addEventListener('click', function(e) {
+                    const city = this.dataset.city;
+                    if (city === 'mudanjiang') {
+                        popupCard.classList.add('active');
+                    } else if (city === 'haerbin') {
+                        window.location.href = 'education.html';
+                    } else if (city === 'beijing' || city === 'dongying') {
+                        window.location.href = 'work-experience.html';
+                    }
+                });
+            });
+
+            // 关闭卡片
+            document.getElementById('popupClose').addEventListener('click', () => {
                 popupCard.classList.remove('active');
-            }
-        });
-
-        renderMarkers();
-
-        // ---------- 正常视口获取坐标（无需打开控制台） ----------
-        let clickCount = 0;
-        const cityOrder = ['mudanjiang', 'haerbin', 'beijing', 'dongying'];
-        const cityNames = ['牡丹江', '哈尔滨', '北京', '东营'];
-        let newCoords = {};
-
-        // 点击图片获取坐标
-        mapImg.addEventListener('click', function(e) {
-            // 如果点击的是标点，不记录坐标（避免干扰）
-            if (e.target.classList.contains('city-marker')) return;
-            if (clickCount >= 4) return;
-
-            const rect = mapImg.getBoundingClientRect();
-            const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
-            const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
-
-            const cityKey = cityOrder[clickCount];
-            newCoords[cityKey] = { x: parseFloat(xPercent), y: parseFloat(yPercent) };
-
-            console.log(`✅ ${cityNames[clickCount]}: x: ${xPercent}%, y: ${yPercent}%`);
-
-            clickCount++;
-            if (clickCount === 4) {
-                // 更新坐标并重绘标点
-                cityCoordinates = newCoords;
-                renderMarkers();
-                console.log('🎉 标点已更新！若位置满意，请点击右下角按钮输出最终坐标，或直接复制上方4行数据发给我。');
-                // 重置，允许重新调整
-                clickCount = 0;
-                newCoords = {};
-            }
-        });
-
-        // 按钮：输出当前坐标到控制台
-        document.getElementById('showCoordsBtn').addEventListener('click', function() {
-            console.log('📌 当前标点坐标（请复制以下4行）：');
-            const names = ['牡丹江', '哈尔滨', '北京', '东营'];
-            Object.entries(cityCoordinates).forEach(([key, pos], i) => {
-                console.log(`${names[i]}: x: ${pos.x.toFixed(2)}%, y: ${pos.y.toFixed(2)}%`);
             });
-            alert('坐标已输出到控制台（F12 → Console），请复制后发给我。');
-        });
+            // 点击地图空白处关闭卡片
+            mapImg.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('city-marker')) {
+                    popupCard.classList.remove('active');
+                }
+            });
+        })();
     </script>
 </body>
 </html>
