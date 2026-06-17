@@ -10,14 +10,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
+
         body {
             width: 100vw; height: 100vh;
             overflow: hidden;
-            font-family: system-ui, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
         }
-        /* 背景图容器 */
+
+        /* ---------- 地图背景 ---------- */
         #map-container {
-            position: fixed; top:0; left:0;
+            position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
             background-image: url('https://cyrahou.github.io/map-bg.png?t=20240615');
             background-size: cover;
@@ -25,7 +27,77 @@
             background-repeat: no-repeat;
             z-index: 1;
         }
-        /* 导航栏 */
+
+        /* ---------- 城市标点（红色圆点 + 呼吸动画） ---------- */
+        .city-marker {
+            position: absolute;
+            width: 20px; height: 20px;
+            background: #ad3737;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 0 0 0 rgba(173, 55, 55, 0.5);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(173, 55, 55, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(173, 55, 55, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(173, 55, 55, 0); }
+        }
+        .city-marker:hover {
+            animation: none;
+            box-shadow: 0 0 0 8px rgba(173, 55, 55, 0.3);
+        }
+
+        /* ---------- 弹出卡片 ---------- */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .popup-overlay.active {
+            opacity: 1; visibility: visible;
+        }
+        .popup-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 80%;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            position: relative;
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .popup-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #ad3737;
+        }
+        .popup-card p {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        .popup-close {
+            position: absolute; top: 0.5rem; right: 1rem;
+            background: none; border: none;
+            font-size: 1.5rem; cursor: pointer;
+            color: #999;
+        }
+        .popup-close:hover { color: #333; }
+
+        /* ---------- 导航栏 ---------- */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.9);
@@ -42,6 +114,8 @@
         }
         .top-nav a:hover, .dropdown-toggle:hover { color: #444; }
         .top-nav a.active { color: #ad3737; font-weight: 600; }
+
+        /* 下拉菜单 */
         .dropdown { position: relative; display: inline-block; }
         .dropdown-menu {
             position: absolute; top: 100%; left: 50%;
@@ -63,19 +137,42 @@
             text-align: center; white-space: nowrap;
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
+
+        /* 移动端 */
         @media (max-width: 768px) {
             .top-nav { gap: 20px; height: 60px; }
             .top-nav a, .dropdown-toggle { font-size: 14px; }
+            .city-marker { width: 16px; height: 16px; }
+            .popup-card { padding: 1.5rem; }
         }
         @media (max-width: 480px) {
             .top-nav { gap: 12px; }
             .top-nav a, .dropdown-toggle { font-size: 12px; }
+            .city-marker { width: 14px; height: 14px; }
         }
     </style>
 </head>
 <body>
-    <div id="map-container"></div>
+    <!-- 地图背景 -->
+    <div id="map-container">
+        <!-- 城市标点（使用获取的坐标百分比） -->
+        <div class="city-marker" data-city="mudanjiang" style="left: 52.97%; top: 33.79%;"></div>
+        <div class="city-marker" data-city="haerbin" style="left: 50.84%; top: 32.53%;"></div>
+        <div class="city-marker" data-city="beijing" style="left: 40.66%; top: 46.90%;"></div>
+        <div class="city-marker" data-city="dongying" style="left: 43.08%; top: 52.47%;"></div>
+    </div>
 
+    <!-- 弹出卡片（牡丹江） -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-card">
+            <button class="popup-close" id="popupClose">&times;</button>
+            <h3>牡丹江</h3>
+            <p>我出生并成长在这里，度过了童年和少年时光。</p>
+            <!-- 这里后期可替换为图片/动画 -->
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
     <nav class="top-nav">
         <a href="index.html">Home</a>
         <a href="about.html" class="active">About me</a>
@@ -91,30 +188,38 @@
         <a href="contact.html">Contact me</a>
     </nav>
 
-    <!-- 坐标获取脚本 -->
     <script>
-        window.addEventListener('load', function() {
-            const container = document.getElementById('map-container');
-            if (!container) return;
+        // 弹出卡片逻辑（牡丹江）
+        const overlay = document.getElementById('popupOverlay');
+        const closeBtn = document.getElementById('popupClose');
 
-            console.log('🗺️ 请按顺序点击地图上的城市位置（牡丹江 → 哈尔滨 → 北京 → 东营）');
-
-            const cities = ['牡丹江', '哈尔滨', '北京', '东营'];
-            let clickCount = 0;
-
-            container.addEventListener('click', function(e) {
-                const rect = container.getBoundingClientRect();
-                const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
-                const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
-
-                if (clickCount < cities.length) {
-                    console.log(`✅ ${cities[clickCount]}: x: ${xPercent}%, y: ${yPercent}%`);
-                    clickCount++;
-                    if (clickCount === cities.length) {
-                        console.log('🎉 已获取全部坐标，请将上方 4 行数据复制发送给我。');
-                    }
+        // 点击标点
+        document.querySelectorAll('.city-marker').forEach(marker => {
+            marker.addEventListener('click', function(e) {
+                const city = this.dataset.city;
+                if (city === 'mudanjiang') {
+                    // 牡丹江 → 弹出卡片
+                    overlay.classList.add('active');
+                } else if (city === 'haerbin') {
+                    // 哈尔滨 → education.html
+                    window.location.href = 'education.html';
+                } else if (city === 'beijing' || city === 'dongying') {
+                    // 北京 / 东营 → work-experience.html
+                    window.location.href = 'work-experience.html';
                 }
             });
+        });
+
+        // 关闭卡片
+        closeBtn.addEventListener('click', function() {
+            overlay.classList.remove('active');
+        });
+
+        // 点击遮罩关闭
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+            }
         });
     </script>
 </body>
