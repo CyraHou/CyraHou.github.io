@@ -14,7 +14,6 @@
             width: 100vw; height: 100vh;
             overflow: hidden;
             font-family: system-ui, sans-serif;
-            background: #000;
         }
         /* 背景图容器 */
         #map-container {
@@ -91,5 +90,32 @@
         <a href="others.html">Others</a>
         <a href="contact.html">Contact me</a>
     </nav>
+
+    <!-- 坐标获取脚本 -->
+    <script>
+        window.addEventListener('load', function() {
+            const container = document.getElementById('map-container');
+            if (!container) return;
+
+            console.log('🗺️ 请按顺序点击地图上的城市位置（牡丹江 → 哈尔滨 → 北京 → 东营）');
+
+            const cities = ['牡丹江', '哈尔滨', '北京', '东营'];
+            let clickCount = 0;
+
+            container.addEventListener('click', function(e) {
+                const rect = container.getBoundingClientRect();
+                const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
+                const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
+
+                if (clickCount < cities.length) {
+                    console.log(`✅ ${cities[clickCount]}: x: ${xPercent}%, y: ${yPercent}%`);
+                    clickCount++;
+                    if (clickCount === cities.length) {
+                        console.log('🎉 已获取全部坐标，请将上方 4 行数据复制发送给我。');
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
