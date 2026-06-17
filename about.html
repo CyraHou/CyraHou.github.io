@@ -16,7 +16,6 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* ---------- 地图图片 ---------- */
         .map-image {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -24,7 +23,6 @@
             z-index: 1;
         }
 
-        /* ---------- 标点容器（初始隐藏） ---------- */
         #markersContainer {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -37,7 +35,6 @@
             opacity: 1;
         }
 
-        /* ---------- 城市标点（红色圆点 + 呼吸） ---------- */
         .city-marker {
             position: absolute;
             width: 20px; height: 20px;
@@ -59,10 +56,10 @@
             box-shadow: 0 0 0 8px rgba(173, 55, 55, 0.3);
         }
 
-        /* ---------- 右侧弹出卡片（无遮罩） ---------- */
+        /* 卡片通用样式 */
         .popup-card {
             position: fixed;
-            right: 30%;
+            right: 28%;
             top: 50%;
             transform: translateY(-50%);
             background: #fff;
@@ -75,29 +72,21 @@
             visibility: hidden;
             transition: opacity 0.3s, visibility 0.3s;
             text-align: center;
+            cursor: pointer;
         }
         .popup-card.active {
             opacity: 1; visibility: visible;
         }
         .popup-card h3 {
             font-size: 1.5rem;
-            margin-bottom: 0.5rem;
             color: #ad3737;
         }
         .popup-card p {
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-        .popup-close {
-            position: absolute; top: 0.5rem; right: 1rem;
-            background: none; border: none;
-            font-size: 1.5rem; cursor: pointer;
             color: #999;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
-        .popup-close:hover { color: #333; }
 
-        /* ---------- 导航栏 ---------- */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.9);
@@ -150,26 +139,21 @@
     </style>
 </head>
 <body>
-    <!-- 地图图片（加载完成后触发显示标点） -->
     <img class="map-image" src="https://cyrahou.github.io/map-bg.png?t=20240615" alt="Hand-drawn map" id="mapImage">
 
-    <!-- 标点容器（初始隐藏，地图加载后显示） -->
     <div id="markersContainer">
-        <!-- 已固化的坐标 -->
         <div class="city-marker" data-city="mudanjiang" style="left: 52.40%; top: 32.32%;"></div>
         <div class="city-marker" data-city="haerbin"    style="left: 50.52%; top: 29.70%;"></div>
         <div class="city-marker" data-city="beijing"    style="left: 42.45%; top: 46.17%;"></div>
         <div class="city-marker" data-city="dongying"   style="left: 44.11%; top: 52.15%;"></div>
     </div>
 
-    <!-- 右侧弹出卡片（牡丹江） -->
-    <div class="popup-card" id="popupCard">
-        <button class="popup-close" id="popupClose">&times;</button>
-        <h3>牡丹江</h3>
-        <p>我出生并成长在这里，度过了童年和少年时光。</p>
-    </div>
+    <!-- 四个卡片（默认隐藏） -->
+    <div class="popup-card" id="cardMudanjiang"><h3>牡丹江</h3><p>点击卡片查看详情</p></div>
+    <div class="popup-card" id="cardHaerbin"><h3>哈尔滨</h3><p>点击卡片跳转 Education</p></div>
+    <div class="popup-card" id="cardBeijing"><h3>北京</h3><p>点击卡片跳转 Work Experience</p></div>
+    <div class="popup-card" id="cardDongying"><h3>东营</h3><p>点击卡片跳转 Work Experience</p></div>
 
-    <!-- 导航栏 -->
     <nav class="top-nav">
         <a href="index.html">Home</a>
         <a href="about.html" class="active">About me</a>
@@ -189,28 +173,42 @@
         (function() {
             const mapImg = document.getElementById('mapImage');
             const markersContainer = document.getElementById('markersContainer');
-            const popupCard = document.getElementById('popupCard');
 
-            // 地图加载完成后显示标点
-            if (mapImg.complete) {
-                // 图片已缓存，立即显示
-                markersContainer.classList.add('visible');
-            } else {
-                mapImg.addEventListener('load', function() {
-                    markersContainer.classList.add('visible');
-                });
+            // 卡片映射
+            const cardMap = {
+                mudanjiang: document.getElementById('cardMudanjiang'),
+                haerbin: document.getElementById('cardHaerbin'),
+                beijing: document.getElementById('cardBeijing'),
+                dongying: document.getElementById('cardDongying')
+            };
+
+            // 显示指定卡片，隐藏其他
+            function showCard(city) {
+                Object.values(cardMap).forEach(card => card.classList.remove('active'));
+                if (cardMap[city]) {
+                    cardMap[city].classList.add('active');
+                }
             }
-            // 如果加载失败，也显示标点（避免永远不出现）
-            mapImg.addEventListener('error', function() {
-                markersContainer.classList.add('visible');
-            });
 
-            // 标点点击逻辑
+            // 隐藏所有卡片
+            function hideAllCards() {
+                Object.values(cardMap).forEach(card => card.classList.remove('active'));
+            }
+
+            // 标点点击：显示对应卡片
             document.querySelectorAll('.city-marker').forEach(marker => {
                 marker.addEventListener('click', function(e) {
                     const city = this.dataset.city;
+                    showCard(city);
+                });
+            });
+
+            // 卡片点击：跳转逻辑
+            Object.entries(cardMap).forEach(([city, card]) => {
+                card.addEventListener('click', function() {
                     if (city === 'mudanjiang') {
-                        popupCard.classList.add('active');
+                        // 牡丹江不跳转，仅关闭卡片
+                        hideAllCards();
                     } else if (city === 'haerbin') {
                         window.location.href = 'education.html';
                     } else if (city === 'beijing' || city === 'dongying') {
@@ -219,16 +217,20 @@
                 });
             });
 
-            // 关闭卡片
-            document.getElementById('popupClose').addEventListener('click', () => {
-                popupCard.classList.remove('active');
-            });
-            // 点击地图空白处关闭卡片
+            // 点击地图空白处关闭所有卡片
             mapImg.addEventListener('click', function(e) {
-                if (!e.target.classList.contains('city-marker')) {
-                    popupCard.classList.remove('active');
+                if (!e.target.classList.contains('city-marker') && !e.target.closest('.popup-card')) {
+                    hideAllCards();
                 }
             });
+
+            // 地图加载完成后显示标点
+            if (mapImg.complete) {
+                markersContainer.classList.add('visible');
+            } else {
+                mapImg.addEventListener('load', () => markersContainer.classList.add('visible'));
+                mapImg.addEventListener('error', () => markersContainer.classList.add('visible'));
+            }
         })();
     </script>
 </body>
