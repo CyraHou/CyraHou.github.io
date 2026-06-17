@@ -10,20 +10,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
+
         body {
-            width: 100vw; min-height: 100vh;
-            background: #ffffff;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
             font-family: system-ui, -apple-system, sans-serif;
-            overflow-x: hidden;
+            background: #000; /* 图片加载前/后的后备色 */
         }
+
+        /* ---------- 导航栏 ---------- */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
-            background: rgba(255,255,255,0.96);
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: center;
             gap: 42px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             z-index: 100;
-            backdrop-filter: blur(8px);
         }
         .top-nav a, .dropdown-toggle {
             text-decoration: none; font-size: 18px;
@@ -32,11 +35,13 @@
         }
         .top-nav a:hover, .dropdown-toggle:hover { color: #444; }
         .top-nav a.active { color: #ad3737; font-weight: 600; }
+
+        /* 下拉菜单 */
         .dropdown { position: relative; display: inline-block; }
         .dropdown-menu {
             position: absolute; top: 100%; left: 50%;
             transform: translateX(-50%);
-            background: rgba(255,255,255,0.96);
+            background: rgba(255,255,255,0.95);
             backdrop-filter: blur(8px);
             border-radius: 6px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -53,27 +58,35 @@
             text-align: center; white-space: nowrap;
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
-        #map-container {
-            width: 100%;
-            height: calc(100vh - 70px);
-            margin-top: 70px;
-            background: #ffffff;
+
+        /* ---------- 背景图片容器 ---------- */
+        #map-bg {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-image: url('map-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 1; /* 低于导航栏 */
         }
-        #map-chart { width: 100%; height: 100%; }
+
+        /* 移动端适配 */
         @media (max-width: 768px) {
             .top-nav { gap: 20px; height: 60px; }
             .top-nav a, .dropdown-toggle { font-size: 14px; }
             .dropdown-menu a { font-size: 14px; padding: 0.4rem 1rem; }
-            #map-container { height: 60vh; margin-top: 60px; }
         }
         @media (max-width: 480px) {
             .top-nav { gap: 12px; }
             .top-nav a, .dropdown-toggle { font-size: 12px; }
-            #map-container { height: 50vh; }
         }
     </style>
 </head>
 <body>
+    <!-- 背景图片 -->
+    <div id="map-bg"></div>
+
+    <!-- 导航栏 -->
     <nav class="top-nav">
         <a href="index.html">Home</a>
         <a href="about.html" class="active">About me</a>
@@ -89,129 +102,33 @@
         <a href="contact.html">Contact me</a>
     </nav>
 
-    <div id="map-container">
-        <div id="map-chart"></div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- 坐标获取脚本 -->
     <script>
-        // 优先加载在线地级市 GeoJSON，5秒超时回退本地
-        function loadGeoJSON() {
-            const onlineUrl = 'https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json';
-            const localUrl = 'china-cities.json';
+        // 注意：此脚本仅用于开发阶段获取城市坐标，正式版会移除
+        window.addEventListener('load', function() {
+            const bg = document.getElementById('map-bg');
+            if (!bg) return;
 
-            return new Promise((resolve, reject) => {
-                let timedOut = false;
-                const timer = setTimeout(() => {
-                    timedOut = true;
-                    console.warn('在线地图加载超时，切换本地文件');
-                    fetch(localUrl)
-                        .then(res => res.json())
-                        .then(resolve)
-                        .catch(reject);
-                }, 5000);
+            // 提示用户
+            console.log('🗺️ 点击地图上的城市位置（牡丹江、哈尔滨、北京、东营），将自动输出百分比坐标。');
+            console.log('点击顺序不限，只需在对应位置各点一次。');
 
-                fetch(onlineUrl)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!timedOut) {
-                            clearTimeout(timer);
-                            resolve(data);
-                        }
-                    })
-                    .catch(err => {
-                        if (!timedOut) {
-                            clearTimeout(timer);
-                            console.warn('在线地图加载失败，尝试本地文件');
-                            fetch(localUrl)
-                                .then(res => res.json())
-                                .then(resolve)
-                                .catch(reject);
-                        }
-                    });
+            const cities = ['牡丹江', '哈尔滨', '北京', '东营'];
+            let clickCount = 0;
+
+            bg.addEventListener('click', function(e) {
+                const rect = bg.getBoundingClientRect();
+                const xPercent = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
+                const yPercent = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
+
+                if (clickCount < cities.length) {
+                    console.log(`✅ ${cities[clickCount]}: x: ${xPercent}%, y: ${yPercent}%`);
+                    clickCount++;
+                } else {
+                    console.log(`额外点击: x: ${xPercent}%, y: ${yPercent}%`);
+                }
             });
-        }
-
-        loadGeoJSON()
-            .then(geoJson => {
-                echarts.registerMap('china', geoJson);
-
-                const chartDom = document.getElementById('map-chart');
-                const myChart = echarts.init(chartDom);
-
-                const option = {
-                    backgroundColor: '#ffffff',
-                    geo: {
-                        map: 'china',
-                        roam: false,
-                        center: [122, 42],   // 聚焦东北华北
-                        zoom: 2.5,           // 放大比例
-                        itemStyle: {
-                            areaColor: '#ebebeb',
-                            borderColor: '#eb713d',
-                            borderWidth: 0.8
-                        },
-                        label: { show: false },
-                        regions: [
-                            // 省背景浅橘色
-                            { name: '黑龙江省', itemStyle: { areaColor: '#f3ae85' } },
-                            { name: '北京市',   itemStyle: { areaColor: '#f3ae85' } },
-                            { name: '山东省',   itemStyle: { areaColor: '#f3ae85' } },
-                            // 市高亮草绿色（覆盖在省之上）
-                            { name: '牡丹江市', itemStyle: { areaColor: '#c6dd6d' } },
-                            { name: '哈尔滨市', itemStyle: { areaColor: '#c6dd6d' } },
-                            { name: '东营市',   itemStyle: { areaColor: '#c6dd6d' } }
-                        ]
-                    },
-                    series: [
-                        {
-                            type: 'scatter',
-                            coordinateSystem: 'geo',
-                            symbol: 'circle',
-                            symbolSize: 12,
-                            itemStyle: {
-                                color: '#ad3737',
-                                borderColor: '#fff',
-                                borderWidth: 1.5
-                            },
-                            label: {
-                                show: true,
-                                position: 'right',
-                                distance: 8,
-                                color: '#333',
-                                fontSize: 13,
-                                fontWeight: 'bold'
-                            },
-                            data: [
-                                { name: '牡丹江', value: [129.63, 44.55] },
-                                { name: '哈尔滨', value: [126.63, 45.75] },
-                                { name: '北京',   value: [116.46, 39.92] },
-                                { name: '东营',   value: [118.49, 37.46] }
-                            ]
-                        }
-                    ]
-                };
-
-                myChart.setOption(option);
-                window.addEventListener('resize', () => myChart.resize());
-
-                // 点击事件（针对散点，也可监听区域）
-                myChart.on('click', function(params) {
-                    if (params.componentType === 'series' && params.seriesType === 'scatter') {
-                        const cityName = params.name;
-                        if (cityName === '哈尔滨') {
-                            window.location.href = 'education.html';
-                        } else if (cityName === '北京' || cityName === '东营') {
-                            window.location.href = 'work-experience.html';
-                        }
-                    }
-                });
-            })
-            .catch(err => {
-                console.error('地图加载失败:', err);
-                document.getElementById('map-chart').innerHTML =
-                    '<p style="text-align:center;padding:40px;">地图加载失败，请检查网络并确认 china-cities.json 已上传</p>';
-            });
+        });
     </script>
 </body>
 </html>
