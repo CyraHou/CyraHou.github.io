@@ -353,12 +353,35 @@
         coverDark.addEventListener('mouseleave', () => {
             coverLit.style.opacity = '0';
         });
-        // 显示便签
-        coverLit.addEventListener('transitionend', () => {
-            if (coverLit.style.opacity === '1') {
-                stickyFlip.classList.add('visible');
-            }
-        });
+       // ---- 封面交互（修复版） ----
+let lightTimer = null;
+
+coverDark.addEventListener('mouseenter', () => {
+    // 清除旧的定时器，避免重复触发
+    clearTimeout(lightTimer);
+    // 亮灯
+    coverLit.style.opacity = '1';
+    // 等待 CSS transition 完成（1.2s）后显示便签
+    lightTimer = setTimeout(() => {
+        stickyFlip.classList.add('visible');
+    }, 1300); // 比 CSS transition 稍长一点，确保过渡完成
+});
+
+coverDark.addEventListener('mouseleave', () => {
+    // 关灯
+    coverLit.style.opacity = '0';
+    // 取消定时器
+    clearTimeout(lightTimer);
+    // 隐藏便签
+    stickyFlip.classList.remove('visible');
+});
+
+// 备用：如果 transition 正常结束，也显示便签（处理定时器可能不准的情况）
+coverLit.addEventListener('transitionend', () => {
+    if (coverLit.style.opacity === '1') {
+        stickyFlip.classList.add('visible');
+    }
+});
         // 便签点击 -> 翻书
         stickyFlip.addEventListener('click', () => {
             coverDark.style.display = 'none';
