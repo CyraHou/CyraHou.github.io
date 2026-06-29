@@ -60,19 +60,41 @@
             z-index: 1;
         }
 
-        .cover-image {
-            position: absolute;
-            max-width: 55%;
-            max-height: 80%;
-            object-fit: contain;
+        /* 封面容器：悬停时触发亮灯和便签 */
+        .cover-wrapper {
+            position: relative;
+            display: inline-block;
             cursor: default;
+        }
+        .cover-wrapper img {
+            display: block;
+            max-width: 55vw;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+        /* 两张图片叠放 */
+        .cover-dark {
+            position: relative;
+            z-index: 2;
+        }
+        .cover-lit {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 3;
+            opacity: 0;
             transition: opacity 1.2s ease;
         }
-        #coverDark { z-index: 2; }
-        #coverLit { z-index: 3; opacity: 0; }
+        /* 悬停时亮灯 */
+        .cover-wrapper:hover .cover-lit {
+            opacity: 1;
+        }
 
+        /* 便签 */
         .sticky-note {
             position: absolute;
+            right: -10px;
+            top: 30%;
             background: #BB443B;
             color: #fff;
             padding: 0.6rem 1.2rem;
@@ -87,7 +109,8 @@
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s;
             animation: float 2s ease-in-out infinite;
         }
-        .sticky-note.visible {
+        /* 悬停时便签弹出 */
+        .cover-wrapper:hover .sticky-note {
             opacity: 1;
             transform: scale(1) translateY(0);
         }
@@ -96,6 +119,7 @@
             50% { transform: translateY(-6px); }
         }
 
+        /* 书本及后续阶段保持不变 */
         .book-container {
             perspective: 1200px;
             position: absolute;
@@ -279,10 +303,14 @@
     </nav>
 
     <div id="stage">
-        <img id="coverDark" class="cover-image" src="images/cover-dark.png?v=4" alt="Book cover dark">
-        <img id="coverLit" class="cover-image" src="images/cover-lit.png?v=4" alt="Book cover lit">
-        <div id="stickyFlip" class="sticky-note">Flip</div>
+        <!-- 封面容器：纯 CSS 悬停 -->
+        <div class="cover-wrapper" id="coverWrapper">
+            <img class="cover-dark" src="images/cover-dark.png?v=5" alt="Book cover dark">
+            <img class="cover-lit" src="images/cover-lit.png?v=5" alt="Book cover lit">
+            <div class="sticky-note" id="stickyFlip">Flip</div>
+        </div>
 
+        <!-- 书本容器（初始隐藏） -->
         <div id="bookContainer" class="book-container" style="display:none;">
             <div class="book" id="book">
                 <div class="page left" id="pageLeft">
@@ -296,13 +324,14 @@
             <div id="stickyGraduate" class="sticky-note" style="background:#E3925F; display:none;">Graduate</div>
         </div>
 
+        <!-- 办公楼阶段 -->
         <div id="officeStage" class="office-stage">
-            <img class="character-work standee" src="images/character-work.png?v=4" alt="Work character">
+            <img class="character-work standee" src="images/character-work.png?v=5" alt="Work character">
             <div class="buildings" id="buildingsContainer">
-                <img class="building" src="images/building-office-1.png?v=4" data-index="0">
-                <img class="building" src="images/building-office-2.png?v=4" data-index="1">
-                <img class="building" src="images/building-office-3.png?v=4" data-index="2">
-                <img class="building" src="images/building-office-4.png?v=4" data-index="3">
+                <img class="building" src="images/building-office-1.png?v=5" data-index="0">
+                <img class="building" src="images/building-office-2.png?v=5" data-index="1">
+                <img class="building" src="images/building-office-3.png?v=5" data-index="2">
+                <img class="building" src="images/building-office-4.png?v=5" data-index="3">
             </div>
             <div id="expCard" class="exp-card"></div>
             <button id="viewProjectsBtn" class="view-projects-btn">View Projects →</button>
@@ -311,9 +340,7 @@
 
     <script>
         (function() {
-            // 元素
-            const coverDark = document.getElementById('coverDark');
-            const coverLit = document.getElementById('coverLit');
+            const coverWrapper = document.getElementById('coverWrapper');
             const stickyFlip = document.getElementById('stickyFlip');
             const stickyGraduate = document.getElementById('stickyGraduate');
             const bookContainer = document.getElementById('bookContainer');
@@ -321,12 +348,6 @@
             const viewBtn = document.getElementById('viewProjectsBtn');
             const expCard = document.getElementById('expCard');
 
-            // 状态
-            let isLit = false;
-            let flipNoteVisible = false;
-            let lightTimer = null;
-
-            // 工作经历占位
             const experiences = [
                 "Project Manager at XXX Design Lab. Led spatial interaction projects.",
                 "UX Designer at YYY Tech. Designed AI-powered tools.",
@@ -334,64 +355,18 @@
                 "Freelance / Independent work. Collaborated with artists and technologists."
             ];
 
-            // ---------- 封面交互 ----------
-            function showFlipNote() {
-                if (!flipNoteVisible) {
-                    stickyFlip.classList.add('visible');
-                    flipNoteVisible = true;
-                    console.log('Flip便签已显示');
-                }
-            }
-
-            function hideFlipNote() {
-                stickyFlip.classList.remove('visible');
-                flipNoteVisible = false;
-                clearTimeout(lightTimer);
-            }
-
-            coverDark.addEventListener('mouseenter', () => {
-                if (!isLit) {
-                    isLit = true;
-                    coverLit.style.opacity = '1';
-                    console.log('亮灯');
-                    // 1.3秒后显示便签
-                    clearTimeout(lightTimer);
-                    lightTimer = setTimeout(() => {
-                        showFlipNote();
-                    }, 1300);
-                }
-            });
-
-            coverDark.addEventListener('mouseleave', () => {
-                if (isLit) {
-                    isLit = false;
-                    coverLit.style.opacity = '0';
-                    hideFlipNote();
-                    console.log('关灯');
-                }
-            });
-
             // 点击 Flip 便签 → 进入翻书
             stickyFlip.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (!flipNoteVisible) return;
-                console.log('点击Flip，进入翻书');
-                // 隐藏封面
-                coverDark.style.display = 'none';
-                coverLit.style.display = 'none';
-                stickyFlip.style.display = 'none';
-                // 显示书本
+                coverWrapper.style.display = 'none';
                 bookContainer.style.display = 'block';
-                // 渲染第一页
                 renderPage(0);
             });
 
-            // ---------- 翻书页面 ----------
             function renderPage(index) {
                 const left = document.getElementById('leftContent');
                 const right = document.getElementById('rightContent');
                 left.innerHTML = right.innerHTML = '';
-                console.log('渲染页面:', index);
 
                 if (index === 0) {
                     right.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Curriculum Vitae</h1>';
@@ -399,7 +374,7 @@
                 } else if (index === 1) {
                     left.innerHTML = `
                         <div style="text-align:center; margin-bottom:20px;">
-                            <img src="images/building-university.png?v=4" class="standee" style="width:120px; margin-bottom:10px;">
+                            <img src="images/building-university.png?v=5" class="standee" style="width:120px; margin-bottom:10px;">
                         </div>
                         <h2 style="margin-bottom:15px;">Background</h2>
                         <div style="font-size:14px; line-height:1.8;">
@@ -415,7 +390,6 @@
                         <div id="skillsContainer"></div>
                     `;
                     renderSkills();
-                    // 显示 Graduate 便签
                     stickyGraduate.style.display = 'block';
                     stickyGraduate.classList.add('visible');
                     stickyGraduate.onclick = () => renderPage(2);
@@ -427,27 +401,23 @@
                     left.innerHTML = '<p style="font-style:italic; color:#555;">Here ends a chapter. Four years of soil, sketches, and sunlight. From the greenhouse to the rooftop studio, every season grew something in me.</p>';
                     right.innerHTML = `
                         <div style="position:relative; display:flex; justify-content:center; align-items:center; height:100%;">
-                            <img id="gradPhoto1" src="images/grad-pose-1.png?v=4" style="max-width:80%; transition: opacity 0.4s;">
-                            <img id="gradPhoto2" src="images/grad-pose-2.png?v=4" class="standee" style="max-width:80%; position:absolute; opacity:0; transform: translateY(20px);">
+                            <img id="gradPhoto1" src="images/grad-pose-1.png?v=5" style="max-width:80%; transition: opacity 0.4s;">
+                            <img id="gradPhoto2" src="images/grad-pose-2.png?v=5" class="standee" style="max-width:80%; position:absolute; opacity:0; transform: translateY(20px);">
                         </div>
                     `;
-                    // 2秒后弹起
                     setTimeout(() => {
-                        const grad1 = document.getElementById('gradPhoto1');
-                        const grad2 = document.getElementById('gradPhoto2');
-                        if (grad1 && grad2) {
-                            grad1.style.opacity = '0';
-                            grad2.style.opacity = '1';
-                            grad2.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                            grad2.style.transform = 'translateY(0)';
-                            console.log('毕业立牌弹出');
+                        const g1 = document.getElementById('gradPhoto1');
+                        const g2 = document.getElementById('gradPhoto2');
+                        if (g1 && g2) {
+                            g1.style.opacity = '0';
+                            g2.style.opacity = '1';
+                            g2.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            g2.style.transform = 'translateY(0)';
                         }
                     }, 2000);
-                    // 4.5秒后进入办公楼阶段
                     setTimeout(() => {
                         bookContainer.style.display = 'none';
                         officeStage.classList.add('active');
-                        console.log('进入办公楼阶段');
                     }, 4500);
                 }
             }
@@ -481,7 +451,7 @@
                 }, 200);
             }
 
-            // ---------- 办公楼交互 ----------
+            // 办公楼交互
             document.querySelectorAll('.building').forEach(building => {
                 building.addEventListener('click', function() {
                     const idx = this.dataset.index;
@@ -490,19 +460,15 @@
                     viewBtn.classList.add('show');
                 });
             });
-
             viewBtn.addEventListener('click', () => {
                 window.location.href = 'portfolio.html';
             });
-
             officeStage.addEventListener('click', function(e) {
                 if (e.target === officeStage) {
                     expCard.classList.remove('open');
                     viewBtn.classList.remove('show');
                 }
             });
-
-            console.log('Education 页面脚本初始化完毕');
         })();
     </script>
 </body>
