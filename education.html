@@ -16,7 +16,7 @@
             background: #f9f7f4;
         }
 
-        /* ---------- 导航栏 ---------- */
+        /* 导航栏 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.9);
@@ -55,7 +55,7 @@
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
 
-        /* ---------- 主舞台 ---------- */
+        /* 主舞台 */
         #stage {
             position: fixed; top: 70px; left: 0;
             width: 100%; height: calc(100vh - 70px);
@@ -63,14 +63,14 @@
             z-index: 1;
         }
 
-        /* ---------- 封面阶段 ---------- */
+        /* 封面 */
         .cover-image {
+            position: absolute;
             max-width: 55%;
             max-height: 80%;
             object-fit: contain;
             cursor: default;
             transition: opacity 1.2s ease;
-            position: absolute;
         }
         #coverDark { z-index: 2; }
         #coverLit { z-index: 3; opacity: 0; }
@@ -101,7 +101,7 @@
             50% { transform: translateY(-6px); }
         }
 
-        /* ---------- 书本（翻书阶段） ---------- */
+        /* 书本（翻书阶段） */
         .book-container {
             perspective: 1200px;
             position: absolute;
@@ -157,10 +157,9 @@
             z-index: 6;
         }
 
-        /* 标题字体 */
         .lobster { font-family: 'Lobster', cursive; }
 
-        /* 进度条组件 */
+        /* 技能条 */
         .skill-bar {
             margin: 6px 0;
             display: flex; align-items: center;
@@ -203,7 +202,7 @@
             background: radial-gradient(ellipse, rgba(0,0,0,0.25) 0%, transparent 70%);
         }
 
-        /* 第三阶段办公楼 */
+        /* 办公楼阶段 */
         .office-stage {
             position: absolute;
             top: 0; left: 0;
@@ -211,9 +210,11 @@
             z-index: 5;
             opacity: 0;
             transition: opacity 0.8s;
+            pointer-events: none;
         }
         .office-stage.active {
             opacity: 1;
+            pointer-events: auto;
         }
         .character-work {
             position: absolute;
@@ -237,7 +238,6 @@
             filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
         }
         .building:hover { transform: translateY(-6px); }
-
         .exp-card {
             position: absolute;
             bottom: 5%;
@@ -251,7 +251,6 @@
             z-index: 20;
         }
         .exp-card.open { display: block; }
-
         .view-projects-btn {
             position: absolute;
             left: 30%;
@@ -272,6 +271,9 @@
             .book { width: 90vw; height: 60vw; }
             .page { padding: 20px; }
             .top-nav { gap: 20px; }
+            .character-work { left: 10%; bottom: 20%; width: 100px; }
+            .buildings { right: 5%; gap: 10px; }
+            .building { width: 60px; }
         }
     </style>
 </head>
@@ -293,8 +295,8 @@
 
     <div id="stage">
         <!-- 封面 -->
-        <img id="coverDark" class="cover-image" src="images/cover-dark.png" alt="Book cover dark">
-        <img id="coverLit" class="cover-image" src="images/cover-lit.png" alt="Book cover lit">
+        <img id="coverDark" class="cover-image" src="images/cover-dark.png?v=3" alt="Book cover dark">
+        <img id="coverLit" class="cover-image" src="images/cover-lit.png?v=3" alt="Book cover lit">
         <div id="stickyFlip" class="sticky-note">Flip</div>
 
         <!-- 书本容器（初始隐藏） -->
@@ -308,18 +310,17 @@
                 </div>
                 <div class="center-line"></div>
             </div>
-            <!-- 第二枚便签 -->
             <div id="stickyGraduate" class="sticky-note" style="background:#E3925F; display:none;">Graduate</div>
         </div>
 
         <!-- 办公楼阶段（初始隐藏） -->
         <div id="officeStage" class="office-stage">
-            <img class="character-work standee" src="images/character-work.png" alt="Work character">
+            <img class="character-work standee" src="images/character-work.png?v=3" alt="Work character">
             <div class="buildings" id="buildingsContainer">
-                <img class="building" src="images/building-office-1.png" data-index="0">
-                <img class="building" src="images/building-office-2.png" data-index="1">
-                <img class="building" src="images/building-office-3.png" data-index="2">
-                <img class="building" src="images/building-office-4.png" data-index="3">
+                <img class="building" src="images/building-office-1.png?v=3" data-index="0">
+                <img class="building" src="images/building-office-2.png?v=3" data-index="1">
+                <img class="building" src="images/building-office-3.png?v=3" data-index="2">
+                <img class="building" src="images/building-office-4.png?v=3" data-index="3">
             </div>
             <div id="expCard" class="exp-card"></div>
             <button id="viewProjectsBtn" class="view-projects-btn">View Projects →</button>
@@ -327,177 +328,180 @@
     </div>
 
     <script>
-        // 全局状态
-        let currentPage = 0;
-        const coverDark = document.getElementById('coverDark');
-        const coverLit = document.getElementById('coverLit');
-        const stickyFlip = document.getElementById('stickyFlip');
-        const stickyGraduate = document.getElementById('stickyGraduate');
-        const bookContainer = document.getElementById('bookContainer');
-        const officeStage = document.getElementById('officeStage');
-        const viewBtn = document.getElementById('viewProjectsBtn');
-        const expCard = document.getElementById('expCard');
+        (function() {
+            // 获取元素
+            const coverDark = document.getElementById('coverDark');
+            const coverLit = document.getElementById('coverLit');
+            const stickyFlip = document.getElementById('stickyFlip');
+            const stickyGraduate = document.getElementById('stickyGraduate');
+            const bookContainer = document.getElementById('bookContainer');
+            const officeStage = document.getElementById('officeStage');
+            const viewBtn = document.getElementById('viewProjectsBtn');
+            const expCard = document.getElementById('expCard');
 
-        // 占位工作经历文字
-        const experiences = [
-            "Project Manager at XXX Design Lab. Led spatial interaction projects.",
-            "UX Designer at YYY Tech. Designed AI-powered tools.",
-            "Product Design Lead at ZZZ. Built end-to-end product experiences.",
-            "Freelance / Independent work. Collaborated with artists and technologists."
-        ];
-
-        // --- 封面交互 ---
-        coverDark.addEventListener('mouseenter', () => {
-            coverLit.style.opacity = '1';
-        });
-        coverDark.addEventListener('mouseleave', () => {
-            coverLit.style.opacity = '0';
-        });
-       // ---- 封面交互（修复版） ----
-let lightTimer = null;
-
-coverDark.addEventListener('mouseenter', () => {
-    // 清除旧的定时器，避免重复触发
-    clearTimeout(lightTimer);
-    // 亮灯
-    coverLit.style.opacity = '1';
-    // 等待 CSS transition 完成（1.2s）后显示便签
-    lightTimer = setTimeout(() => {
-        stickyFlip.classList.add('visible');
-    }, 1300); // 比 CSS transition 稍长一点，确保过渡完成
-});
-
-coverDark.addEventListener('mouseleave', () => {
-    // 关灯
-    coverLit.style.opacity = '0';
-    // 取消定时器
-    clearTimeout(lightTimer);
-    // 隐藏便签
-    stickyFlip.classList.remove('visible');
-});
-
-// 备用：如果 transition 正常结束，也显示便签（处理定时器可能不准的情况）
-coverLit.addEventListener('transitionend', () => {
-    if (coverLit.style.opacity === '1') {
-        stickyFlip.classList.add('visible');
-    }
-});
-        // 便签点击 -> 翻书
-        stickyFlip.addEventListener('click', () => {
-            coverDark.style.display = 'none';
-            coverLit.style.display = 'none';
-            stickyFlip.style.display = 'none';
-            bookContainer.style.display = 'block';
-            loadPage(0); // 第0页：Curriculum Vitae
-        });
-
-        // --- 翻书逻辑 ---
-        function loadPage(index) {
-            const left = document.getElementById('leftContent');
-            const right = document.getElementById('rightContent');
-            left.innerHTML = right.innerHTML = '';
-
-            if (index === 0) {
-                // 第一页：Curriculum Vitae
-                right.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Curriculum Vitae</h1>';
-                document.getElementById('pageRight').onclick = () => loadPage(1);
-            } else if (index === 1) {
-                // 第二页：个人信息 + 技能
-                left.innerHTML = `
-                    <div style="text-align:center; margin-bottom:20px;">
-                        <img src="images/building-university.png" class="standee" style="width:120px; margin-bottom:10px;">
-                    </div>
-                    <h2 style="margin-bottom:15px;">Background</h2>
-                    <div style="font-size:14px; line-height:1.8;">
-                        <p>🏠 东北农业大学 <br><small>Northeast Agricultural University</small></p>
-                        <p>🌳 风景园林专业 <br><small>Landscape Architecture</small></p>
-                        <p>📅 2014-2018</p>
-                        <p>🏅 国家奖学金 <br><small>National Scholarship</small></p>
-                        <p>📜 英语 CET-6</p>
-                    </div>
-                `;
-                right.innerHTML = `
-                    <h2 style="margin-bottom:15px;">Skills</h2>
-                    <div id="skillsContainer"></div>
-                `;
-                renderSkills();
-                // 显示Graduate便签
-                stickyGraduate.style.display = 'block';
-                stickyGraduate.classList.add('visible');
-                stickyGraduate.onclick = () => loadPage(2);
-            } else if (index === 2) {
-                // 第三页：Congratulations
-                left.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Congratulations！</h1>';
-                right.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">I\'ve graduated！</h1>';
-                document.getElementById('pageRight').onclick = () => loadPage(3);
-            } else if (index === 3) {
-                // 第四页：毕业照 + 弹起
-                left.innerHTML = '<p style="font-style:italic; color:#555;">Here ends a chapter. Four years of soil, sketches, and sunlight. From the greenhouse to the rooftop studio, every season grew something in me.</p>';
-                right.innerHTML = `
-                    <div style="position:relative; display:flex; justify-content:center; align-items:center; height:100%;">
-                        <img id="gradPhoto1" src="images/grad-pose-1.png" style="max-width:80%; transition: opacity 0.4s;">
-                        <img id="gradPhoto2" src="images/grad-pose-2.png" class="standee" style="max-width:80%; position:absolute; opacity:0; transform: translateY(20px);">
-                    </div>
-                `;
-                // 2s后弹起
-                setTimeout(() => {
-                    document.getElementById('gradPhoto1').style.opacity = '0';
-                    const grad2 = document.getElementById('gradPhoto2');
-                    grad2.style.opacity = '1';
-                    grad2.style.transform = 'translateY(0)';
-                    grad2.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                }, 2000);
-                // 再2s后进入办公楼
-                setTimeout(() => {
-                    bookContainer.style.display = 'none';
-                    officeStage.classList.add('active');
-                }, 4500);
-            }
-        }
-
-        function renderSkills() {
-            const skills = [
-                { name: 'CAD', level: 90 },
-                { name: 'SketchUp', level: 90 },
-                { name: 'Lumion', level: 90 },
-                { name: 'Enscape', level: 90 },
-                { name: 'Photoshop', level: 90 },
-                { name: 'Illustrator', level: 90 },
-                { name: 'InDesign', level: 90 },
-                { name: 'ArcGIS', level: 30 },
-                { name: 'Python', level: 30 },
-                { name: 'Figma', level: 30 }
+            // 工作经历占位文字
+            const experiences = [
+                "Project Manager at XXX Design Lab. Led spatial interaction projects.",
+                "UX Designer at YYY Tech. Designed AI-powered tools.",
+                "Product Design Lead at ZZZ. Built end-to-end product experiences.",
+                "Freelance / Independent work. Collaborated with artists and technologists."
             ];
-            const container = document.getElementById('skillsContainer');
-            skills.forEach(s => {
-                const row = document.createElement('div');
-                row.className = 'skill-bar';
-                row.innerHTML = `<span class="skill-name">${s.name}</span>
-                    <div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div>`;
-                container.appendChild(row);
+
+            // ---------- 封面交互 ----------
+            let lightTimer = null;
+
+            coverDark.addEventListener('mouseenter', () => {
+                clearTimeout(lightTimer);
+                coverLit.style.opacity = '1';
+                lightTimer = setTimeout(() => {
+                    stickyFlip.classList.add('visible');
+                }, 1300); // 等待过渡完成
             });
-            // 动画填充
-            setTimeout(() => {
-                document.querySelectorAll('.bar-fill').forEach((bar, i) => {
-                    bar.style.width = skills[i].level + '%';
+
+            coverDark.addEventListener('mouseleave', () => {
+                coverLit.style.opacity = '0';
+                clearTimeout(lightTimer);
+                stickyFlip.classList.remove('visible');
+            });
+
+            // 备用：如果过渡正常结束也显示便签
+            coverLit.addEventListener('transitionend', () => {
+                if (coverLit.style.opacity === '1') {
+                    stickyFlip.classList.add('visible');
+                }
+            });
+
+            // 点击 Flip 便签 → 进入翻书
+            stickyFlip.addEventListener('click', () => {
+                coverDark.style.display = 'none';
+                coverLit.style.display = 'none';
+                stickyFlip.style.display = 'none';
+                bookContainer.style.display = 'block';
+                renderPage(0); // 第一页：Curriculum Vitae
+            });
+
+            // ---------- 翻书页面渲染 ----------
+            let currentPage = 0;
+
+            function renderPage(index) {
+                const left = document.getElementById('leftContent');
+                const right = document.getElementById('rightContent');
+                left.innerHTML = right.innerHTML = '';
+                currentPage = index;
+
+                if (index === 0) {
+                    // 第一页：Curriculum Vitae
+                    right.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Curriculum Vitae</h1>';
+                    document.getElementById('pageRight').onclick = () => renderPage(1);
+                } else if (index === 1) {
+                    // 第二页：个人信息 + 技能
+                    left.innerHTML = `
+                        <div style="text-align:center; margin-bottom:20px;">
+                            <img src="images/building-university.png?v=3" class="standee" style="width:120px; margin-bottom:10px;">
+                        </div>
+                        <h2 style="margin-bottom:15px;">Background</h2>
+                        <div style="font-size:14px; line-height:1.8;">
+                            <p>🏠 东北农业大学 <br><small>Northeast Agricultural University</small></p>
+                            <p>🌳 风景园林专业 <br><small>Landscape Architecture</small></p>
+                            <p>📅 2014-2018</p>
+                            <p>🏅 国家奖学金 <br><small>National Scholarship</small></p>
+                            <p>📜 英语 CET-6</p>
+                        </div>
+                    `;
+                    right.innerHTML = `
+                        <h2 style="margin-bottom:15px;">Skills</h2>
+                        <div id="skillsContainer"></div>
+                    `;
+                    renderSkills();
+                    // 显示 Graduate 便签
+                    stickyGraduate.style.display = 'block';
+                    stickyGraduate.classList.add('visible');
+                    stickyGraduate.onclick = () => renderPage(2);
+                } else if (index === 2) {
+                    // 第三页：Congratulations
+                    left.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Congratulations！</h1>';
+                    right.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">I\'ve graduated！</h1>';
+                    document.getElementById('pageRight').onclick = () => renderPage(3);
+                } else if (index === 3) {
+                    // 第四页：毕业照 + 立牌弹出
+                    left.innerHTML = '<p style="font-style:italic; color:#555;">Here ends a chapter. Four years of soil, sketches, and sunlight. From the greenhouse to the rooftop studio, every season grew something in me.</p>';
+                    right.innerHTML = `
+                        <div style="position:relative; display:flex; justify-content:center; align-items:center; height:100%;">
+                            <img id="gradPhoto1" src="images/grad-pose-1.png?v=3" style="max-width:80%; transition: opacity 0.4s;">
+                            <img id="gradPhoto2" src="images/grad-pose-2.png?v=3" class="standee" style="max-width:80%; position:absolute; opacity:0; transform: translateY(20px);">
+                        </div>
+                    `;
+                    // 2秒后弹起
+                    setTimeout(() => {
+                        const grad1 = document.getElementById('gradPhoto1');
+                        const grad2 = document.getElementById('gradPhoto2');
+                        if (grad1 && grad2) {
+                            grad1.style.opacity = '0';
+                            grad2.style.opacity = '1';
+                            grad2.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            grad2.style.transform = 'translateY(0)';
+                        }
+                    }, 2000);
+                    // 再2.5秒后进入办公楼阶段
+                    setTimeout(() => {
+                        bookContainer.style.display = 'none';
+                        officeStage.classList.add('active');
+                    }, 4500);
+                }
+            }
+
+            function renderSkills() {
+                const skills = [
+                    { name: 'CAD', level: 90 },
+                    { name: 'SketchUp', level: 90 },
+                    { name: 'Lumion', level: 90 },
+                    { name: 'Enscape', level: 90 },
+                    { name: 'Photoshop', level: 90 },
+                    { name: 'Illustrator', level: 90 },
+                    { name: 'InDesign', level: 90 },
+                    { name: 'ArcGIS', level: 30 },
+                    { name: 'Python', level: 30 },
+                    { name: 'Figma', level: 30 }
+                ];
+                const container = document.getElementById('skillsContainer');
+                if (!container) return;
+                skills.forEach(s => {
+                    const row = document.createElement('div');
+                    row.className = 'skill-bar';
+                    row.innerHTML = `<span class="skill-name">${s.name}</span>
+                        <div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div>`;
+                    container.appendChild(row);
                 });
-            }, 200);
-        }
+                setTimeout(() => {
+                    document.querySelectorAll('.bar-fill').forEach((bar, i) => {
+                        bar.style.width = skills[i].level + '%';
+                    });
+                }, 200);
+            }
 
-        // --- 办公楼交互 ---
-        document.querySelectorAll('.building').forEach(building => {
-            building.addEventListener('click', function() {
-                const idx = this.dataset.index;
-                expCard.innerHTML = `<p>${experiences[idx]}</p>`;
-                expCard.classList.add('open');
-                viewBtn.classList.add('show');
+            // ---------- 办公楼交互 ----------
+            document.querySelectorAll('.building').forEach(building => {
+                building.addEventListener('click', function() {
+                    const idx = this.dataset.index;
+                    expCard.innerHTML = `<p>${experiences[idx]}</p>`;
+                    expCard.classList.add('open');
+                    viewBtn.classList.add('show');
+                });
             });
-        });
-        viewBtn.addEventListener('click', () => {
-            window.location.href = 'portfolio.html';
-        });
 
-        // 移动端适配（占位）
+            viewBtn.addEventListener('click', () => {
+                window.location.href = 'portfolio.html';
+            });
+
+            // 点击办公楼阶段空白处关闭卡片（可选）
+            officeStage.addEventListener('click', function(e) {
+                if (e.target === officeStage) {
+                    expCard.classList.remove('open');
+                    viewBtn.classList.remove('show');
+                }
+            });
+
+        })();
     </script>
 </body>
 </html>
