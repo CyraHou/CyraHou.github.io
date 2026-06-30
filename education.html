@@ -82,11 +82,11 @@
         }
         .cover-wrapper:hover .cover-lit { opacity: 1; }
 
-        /* Flip 便签 —— 调整 right / top 改变位置 */
+        /* Flip 便签 */
         .sticky-note {
             position: absolute;
-            right: -11%;
-            top: 65%;
+            right: -9%;
+            top: 70%;
             background: #BB443B;
             color: #fff;
             padding: 0.6rem 1.2rem;
@@ -186,6 +186,7 @@
             transition: width 1.2s ease;
         }
 
+        /* 立牌效果（仅用于主楼和职业人物） */
         .standee {
             filter: drop-shadow(0 8px 6px rgba(0,0,0,0.3));
             position: relative;
@@ -294,8 +295,8 @@
 
     <div id="stage">
         <div class="cover-wrapper" id="coverWrapper">
-            <img class="cover-dark" src="images/cover-dark.png?v=7" alt="Book cover dark">
-            <img class="cover-lit" src="images/cover-lit.png?v=7" alt="Book cover lit">
+            <img class="cover-dark" src="images/cover-dark.png?v=8" alt="Book cover dark">
+            <img class="cover-lit" src="images/cover-lit.png?v=8" alt="Book cover lit">
             <div class="sticky-note" id="stickyFlip">Flip</div>
         </div>
 
@@ -313,12 +314,12 @@
         </div>
 
         <div id="officeStage" class="office-stage">
-            <img class="character-work standee" src="images/character-work.png?v=7" alt="Work character">
+            <img class="character-work standee" src="images/character-work.png?v=8" alt="Work character">
             <div class="buildings" id="buildingsContainer">
-                <img class="building" src="images/building-office-1.png?v=7" data-index="0">
-                <img class="building" src="images/building-office-2.png?v=7" data-index="1">
-                <img class="building" src="images/building-office-3.png?v=7" data-index="2">
-                <img class="building" src="images/building-office-4.png?v=7" data-index="3">
+                <img class="building" src="images/building-office-1.png?v=8" data-index="0">
+                <img class="building" src="images/building-office-2.png?v=8" data-index="1">
+                <img class="building" src="images/building-office-3.png?v=8" data-index="2">
+                <img class="building" src="images/building-office-4.png?v=8" data-index="3">
             </div>
             <div id="expCard" class="exp-card"></div>
             <button id="viewProjectsBtn" class="view-projects-btn">View Projects →</button>
@@ -373,22 +374,22 @@
                     right.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Curriculum Vitae</h1>';
                     stickyGraduate.style.display = 'none';
                 } else if (index === 1) {
-                    // 左侧：主楼立牌 + 个人信息
+                    // 左侧：主楼立牌（放大）+ 个人信息
                     left.innerHTML = `
-                        <div style="display:flex; flex-direction:column; align-items:center; height:100%;">
-                            <img src="images/building-university.png?v=7" class="standee" style="width:140px; margin-bottom:20px;">
-                            <div style="text-align:left; line-height:1.8;">
-                                <p>🏠 东北农业大学 <br><small>Northeast Agricultural University</small></p>
-                                <p>🌳 风景园林专业 <br><small>Landscape Architecture</small></p>
-                                <p>📅 2014-2018</p>
-                                <p>🏅 国家奖学金 <br><small>National Scholarship</small></p>
-                                <p>📜 英语 CET-6</p>
+                        <div style="display:flex; flex-direction:column; align-items:center; height:100%; padding-top:30px;">
+                            <img src="images/building-university.png?v=8" class="standee" style="width:180px; margin-bottom:25px;">
+                            <div style="text-align:left; line-height:1.8; width:100%; padding-left:10px;">
+                                <p style="margin-bottom:18px;">🏠 东北农业大学 <br><small>Northeast Agricultural University</small></p>
+                                <p style="margin-bottom:18px;">🌳 风景园林专业 <br><small>Landscape Architecture</small></p>
+                                <p style="margin-bottom:18px;">📅 2014-2018</p>
+                                <p style="margin-bottom:18px;">🏅 国家奖学金 <br><small>National Scholarship</small></p>
+                                <p style="margin-bottom:18px;">📜 英语 CET-6</p>
                             </div>
                         </div>
                     `;
                     // 右侧：Skills + 进度条
                     right.innerHTML = `
-                        <div style="overflow-y:auto; height:100%;">
+                        <div style="overflow-y:auto; height:100%; padding-top:30px;">
                             <h2 style="margin-bottom:15px;">Skills</h2>
                             <div id="skillsContainer"></div>
                         </div>
@@ -408,11 +409,12 @@
                     left.innerHTML = '<p style="font-style:italic; color:#555;">Here ends a chapter. Four years of soil, sketches, and sunlight. From the greenhouse to the rooftop studio, every season grew something in me.</p>';
                     right.innerHTML = `
                         <div style="position:relative; display:flex; justify-content:center; align-items:center; height:100%;">
-                            <img id="gradPhoto1" src="images/grad-pose-1.png?v=7" style="max-width:80%; transition: opacity 0.4s;">
-                            <img id="gradPhoto2" src="images/grad-pose-2.png?v=7" class="standee" style="max-width:80%; position:absolute; opacity:0; transform: translateY(20px);">
+                            <img id="gradPhoto1" src="images/grad-pose-1.png?v=8" style="max-width:80%; transition: opacity 0.4s;">
+                            <img id="gradPhoto2" src="images/grad-pose-2.png?v=8" style="max-width:80%; position:absolute; opacity:0; transform: translateY(20px); filter: drop-shadow(8px 6px 6px rgba(0,0,0,0.4));">
                         </div>
                     `;
                     stickyGraduate.style.display = 'none';
+                    // 弹起动画
                     setTimeout(() => {
                         const g1 = document.getElementById('gradPhoto1');
                         const g2 = document.getElementById('gradPhoto2');
@@ -450,7 +452,7 @@
                     const row = document.createElement('div');
                     row.style.display = 'flex';
                     row.style.alignItems = 'center';
-                    row.style.margin = '6px 0';
+                    row.style.margin = '8px 0';
                     const nameSpan = document.createElement('span');
                     nameSpan.textContent = s.name;
                     nameSpan.style.width = '90px';
@@ -468,7 +470,6 @@
                     row.appendChild(nameSpan);
                     row.appendChild(outer);
                     container.appendChild(row);
-                    // 触发动画
                     setTimeout(() => { fill.style.width = (s.level * 10) + '%'; }, 100);
                 });
             }
