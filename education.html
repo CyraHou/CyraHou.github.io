@@ -85,8 +85,8 @@
         /* Flip 便签 */
         .sticky-note {
             position: absolute;
-            right: -9%;
-            top: 70%;
+            right: -10%;
+            top: 62%;
             background: #BB443B;
             color: #fff;
             padding: 0.6rem 1.2rem;
@@ -310,7 +310,7 @@
                 </div>
                 <div class="center-line"></div>
             </div>
-            <div id="stickyGraduate" class="sticky-note" style="background:#E3925F; display:none;">Graduate</div>
+            <div id="stickyNext" class="sticky-note" style="background:#4A90D9; display:none;">Onward</div>
         </div>
 
         <div id="officeStage" class="office-stage">
@@ -330,7 +330,7 @@
         (function() {
             const coverWrapper = document.getElementById('coverWrapper');
             const stickyFlip = document.getElementById('stickyFlip');
-            const stickyGraduate = document.getElementById('stickyGraduate');
+            const stickyNext = document.getElementById('stickyNext');
             const bookContainer = document.getElementById('bookContainer');
             const officeStage = document.getElementById('officeStage');
             const viewBtn = document.getElementById('viewProjectsBtn');
@@ -376,20 +376,19 @@
                 } else if (index === 1) {
                     // 左侧：主楼立牌（放大）+ 个人信息
                     left.innerHTML = `
-                        <div style="display:flex; flex-direction:column; align-items:center; height:100%; padding-top:30px;">
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
                             <img src="images/building-university.png?v=8" class="standee" style="width:180px; margin-bottom:25px;">
                             <div style="text-align:left; line-height:1.8; width:100%; padding-left:10px;">
-                                <p style="margin-bottom:18px;">🏠 东北农业大学 <br><small>Northeast Agricultural University</small></p>
+                                <p style="margin-bottom:18px;">🏠 东北农业大学(2014-2018) <br><small>Northeast Agricultural University</small></p>
                                 <p style="margin-bottom:18px;">🌳 风景园林专业 <br><small>Landscape Architecture</small></p>
-                                <p style="margin-bottom:18px;">📅 2014-2018</p>
-                                <p style="margin-bottom:18px;">🏅 国家奖学金 <br><small>National Scholarship</small></p>
+                                <p style="margin-bottom:18px;">🏅 国家级奖学金 <br><small>National Scholarship</small></p>
                                 <p style="margin-bottom:18px;">📜 英语 CET-6</p>
                             </div>
                         </div>
                     `;
                     // 右侧：Skills + 进度条
                     right.innerHTML = `
-                        <div style="overflow-y:auto; height:100%; padding-top:30px;">
+                        <div style="overflow-y:auto; height:100%; padding-top:100px;">
                             <h2 style="margin-bottom:15px;">Skills</h2>
                             <div id="skillsContainer"></div>
                         </div>
@@ -401,6 +400,12 @@
                         e.stopPropagation();
                         renderPage(2);
                     };
+                    stickyNext.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        bookContainer.style.display = 'none';
+                        officeStage.classList.add('active');
+                        stickyNext.style.display = 'none';
+                    });
                 } else if (index === 2) {
                     left.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Congratulations！</h1>';
                     right.innerHTML = '<h1 class="lobster" style="font-size:2.5rem; text-align:center; white-space:nowrap;">I\'ve graduated！</h1>';
@@ -424,11 +429,10 @@
                             g2.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
                             g2.style.transform = 'translateY(0)';
                         }
+                        // 显示 Onward 便签
+                        stickyNext.style.display = 'block';
+                        stickyNext.classList.add('visible');
                     }, 2000);
-                    setTimeout(() => {
-                        bookContainer.style.display = 'none';
-                        officeStage.classList.add('active');
-                    }, 4500);
                 }
             }
 
@@ -452,7 +456,7 @@
                     const row = document.createElement('div');
                     row.style.display = 'flex';
                     row.style.alignItems = 'center';
-                    row.style.margin = '8px 0';
+                    row.style.margin = '10px 0';
                     const nameSpan = document.createElement('span');
                     nameSpan.textContent = s.name;
                     nameSpan.style.width = '90px';
