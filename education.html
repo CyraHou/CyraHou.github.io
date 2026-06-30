@@ -6,7 +6,7 @@
     <title>Education · Cyra. HOU</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Caveat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Caveat&family=Arizonia&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -82,10 +82,10 @@
         }
         .cover-wrapper:hover .cover-lit { opacity: 1; }
 
-        /* Flip 便签 */
+        /* 便签通用样式 */
         .sticky-note {
             position: absolute;
-            right: -10%;
+            right: -10.5%;
             top: 62%;
             background: #BB443B;
             color: #fff;
@@ -101,7 +101,7 @@
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s;
             animation: float 2s ease-in-out infinite;
         }
-        .cover-wrapper:hover .sticky-note {
+        .sticky-note.visible {
             opacity: 1;
             transform: scale(1) translateY(0);
         }
@@ -162,6 +162,7 @@
         }
 
         .lobster { font-family: 'Lobster', cursive; }
+        .arizonia { font-family: 'Arizonia', cursive; }
 
         /* 技能进度条 —— 线框 + 白色底色 */
         .bar-outer {
@@ -186,7 +187,7 @@
             transition: width 1.2s ease;
         }
 
-        /* 立牌效果（仅用于主楼和职业人物） */
+        /* 立牌效果（主楼和职业人物） */
         .standee {
             filter: drop-shadow(0 8px 6px rgba(0,0,0,0.3));
             position: relative;
@@ -295,8 +296,8 @@
 
     <div id="stage">
         <div class="cover-wrapper" id="coverWrapper">
-            <img class="cover-dark" src="images/cover-dark.png?v=8" alt="Book cover dark">
-            <img class="cover-lit" src="images/cover-lit.png?v=8" alt="Book cover lit">
+            <img class="cover-dark" src="images/cover-dark.png?v=11" alt="Book cover dark">
+            <img class="cover-lit" src="images/cover-lit.png?v=11" alt="Book cover lit">
             <div class="sticky-note" id="stickyFlip">Flip</div>
         </div>
 
@@ -314,12 +315,12 @@
         </div>
 
         <div id="officeStage" class="office-stage">
-            <img class="character-work standee" src="images/character-work.png?v=8" alt="Work character">
+            <img class="character-work standee" src="images/character-work.png?v=11" alt="Work character">
             <div class="buildings" id="buildingsContainer">
-                <img class="building" src="images/building-office-1.png?v=8" data-index="0">
-                <img class="building" src="images/building-office-2.png?v=8" data-index="1">
-                <img class="building" src="images/building-office-3.png?v=8" data-index="2">
-                <img class="building" src="images/building-office-4.png?v=8" data-index="3">
+                <img class="building" src="images/building-office-1.png?v=11" data-index="0">
+                <img class="building" src="images/building-office-2.png?v=11" data-index="1">
+                <img class="building" src="images/building-office-3.png?v=11" data-index="2">
+                <img class="building" src="images/building-office-4.png?v=11" data-index="3">
             </div>
             <div id="expCard" class="exp-card"></div>
             <button id="viewProjectsBtn" class="view-projects-btn">View Projects →</button>
@@ -364,62 +365,57 @@
                 if (currentPage < totalPages - 1) renderPage(currentPage + 1);
             });
 
+            // Onward 便签点击
+            stickyNext.addEventListener('click', (e) => {
+                e.stopPropagation();
+                bookContainer.style.display = 'none';
+                officeStage.classList.add('active');
+                stickyNext.style.display = 'none';
+            });
+
             function renderPage(index) {
                 const left = document.getElementById('leftContent');
                 const right = document.getElementById('rightContent');
                 left.innerHTML = right.innerHTML = '';
                 currentPage = index;
+                stickyNext.style.display = 'none';
 
                 if (index === 0) {
                     right.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Curriculum Vitae</h1>';
-                    stickyGraduate.style.display = 'none';
                 } else if (index === 1) {
-                    // 左侧：主楼立牌（放大）+ 个人信息
+                    // 左侧：主楼立牌 + 个人信息 + 页脚 Background
                     left.innerHTML = `
-                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
-                            <img src="images/building-university.png?v=8" class="standee" style="width:180px; margin-bottom:25px;">
+                        <div style="display:flex; flex-direction:column; align-items:center; height:100%; padding-top:30px;">
+                            <img src="images/building-university.png?v=11" class="standee" style="width:180px; margin-bottom:25px;">
                             <div style="text-align:left; line-height:1.8; width:100%; padding-left:10px;">
-                                <p style="margin-bottom:18px;">🏠 东北农业大学(2014-2018) <br><small>Northeast Agricultural University</small></p>
+                                <p style="margin-bottom:18px;">🏠 东北农业大学（2014-2018） <br><small>Northeast Agricultural University</small></p>
                                 <p style="margin-bottom:18px;">🌳 风景园林专业 <br><small>Landscape Architecture</small></p>
-                                <p style="margin-bottom:18px;">🏅 国家级奖学金 <br><small>National Scholarship</small></p>
+                                <p style="margin-bottom:18px;">🏅 国家奖学金 <br><small>National Scholarship</small></p>
                                 <p style="margin-bottom:18px;">📜 英语 CET-6</p>
                             </div>
+                            <div class="arizonia" style="font-size:2rem; margin-top:10px;">Background</div>
                         </div>
                     `;
-                    // 右侧：Skills + 进度条
+                    // 右侧：skill-decor.png + 进度条 + 页脚 Skills
                     right.innerHTML = `
-                        <div style="overflow-y:auto; height:100%; padding-top:100px;">
-                            <h2 style="margin-bottom:15px;">Skills</h2>
-                            <div id="skillsContainer"></div>
+                        <div style="overflow-y:auto; height:100%; padding-top:30px; display:flex; flex-direction:column; align-items:center;">
+                            <img src="images/skill-decor.png?v=11" style="width:180px; margin-bottom:25px;">
+                            <div id="skillsContainer" style="width:100%;"></div>
+                            <div class="arizonia" style="font-size:2rem; margin-top:10px;">Skills</div>
                         </div>
                     `;
                     renderSkills();
-                    stickyGraduate.style.display = 'block';
-                    stickyGraduate.classList.add('visible');
-                    stickyGraduate.onclick = (e) => {
-                        e.stopPropagation();
-                        renderPage(2);
-                    };
-                    stickyNext.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        bookContainer.style.display = 'none';
-                        officeStage.classList.add('active');
-                        stickyNext.style.display = 'none';
-                    });
                 } else if (index === 2) {
                     left.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Congratulations！</h1>';
                     right.innerHTML = '<h1 class="lobster" style="font-size:2.5rem; text-align:center; white-space:nowrap;">I\'ve graduated！</h1>';
-                    stickyGraduate.style.display = 'none';
                 } else if (index === 3) {
                     left.innerHTML = '<p style="font-style:italic; color:#555;">Here ends a chapter. Four years of soil, sketches, and sunlight. From the greenhouse to the rooftop studio, every season grew something in me.</p>';
                     right.innerHTML = `
                         <div style="position:relative; display:flex; justify-content:center; align-items:center; height:100%;">
-                            <img id="gradPhoto1" src="images/grad-pose-1.png?v=8" style="max-width:80%; transition: opacity 0.4s;">
-                            <img id="gradPhoto2" src="images/grad-pose-2.png?v=8" style="max-width:80%; position:absolute; opacity:0; transform: translateY(20px); filter: drop-shadow(8px 6px 6px rgba(0,0,0,0.4));">
+                            <img id="gradPhoto1" src="images/grad-pose-1.png?v=11" style="max-width:80%; transition: opacity 0.4s;">
+                            <img id="gradPhoto2" src="images/grad-pose-2.png?v=11" style="max-width:80%; position:absolute; opacity:0; transform: translateY(20px); filter: drop-shadow(8px 6px 6px rgba(0,0,0,0.4));">
                         </div>
                     `;
-                    stickyGraduate.style.display = 'none';
-                    // 弹起动画
                     setTimeout(() => {
                         const g1 = document.getElementById('gradPhoto1');
                         const g2 = document.getElementById('gradPhoto2');
@@ -429,7 +425,6 @@
                             g2.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
                             g2.style.transform = 'translateY(0)';
                         }
-                        // 显示 Onward 便签
                         stickyNext.style.display = 'block';
                         stickyNext.classList.add('visible');
                     }, 2000);
@@ -461,7 +456,7 @@
                     nameSpan.textContent = s.name;
                     nameSpan.style.width = '90px';
                     nameSpan.style.textAlign = 'right';
-                    nameSpan.style.marginRight = '10px';
+                    nameSpan.style.marginRight = '15px';
                     const outer = document.createElement('div');
                     outer.className = 'bar-outer';
                     const inner = document.createElement('div');
