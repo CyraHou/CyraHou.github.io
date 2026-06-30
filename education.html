@@ -89,7 +89,7 @@
         /* 便签通用样式 */
         .sticky-note {
             position: absolute;
-            right: -11%;
+            right: -10.5%;
             top: 62%;
             background: #BB443B;
             color: #fff;
@@ -224,20 +224,20 @@
         .character-work {
             position: absolute;
             left: 20%;
-            bottom: 20%;
-            width: 150px;
+            bottom: 30%;
+            width: 200px;
             filter: drop-shadow(0 10px 8px rgba(0,0,0,0.3));
         }
         .buildings {
             position: absolute;
             right: 10%;
-            bottom: 15%;
+            bottom: 30%;
             display: flex;
             gap: 20px;
             align-items: flex-end;
         }
         .building {
-            width: 100px;
+            width: 260px;
             cursor: pointer;
             transition: transform 0.2s;
             filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
@@ -385,12 +385,12 @@
                 stickyNext.style.display = 'none';
 
                 if (index === 0) {
-                    right.innerHTML = '<h1 class="lobster" style="font-size:3rem; text-align:center;">Curriculum Vitae</h1>';
+                    right.innerHTML = '<h1 class="lobster" style="font-size:2.5rem; text-align:center;">Curriculum Vitae</h1>';
                 } else if (index === 1) {
                     // 左侧：主楼立牌 + 个人信息 + 页脚 Background
                     left.innerHTML = `
                         <div style="display:flex; flex-direction:column; align-items:center; height:100%; padding-top:30px;">
-                            <img src="images/building-university.png?v=11" class="standee" style="width:180px; margin-bottom:25px;">
+                            <img src="images/building-university.png?v=11" class="standee" style="width:180px; margin-bottom:15px;">
                             <div style="text-align:left; line-height:1.8; width:100%; padding-left:10px;">
                                 <p style="margin-bottom:18px;">🏠 东北农业大学（2014-2018） <br><small>Northeast Agricultural University</small></p>
                                 <p style="margin-bottom:18px;">🌳 风景园林专业 <br><small>Landscape Architecture</small></p>
