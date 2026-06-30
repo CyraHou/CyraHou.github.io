@@ -6,76 +6,126 @@
     <title>Work Experience · Cyra. HOU</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Caveat&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             width: 100vw; height: 100vh;
             overflow: hidden;
-            font-family: system-ui, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             background: #f9f7f4;
         }
+
+        /* 导航栏 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
-            background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: center;
-            gap: 42px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            gap: 42px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             z-index: 1000;
         }
         .top-nav a, .dropdown-toggle {
-            text-decoration: none; font-size: 18px; color: #1a1a1a;
-            transition: color 0.2s; cursor: pointer;
+            text-decoration: none; font-size: 18px;
+            color: #1a1a1a; font-family: system-ui, sans-serif;
+            transition: color 0.2s; cursor: pointer; background: none; border: none;
         }
         .top-nav a:hover, .dropdown-toggle:hover { color: #444; }
         .top-nav a.active { color: #ad3737; font-weight: 600; }
         .dropdown { position: relative; display: inline-block; }
         .dropdown-menu {
-            position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
-            border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 0.5rem 0; min-width: 150px;
-            opacity: 0; visibility: hidden; transition: 0.2s; z-index: 200;
+            position: absolute; top: 100%; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(8px);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 0.5rem 0;
+            min-width: 150px;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 200;
         }
         .dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; }
         .dropdown-menu a {
-            display: block; padding: 0.5rem 1.5rem; font-size: 16px;
-            color: #1a1a1a; text-align: center;
+            display: block; padding: 0.5rem 1.5rem;
+            font-size: 16px; color: #1a1a1a;
+            text-align: center; white-space: nowrap;
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
 
-        #workStage {
+        /* 舞台 */
+        #stage {
             position: fixed; top: 70px; left: 0;
             width: 100%; height: calc(100vh - 70px);
-            display: flex; align-items: center; justify-content: center;
+            z-index: 1;
+        }
+
+        /* 办公楼阶段（直接显示） */
+        .office-stage {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 5;
         }
         .character-work {
-            position: absolute; left: 20%; bottom: 20%; width: 150px;
+            position: absolute;
+            left: 15%;
+            bottom: 30%;
+            width: 200px;
             filter: drop-shadow(0 10px 8px rgba(0,0,0,0.3));
         }
         .buildings {
-            position: absolute; right: 10%; bottom: 15%;
-            display: flex; gap: 20px; align-items: flex-end;
+            position: absolute;
+            right: 10%;
+            bottom: 30%;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
         }
         .building {
-            width: 100px; cursor: pointer; transition: transform 0.2s;
+            width: 300px;
+            cursor: pointer;
+            transition: transform 0.2s;
             filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
         }
         .building:hover { transform: translateY(-6px); }
         .exp-card {
-            position: absolute; bottom: 5%; left: 10%; right: 10%;
-            background: #fff; border-radius: 12px;
+            position: absolute;
+            bottom: 20%;
+            left: 25%;
+            right: 10%;
+            background: #fff;
+            border-radius: 20px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-            padding: 20px; display: none; z-index: 20;
+            padding: 20px;
+            display: none;
+            z-index: 20;
         }
         .exp-card.open { display: block; }
         .view-projects-btn {
-            position: absolute; left: 30%; bottom: 5%;
-            background: #ad3737; color: #fff;
-            border: none; padding: 10px 24px;
-            border-radius: 30px; font-size: 16px;
-            cursor: pointer; display: none; z-index: 15;
+            position: absolute;
+            left: 15%;
+            bottom: 25%;
+            background: #7ad6fb;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+            z-index: 15;
         }
         .view-projects-btn.show { display: block; }
+
+        @media (max-width: 768px) {
+            .top-nav { gap: 20px; }
+            .character-work { left: 10%; bottom: 20%; width: 100px; }
+            .buildings { right: 5%; gap: 10px; }
+            .building { width: 60px; }
+        }
     </style>
 </head>
 <body>
@@ -94,39 +144,89 @@
         <a href="contact.html">Contact me</a>
     </nav>
 
-    <div id="workStage">
-        <img class="character-work" src="images/character-work.png" alt="Work character">
-        <div class="buildings">
-            <img class="building" src="images/building-office-1.png" data-index="0">
-            <img class="building" src="images/building-office-2.png" data-index="1">
-            <img class="building" src="images/building-office-3.png" data-index="2">
-            <img class="building" src="images/building-office-4.png" data-index="3">
+    <div id="stage">
+        <div class="office-stage">
+            <img class="character-work standee" src="images/character-work.png?v=11" alt="Work character">
+            <div class="buildings" id="buildingsContainer">
+                <img class="building" src="images/building-office-1.png?v=11" data-index="0">
+                <img class="building" src="images/building-office-2.png?v=11" data-index="1">
+                <img class="building" src="images/building-office-3.png?v=11" data-index="2">
+                <img class="building" src="images/building-office-4.png?v=11" data-index="3">
+            </div>
+            <div id="expCard" class="exp-card"></div>
+            <button id="viewProjectsBtn" class="view-projects-btn">View Projects →</button>
         </div>
-        <div id="expCard" class="exp-card"></div>
-        <button id="viewProjectsBtn" class="view-projects-btn">View Projects →</button>
     </div>
 
     <script>
-        const experiences = [
-            "Project Manager at XXX Design Lab. Led spatial interaction projects.",
-            "UX Designer at YYY Tech. Designed AI-powered tools.",
-            "Product Design Lead at ZZZ. Built end-to-end product experiences.",
-            "Freelance / Independent work. Collaborated with artists and technologists."
-        ];
-        const expCard = document.getElementById('expCard');
-        const viewBtn = document.getElementById('viewProjectsBtn');
+        (function() {
+            const viewBtn = document.getElementById('viewProjectsBtn');
+            const expCard = document.getElementById('expCard');
 
-        document.querySelectorAll('.building').forEach(building => {
-            building.addEventListener('click', function() {
-                const idx = this.dataset.index;
-                expCard.innerHTML = `<p>${experiences[idx]}</p>`;
-                expCard.classList.add('open');
-                viewBtn.classList.add('show');
+            const experiences = [
+                `<h3 style="margin-bottom:4px;">华诚博远工程技术有限公司（2017.07-2018.05）</h3>
+                 <p style="color:#666; margin-bottom:8px;">Huachengboyuan Engineering Technology Group</p>
+                 <p style="font-weight:600; margin-bottom:8px;">助理景观设计师（市政园林、城市更新、地产商业）</p>
+                 <ol style="padding-left:20px; line-height:1.8;">
+                   <li>现场调研、测量与记录；</li>
+                   <li>根据规范和甲方需求，协助主创设计师完成方案的设计；</li>
+                   <li>制作效果展示及对应文本；</li>
+                   <li>独立完成陪标方案。</li>
+                 </ol>`,
+                `<h3 style="margin-bottom:4px;">中社科（北京）城乡规划设计研究院（2018.07-2023.07）</h3>
+                 <p style="color:#666; margin-bottom:8px;">Urban Planning Institute of China Academy of Social Science(Beijing)</p>
+                 <p style="font-weight:600; margin-bottom:8px;">景观设计师（市政园林、工业园区、城市规划）</p>
+                 <ol style="padding-left:20px; line-height:1.8;">
+                   <li>现场调研并整理分析；</li>
+                   <li>设计节点、建模、渲染、制作动画；</li>
+                   <li>配合项目负责人出文本中的各类分析图；</li>
+                   <li>参与撰写规范的前期数据与资料整理。</li>
+                 </ol>`,
+                `<h3 style="margin-bottom:4px;">中农畅想（北京）农业科技有限公司（2023.08-2024.08）</h3>
+                 <p style="color:#666; margin-bottom:8px;">Urban Planning Institute of China Academy of Social Science(Beijing)</p>
+                 <p style="font-weight:600; margin-bottom:8px;">规划设计师（农业园区、展厅设计、平面设计、新媒体运营）</p>
+                 <ol style="padding-left:20px; line-height:1.8;">
+                   <li>负责落实规划方案；</li>
+                   <li>负责企业文化宣传相关物料制作；</li>
+                   <li>负责公众号推文的编写；</li>
+                   <li>负责公司产品外观设计及衍生品设计；</li>
+                   <li>公域平台推广视频剪辑。</li>
+                 </ol>`,
+                `<h3 style="margin-bottom:4px;">东营市科华文化传媒有限公司（2025.05-   ）</h3>
+                 <p style="color:#666; margin-bottom:8px;">Dongying Kehua Culture and Media Company</p>
+                 <p style="font-weight:600; margin-bottom:8px;">主创设计师（展厅设计、平面设计）</p>
+                 <ol style="padding-left:20px; line-height:1.8;">
+                   <li>负责独立完成展厅项目的全流程设计；</li>
+                   <li>负责活动展陈设计及落地；</li>
+                   <li>负责视觉设计及落地（包括平面设计、VI 标识系统及IP 设计）；</li>
+                   <li>负责书籍的排版与校对；</li>
+                   <li>负责园林小品及构筑物的设计及落地。</li>
+                 </ol>`,
+            ];
+
+            // 办公楼点击
+            document.querySelectorAll('.building').forEach(building => {
+                building.addEventListener('click', function() {
+                    const idx = this.dataset.index;
+                    expCard.innerHTML = experiences[idx];
+                    expCard.classList.add('open');
+                    viewBtn.classList.add('show');
+                });
             });
-        });
-        viewBtn.addEventListener('click', () => {
-            window.location.href = 'portfolio.html';
-        });
+
+            // View Projects 按钮
+            viewBtn.addEventListener('click', () => {
+                window.location.href = 'portfolio.html';
+            });
+
+            // 点击空白处关闭卡片
+            document.querySelector('.office-stage').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    expCard.classList.remove('open');
+                    viewBtn.classList.remove('show');
+                }
+            });
+        })();
     </script>
 </body>
 </html>
