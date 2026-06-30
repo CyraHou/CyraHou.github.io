@@ -245,9 +245,9 @@
         .building:hover { transform: translateY(-6px); }
         .exp-card {
             position: absolute;
-            bottom: 10%;
-            left: 20%;
-            right: 20%;
+            bottom: 20%;
+            left: 25%;
+            right: 10%;
             background: #fff;
             border-radius: 20px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.1);
@@ -259,8 +259,8 @@
         .view-projects-btn {
             position: absolute;
             left: 15%;
-            bottom: 20%;
-            background: #d0edff;
+            bottom: 25%;
+            background: #7ad6fb;
             color: #fff;
             border: none;
             padding: 10px 24px;
@@ -344,13 +344,21 @@
             let currentPage = 0;
             const totalPages = 4;
 
-            const experiences = [
-                "Project Manager at XXX Design Lab. Led spatial interaction projects.",
-                "UX Designer at YYY Tech. Designed AI-powered tools.",
-                "Product Design Lead at ZZZ. Built end-to-end product experiences.",
-                "Freelance / Independent work. Collaborated with artists and technologists."
+           const experiences = [
+                `<h3 style="margin-bottom:4px;">华诚博远工程技术有限公司（2017.07-2018.05）</h3>
+                 <p style="color:#666; margin-bottom:8px;">Huachengboyuan Engineering Technology Group</p>
+                 <p style="font-weight:600; margin-bottom:8px;">助理景观设计师（市政园林、城市更新、地产商业）</p>
+                 <ol style="padding-left:20px; line-height:1.8;">
+                   <li>现场调研、测量与记录；</li>
+                   <li>根据规范和甲方需求，协助主创设计师完成方案的设计；</li>
+                   <li>制作效果展示及对应文本；</li>
+                   <li>独立完成陪标方案。</li>
+                 </ol>`,
+                // 其他三段经历可暂时保留占位文字
+                "UX Designer at YYY Tech...",
+                "Product Design Lead at ZZZ...",
+                "Freelance / Independent work..."
             ];
-
             // 封面 → 翻书
             stickyFlip.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -481,7 +489,7 @@
             document.querySelectorAll('.building').forEach(building => {
                 building.addEventListener('click', function() {
                     const idx = this.dataset.index;
-                    expCard.innerHTML = `<p>${experiences[idx]}</p>`;
+                    expCard.innerHTML = experiences[idx];
                     expCard.classList.add('open');
                     viewBtn.classList.add('show');
                 });
