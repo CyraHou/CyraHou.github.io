@@ -16,7 +16,6 @@
             background: #f9f7f4;
         }
 
-        /* 导航栏 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
@@ -45,7 +44,6 @@
         }
         .dropdown-menu a:hover { background: #f0f0f0; color: #ad3737; }
 
-        /* 主舞台 */
         #mainStage { margin-top: 70px; width: 100%; }
 
         /* 魔方区域 */
@@ -54,9 +52,11 @@
             display: flex; align-items: center; justify-content: center;
             background: #f0f0f0;
         }
-        #cubeCanvas { width: 130px; height: 130px; }
+        #cubeContainer {
+            width: 130px; height: 130px;
+        }
 
-        /* 轴线容器 */
+        /* 轴线 */
         .timeline-wrapper {
             position: relative; width: 100%; padding: 60px 0 100px;
         }
@@ -76,40 +76,32 @@
             background: linear-gradient(to bottom, #ccc, transparent);
         }
 
-        /* 节点行 */
         .timeline-item {
             position: relative; display: flex; align-items: center;
             justify-content: center; margin: 70px 0; z-index: 2;
         }
         .timeline-item:nth-child(odd) { flex-direction: row; }
         .timeline-item:nth-child(even) { flex-direction: row-reverse; }
+
         .item-text {
-            width: 300px; /* 固定文字区宽度 */
+            width: 300px;
             cursor: pointer;
         }
-        /* 奇数项文字在左，需要右侧留出间距；偶数项文字在右，需要左侧留出间距 */
-        .timeline-item:nth-child(odd) .item-text { padding-right: 60px; text-align: right; }
-        .timeline-item:nth-child(even) .item-text { padding-left: 60px; text-align: left; }
+        .timeline-item:nth-child(odd) .item-text { padding-right: 80px; text-align: right; }
+        .timeline-item:nth-child(even) .item-text { padding-left: 80px; text-align: left; }
         .item-text h2 { font-size: 2.2rem; font-weight: 600; margin-bottom: 8px; color: #1a1a1a; }
         .item-text .subtitle { font-size: 1rem; color: #666; line-height: 1.5; }
 
-        /* 图片卡片区 */
         .item-image {
             width: 400px;
             position: relative; cursor: pointer;
         }
-        /* 奇数项图片在右，偶数项图片在左，也需要适当的间距 */
-        .timeline-item:nth-child(odd) .item-image { margin-left: 60px; }
-        .timeline-item:nth-child(even) .item-image { margin-right: 60px; }
         .item-image img {
             width: 100%; height: auto; border-radius: 8px; display: block;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transition: transform 0.3s, opacity 0.3s;
         }
-        .item-image:hover > img {
-            transform: scale(1.03);
-            opacity: 0.9;
-        }
+        .item-image:hover > img { transform: scale(1.03); opacity: 0.9; }
         .image-overlay {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%; border-radius: 8px;
@@ -120,7 +112,6 @@
         }
         .item-image:hover .image-overlay { opacity: 1; }
 
-        /* 节点圆点（放在 timeline-item 层级，居中于轴线） */
         .node-dot {
             position: absolute;
             left: 50%;
@@ -128,17 +119,15 @@
             transform: translate(-50%, -50%);
             width: 14px; height: 14px; background: #ad3737;
             border-radius: 50%;
-            box-shadow: 0 0 12px rgba(173,55,55,0.5);
-            z-index: 3;
+            box-shadow: 0 0 12px rgba(173,55,55,0.5); z-index: 3;
         }
 
-        /* 规划设计相册容器 */
+        /* 相册 */
         .album-wrapper {
             position: relative;
             width: 400px;
-            height: auto;
+            height: 300px; /* 固定高度防止塌陷 */
         }
-        /* 叠层阴影效果 */
         .album-stack {
             position: relative;
             width: 100%;
@@ -157,53 +146,36 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             transition: transform 0.3s;
         }
-        .album-stack::before {
-            transform: rotate(-3deg);
-            z-index: -1;
-        }
-        .album-stack::after {
-            transform: rotate(2deg);
-            z-index: -2;
-        }
+        .album-stack::before { transform: rotate(-3deg); z-index: -1; }
+        .album-stack::after { transform: rotate(2deg); z-index: -2; }
         .album-stack img {
             width: 100%; border-radius: 8px; display: block;
             position: relative; z-index: 1;
         }
 
-        /* 展开的子图容器 */
         .album-sub-images {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.4s;
+            transition: opacity 0.3s;
         }
         .album-sub-images.open {
             pointer-events: auto;
             opacity: 1;
         }
-        /* 每张子图：绝对定位，默认堆叠在左上角，通过 JS 动态设置 left 和 z-index */
         .album-sub {
             position: absolute;
             width: 180px;
             border-radius: 6px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease, opacity 0.3s, z-index 0s;
+            transition: opacity 0.3s, transform 0.3s ease;
             cursor: pointer;
             top: 10px;
-            left: 10px; /* 初始位置，后面会被 JS 覆盖 */
         }
-        .album-sub.active {
-            transform: scale(1.15);
-            z-index: 20;
-            opacity: 1;
-        }
-        .album-sub:not(.active) {
-            opacity: 0.5;
-        }
+        .album-sub.dimmed { opacity: 0.4; }
 
-        /* 隐藏彩蛋弹窗 */
         .secret-modal {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -226,10 +198,10 @@
 
         @media (max-width: 768px) {
             .timeline-item { flex-direction: column !important; margin: 40px 0; }
-            .item-text, .item-image { width: 90%; padding: 10px 0 !important; margin: 0 !important; text-align: center !important; }
+            .item-text, .item-image { width: 90%; padding: 10px 0 !important; text-align: center !important; }
             .node-dot { left: 20px; }
             .timeline-line { left: 20px; }
-            .album-wrapper { width: 90vw; }
+            .album-wrapper { width: 90vw; height: auto; }
             .album-sub { width: 130px; }
         }
     </style>
@@ -251,16 +223,14 @@
     </nav>
 
     <div id="mainStage">
-        <!-- 魔方区域 -->
         <div id="cubeArea">
-            <canvas id="cubeCanvas"></canvas>
+            <div id="cubeContainer"></div>
         </div>
 
-        <!-- 时间轴 -->
         <div class="timeline-wrapper">
             <div class="timeline-line"></div>
 
-            <!-- 规划设计（带相册） -->
+            <!-- 规划设计 -->
             <div class="timeline-item" id="item-planning">
                 <div class="item-text">
                     <h2>规划设计</h2>
@@ -268,22 +238,19 @@
                 </div>
                 <div class="item-image">
                     <div class="album-wrapper" id="albumWrapper">
-                        <!-- 叠层初始状态 -->
                         <div class="album-stack" id="albumStack">
                             <img src="images/project-planning-2.png?v=1" alt="规划设计">
                         </div>
-                        <!-- 展开的子图容器 -->
                         <div class="album-sub-images" id="albumSubImages">
-                            <!-- 按照要求的顺序：2, 3, 1, 4 -->
-                            <img class="album-sub" src="images/project-planning-2.png?v=1" data-page="project-2.html" alt="城市设计" data-order="0">
-                            <img class="album-sub" src="images/project-planning-3.png?v=1" data-page="project-3.html" alt="生态修复" data-order="1">
-                            <img class="album-sub" src="images/project-planning-1.png?v=1" data-page="project-1.html" alt="城市更新" data-order="2">
-                            <img class="album-sub" src="images/project-planning-4.png?v=1" data-page="project-4.html" alt="园区规划" data-order="3">
+                            <img class="album-sub" src="images/project-planning-2.png?v=1" data-page="project-2.html" data-order="0" alt="城市设计">
+                            <img class="album-sub" src="images/project-planning-3.png?v=1" data-page="project-3.html" data-order="1" alt="生态修复">
+                            <img class="album-sub" src="images/project-planning-1.png?v=1" data-page="project-1.html" data-order="2" alt="城市更新">
+                            <img class="album-sub" src="images/project-planning-4.png?v=1" data-page="project-4.html" data-order="3" alt="园区规划">
                         </div>
                     </div>
                     <div class="image-overlay">More</div>
                 </div>
-                <div class="node-dot"></div> <!-- 红点移至此处，不再放在 item-image 内 -->
+                <div class="node-dot"></div>
             </div>
 
             <!-- 体验设计 -->
@@ -330,7 +297,6 @@
         </div>
     </div>
 
-    <!-- 隐藏彩蛋弹窗 -->
     <div class="secret-modal" id="secretModal">
         <div class="secret-card">
             <h2>🐣 Secret Project</h2>
@@ -339,66 +305,62 @@
         </div>
     </div>
 
-    <!-- Three.js -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // ========== 通用跳转 ==========
-        function goTo(url) {
-            if (url) window.location.href = url;
-        }
+        function goTo(url) { if (url) window.location.href = url; }
 
-        // ========== 相册逻辑 ==========
+        // 相册逻辑
         const albumStack = document.getElementById('albumStack');
         const albumSubImages = document.getElementById('albumSubImages');
         const albumSubs = document.querySelectorAll('.album-sub');
         let albumOpen = false;
 
-        // 按照 data-order 排序子图数组，以便控制层叠顺序
-        const sortedSubs = Array.from(albumSubs).sort((a, b) => {
-            return parseInt(a.dataset.order) - parseInt(b.dataset.order);
-        });
+        // 按 data-order 排序
+        const sortedSubs = Array.from(albumSubs).sort((a,b) => parseInt(a.dataset.order) - parseInt(b.dataset.order));
 
-        // 展开相册
         albumStack.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!albumOpen) {
-                const containerWidth = albumWrapper.clientWidth;
+                const containerWidth = 400;
                 const subWidth = 180;
-                // 根据顺序设置 left 和 z-index：2在最左边，3次之，1再次，4在最右。由于前一张盖后一张，所以左边图片的 z-index 应该更高。
-                // 我们按顺序：2(order0) left:0, 3(order1) left: subWidth*0.65, 1(order2) left: subWidth*1.3, 4(order3) left: subWidth*1.95
-                // 重叠 35% 即间隔为 subWidth * 0.65
+                // 从右向左排列：order 0 在最右边，向左依次排列
                 sortedSubs.forEach((sub, index) => {
-                    sub.style.left = (index * subWidth * 0.65) + 'px';
-                    sub.style.zIndex = sortedSubs.length - index; // 左边高 z-index
-                    sub.classList.remove('active');
+                    // 右边起点：containerWidth - subWidth
+                    const leftVal = containerWidth - subWidth - (index * subWidth * 0.65);
+                    sub.style.left = leftVal + 'px';
+                    sub.style.zIndex = 10 - index; // 右边的 z-index 更高
+                    sub.classList.remove('dimmed');
+                    sub.style.opacity = 1;
                 });
                 albumSubImages.classList.add('open');
                 albumOpen = true;
-                // 隐藏叠层
                 albumStack.style.opacity = '0';
                 setTimeout(() => { albumStack.style.display = 'none'; }, 300);
             }
         });
 
-        // 点击子图：激活并跳转
+        // 子图悬停效果
         albumSubs.forEach(sub => {
+            sub.addEventListener('mouseenter', () => {
+                albumSubs.forEach(s => s.classList.add('dimmed'));
+                sub.classList.remove('dimmed');
+                sub.style.transform = 'scale(1.05)';
+            });
+            sub.addEventListener('mouseleave', () => {
+                albumSubs.forEach(s => {
+                    s.classList.remove('dimmed');
+                    s.style.transform = '';
+                });
+            });
             sub.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // 移除其他 active
-                albumSubs.forEach(s => s.classList.remove('active'));
-                sub.classList.add('active');
                 const page = sub.dataset.page;
-                if (page) {
-                    setTimeout(() => {
-                        window.location.href = page;
-                    }, 200);
-                }
+                if (page) window.location.href = page;
             });
         });
 
-        // 点击空白区域关闭相册
         document.addEventListener('click', function(e) {
             if (albumOpen && !e.target.closest('#item-planning')) {
                 albumSubImages.classList.remove('open');
@@ -408,19 +370,17 @@
             }
         });
 
-        // ========== 隐藏彩蛋 ==========
+        // 彩蛋
         function closeSecret() {
             document.getElementById('secretModal').classList.remove('show');
         }
 
-        // ========== 魔方 Three.js ==========
+        // 魔方
         (function() {
-            const area = document.getElementById('cubeArea');
-            const canvas = document.getElementById('cubeCanvas');
+            const container = document.getElementById('cubeContainer');
             let scene, camera, renderer, cube, allParticles = [];
             let state = 'cube';
             let hasTriggered = false;
-
             const cubeColors = [0xFF6B6B, 0x4ECDC4, 0xFFD93D, 0x6C5CE7, 0xFF8A5C, 0xA29BFE];
 
             scene = new THREE.Scene();
@@ -431,7 +391,7 @@
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(130, 130);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            canvas.appendChild(renderer.domElement);
+            container.appendChild(renderer.domElement);
 
             const ambient = new THREE.AmbientLight(0xffffff, 0.9);
             const dir = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -477,7 +437,6 @@
                 const spacing = 0.65;
                 const startX = -(letters.length - 1) * spacing / 2;
                 const blockSize = 0.08;
-
                 letters.forEach((char, li) => {
                     if (char === 'i') {
                         const iGroup = createLetterI(startX + li * spacing, 0, 0);
@@ -486,8 +445,7 @@
                     } else {
                         const matrix = letterMatrices[char];
                         if (!matrix) return;
-                        const h = matrix.length;
-                        const w = matrix[0].length;
+                        const h = matrix.length, w = matrix[0].length;
                         const offsetX = startX + li * spacing - (w * blockSize) / 2;
                         const offsetY = (h * blockSize) / 2;
                         for (let row = 0; row < h; row++) {
@@ -499,11 +457,7 @@
                                         roughness: 0.3, metalness: 0.1
                                     });
                                     const block = new THREE.Mesh(geo, mat);
-                                    block.position.set(
-                                        offsetX + col * blockSize,
-                                        offsetY - row * blockSize,
-                                        0
-                                    );
+                                    block.position.set(offsetX + col * blockSize, offsetY - row * blockSize, 0);
                                     scene.add(block);
                                     allParticles.push(block);
                                 }
@@ -514,21 +468,13 @@
             }
 
             function clearAllParticles() {
-                allParticles.forEach(p => {
-                    if (p.parent) p.parent.remove(p);
-                });
+                allParticles.forEach(p => { if (p.parent) p.parent.remove(p); });
                 allParticles = [];
-                if (cube) {
-                    scene.remove(cube);
-                    cube = null;
-                }
+                if (cube) { scene.remove(cube); cube = null; }
             }
 
             function explodeToParticles() {
-                if (cube) {
-                    scene.remove(cube);
-                    cube = null;
-                }
+                if (cube) { scene.remove(cube); cube = null; }
                 for (let i = 0; i < 35; i++) {
                     const geo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
                     const mat = new THREE.MeshStandardMaterial({
@@ -537,14 +483,7 @@
                     });
                     const p = new THREE.Mesh(geo, mat);
                     p.position.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2);
-                    p.userData = {
-                        velocity: new THREE.Vector3(
-                            (Math.random() - 0.5) * 0.08,
-                            (Math.random() - 0.5) * 0.08,
-                            (Math.random() - 0.5) * 0.06
-                        ),
-                        life: 0
-                    };
+                    p.userData = { velocity: new THREE.Vector3((Math.random() - 0.5) * 0.08, (Math.random() - 0.5) * 0.08, (Math.random() - 0.5) * 0.06), life: 0 };
                     scene.add(p);
                     allParticles.push(p);
                 }
@@ -553,12 +492,7 @@
 
             function animate() {
                 requestAnimationFrame(animate);
-
-                if (state === 'cube' && cube) {
-                    cube.rotation.y += 0.012;
-                    cube.rotation.x += 0.004;
-                }
-
+                if (state === 'cube' && cube) { cube.rotation.y += 0.012; cube.rotation.x += 0.004; }
                 if (state === 'exploding') {
                     let allSettled = true;
                     allParticles.forEach(p => {
@@ -577,26 +511,18 @@
                         hasTriggered = true;
                     }
                 }
-
                 renderer.render(scene, camera);
             }
 
             createCube();
             animate();
 
-            // 悬停爆炸
-            area.addEventListener('mouseenter', () => {
-                if (!hasTriggered && state === 'cube') {
-                    explodeToParticles();
-                }
+            container.addEventListener('mouseenter', () => {
+                if (!hasTriggered && state === 'cube') explodeToParticles();
             });
-
-            // 点击字母 i 区域触发彩蛋：由于无法精确点击 Three.js 中的某个物体，我们判断点击位置是否落在字母 i 的范围内（通过 canvas 坐标估算）
-            area.addEventListener('click', (e) => {
-                if (state === 'text') {
-                    // 简单起见，直接弹出（因为只有文字状态才能触发，且字母 i 高亮，点击任意位置弹出）
-                    document.getElementById('secretModal').classList.add('show');
-                }
+            // 双击弹出彩蛋（避免误触）
+            container.addEventListener('dblclick', (e) => {
+                if (state === 'text') document.getElementById('secretModal').classList.add('show');
             });
         })();
     </script>
