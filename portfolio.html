@@ -54,7 +54,7 @@
             display: flex; align-items: center; justify-content: center;
             background: #f0f0f0;
         }
-        #cubeCanvas { width: 120px; height: 120px; }
+        #cubeCanvas { width: 130px; height: 130px; }
 
         /* 轴线容器 */
         .timeline-wrapper {
@@ -86,17 +86,23 @@
         .item-text {
             width: 30%; padding: 0 50px; cursor: pointer;
         }
-        .item-text h2 { font-size: 2.2rem; font-weight: 600; margin-bottom: 8px; }
+        .item-text h2 { font-size: 2.2rem; font-weight: 600; margin-bottom: 8px; color: #1a1a1a; }
         .item-text .subtitle { font-size: 1rem; color: #666; line-height: 1.5; }
+
+        /* 图片卡片区 */
         .item-image {
-            width: 30%; position: relative; cursor: pointer;
+            width: 400px; /* 固定宽度以适应 400x300 图片 */
+            position: relative; cursor: pointer;
         }
         .item-image img {
-            width: 100%; border-radius: 8px; display: block;
+            width: 100%; height: auto; border-radius: 8px; display: block;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transition: transform 0.3s, opacity 0.3s;
         }
-        .item-image:hover img { opacity: 0.25; transform: scale(1.03); }
+        .item-image:hover > img {
+            transform: scale(1.03);
+            opacity: 0.9;
+        }
         .image-overlay {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%; border-radius: 8px;
@@ -116,50 +122,79 @@
             box-shadow: 0 0 12px rgba(173,55,55,0.5); z-index: 3;
         }
 
-        /* 相册容器（规划设计专用） */
-        .album-container {
-            display: inline-block; position: relative; width: 100%;
+        /* 规划设计相册容器 */
+        .album-wrapper {
+            position: relative;
+            width: 400px;
+            height: auto;
         }
-        .album-cover {
-            width: 100%; border-radius: 8px; display: block;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.3s, opacity 0.3s; cursor: pointer;
+        /* 叠层阴影效果：用伪元素模拟多张纸 */
+        .album-stack {
+            position: relative;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        .album-sub-images {
-            position: absolute; top: 0; left: 0;
+        .album-stack::before,
+        .album-stack::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
             width: 100%; height: 100%;
-            pointer-events: none; opacity: 0;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s;
+        }
+        .album-stack::before {
+            transform: rotate(-3deg);
+            z-index: -1;
+        }
+        .album-stack::after {
+            transform: rotate(2deg);
+            z-index: -2;
+        }
+        .album-stack img {
+            width: 100%; border-radius: 8px; display: block;
+            position: relative; z-index: 1;
+        }
+
+        /* 展开的子图容器 */
+        .album-sub-images {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0;
             transition: opacity 0.4s;
         }
         .album-sub-images.open {
-            pointer-events: auto; opacity: 1;
+            pointer-events: auto;
+            opacity: 1;
         }
+        /* 每张子图：绝对定位，默认重叠位置（展开时用 JS 动态设置 left 等） */
         .album-sub {
             position: absolute;
-            width: 45%; border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 180px; /* 约 45% 宽度，四张可排列 */
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1),
-                        z-index 0s; cursor: pointer;
+                        opacity 0.3s, z-index 0s;
+            cursor: pointer;
+            top: -10%;
         }
-        .album-sub:hover {
-            transform: scale(1.12) !important;
-            z-index: 20 !important;
+        /* 默认四张图横向重叠，通过 left 定位，在 JS 里设置具体值 */
+        .album-sub.active {
+            transform: scale(1.15);
+            z-index: 20;
+            opacity: 1;
         }
-        /* 四张子图位置（展开状态） */
-        .album-sub:nth-child(1) {
-            top: -70%; left: -55%; transform: rotate(-8deg); z-index: 4;
-        }
-        .album-sub:nth-child(2) {
-            top: -50%; left: 10%; transform: rotate(-3deg); z-index: 3;
-        }
-        .album-sub:nth-child(3) {
-            top: 20%; left: 30%; transform: rotate(2deg); z-index: 2;
-        }
-        .album-sub:nth-child(4) {
-            top: 40%; left: 60%; transform: rotate(7deg); z-index: 1;
+        .album-sub:not(.active) {
+            opacity: 0.5;
         }
 
-        /* 隐藏彩蛋 */
+        /* 隐藏彩蛋弹窗 */
         .secret-modal {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -182,14 +217,11 @@
 
         @media (max-width: 768px) {
             .timeline-item { flex-direction: column !important; margin: 40px 0; }
-            .item-text, .item-image { width: 80%; padding: 10px 0; }
+            .item-text, .item-image { width: 90%; padding: 10px 0; }
             .node-dot { left: 20px; }
             .timeline-line { left: 20px; }
-            .album-sub { width: 35%; }
-            .album-sub:nth-child(1) { top: -60%; left: -40%; }
-            .album-sub:nth-child(2) { top: -40%; left: 5%; }
-            .album-sub:nth-child(3) { top: 10%; left: 25%; }
-            .album-sub:nth-child(4) { top: 30%; left: 50%; }
+            .album-wrapper { width: 90vw; }
+            .album-sub { width: 130px; }
         }
     </style>
 </head>
@@ -221,24 +253,23 @@
 
             <!-- 规划设计（带相册） -->
             <div class="timeline-item" id="item-planning">
-                <div class="item-text" onclick="toggleAlbum()">
+                <div class="item-text">
                     <h2>规划设计</h2>
                     <p class="subtitle">城市更新 · 城市设计 · 生态修复 · 园区规划</p>
                 </div>
                 <div class="item-image">
-                    <div class="album-container" id="albumContainer">
-                        <img class="album-cover" src="images/portfolio-planning-cover.png?v=1"
-                             alt="规划设计" onclick="toggleAlbum()"
-                             onerror="this.style.background='#e0e0e0'; this.style.minHeight='200px';">
+                    <div class="album-wrapper" id="albumWrapper">
+                        <!-- 叠层初始状态 -->
+                        <div class="album-stack" id="albumStack">
+                            <img src="images/project-planning-2.png?v=1" alt="规划设计">
+                        </div>
+                        <!-- 展开的子图容器 -->
                         <div class="album-sub-images" id="albumSubImages">
-                            <img class="album-sub" src="images/project-planning-1.png?v=1"
-                                 onclick="goTo('project-1.html')" alt="城市更新">
-                            <img class="album-sub" src="images/project-planning-2.png?v=1"
-                                 onclick="goTo('project-2.html')" alt="城市设计">
-                            <img class="album-sub" src="images/project-planning-3.png?v=1"
-                                 onclick="goTo('project-3.html')" alt="生态修复">
-                            <img class="album-sub" src="images/project-planning-4.png?v=1"
-                                 onclick="goTo('project-4.html')" alt="园区规划">
+                            <!-- 四张子图，data-page 记录跳转链接 -->
+                            <img class="album-sub" src="images/project-planning-2.png?v=1" data-page="project-2.html" alt="城市设计">
+                            <img class="album-sub" src="images/project-planning-3.png?v=1" data-page="project-3.html" alt="生态修复">
+                            <img class="album-sub" src="images/project-planning-1.png?v=1" data-page="project-1.html" alt="城市更新">
+                            <img class="album-sub" src="images/project-planning-4.png?v=1" data-page="project-4.html" alt="园区规划">
                         </div>
                     </div>
                     <div class="image-overlay">More</div>
@@ -253,8 +284,8 @@
                     <p class="subtitle">展厅体验 · 空间叙事</p>
                 </div>
                 <div class="item-image" onclick="goTo('project-experience.html')">
-                    <img src="images/portfolio-experience-cover.png?v=1" alt="体验设计"
-                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='200px';">
+                    <img src="images/portfolio-experience.png?v=1" alt="体验设计"
+                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
                     <div class="image-overlay">More</div>
                     <div class="node-dot"></div>
                 </div>
@@ -267,8 +298,8 @@
                     <p class="subtitle">VI系统 · 包装设计 · 平面视觉</p>
                 </div>
                 <div class="item-image" onclick="goTo('project-visual.html')">
-                    <img src="images/portfolio-visual-cover.png?v=1" alt="视觉设计"
-                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='200px';">
+                    <img src="images/portfolio-visual.png?v=1" alt="视觉设计"
+                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
                     <div class="image-overlay">More</div>
                     <div class="node-dot"></div>
                 </div>
@@ -281,8 +312,8 @@
                     <p class="subtitle">AIGC · IP设计</p>
                 </div>
                 <div class="item-image" onclick="goTo('project-digital.html')">
-                    <img src="images/portfolio-digital-cover.png?v=1" alt="数字创作"
-                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='200px';">
+                    <img src="images/portfolio-digital.png?v=1" alt="数字创作"
+                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
                     <div class="image-overlay">More</div>
                     <div class="node-dot"></div>
                 </div>
@@ -309,22 +340,58 @@
             if (url) window.location.href = url;
         }
 
-        // ========== 相册展开/收起 ==========
+        // ========== 相册逻辑 ==========
+        const albumStack = document.getElementById('albumStack');
+        const albumSubImages = document.getElementById('albumSubImages');
+        const albumSubs = document.querySelectorAll('.album-sub');
         let albumOpen = false;
-        function toggleAlbum() {
-            const sub = document.getElementById('albumSubImages');
-            albumOpen = !albumOpen;
-            if (albumOpen) {
-                sub.classList.add('open');
-            } else {
-                sub.classList.remove('open');
+
+        // 展开/收起相册
+        albumStack.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!albumOpen) {
+                // 展开：计算每个子图的 left 位置，使它们横向排列并重叠约 35%
+                const containerWidth = albumWrapper.clientWidth;
+                const subWidth = 180; // 子图宽度
+                const totalWidth = subWidth * 4;
+                const gap = (containerWidth - subWidth) / 3; // 让它们均匀分布但有重叠
+                // 使用绝对定位，设置 left 值
+                albumSubs.forEach((sub, idx) => {
+                    sub.style.left = (idx * (subWidth * 0.65)) + 'px'; // 重叠 35%
+                    sub.classList.remove('active');
+                });
+                albumSubImages.classList.add('open');
+                albumOpen = true;
+                // 叠层阴影隐藏
+                albumStack.style.opacity = '0';
+                setTimeout(() => { albumStack.style.display = 'none'; }, 300);
             }
-        }
+        });
+
+        // 点击子图：激活并跳转
+        albumSubs.forEach(sub => {
+            sub.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // 移除其他 active，添加当前 active
+                albumSubs.forEach(s => s.classList.remove('active'));
+                sub.classList.add('active');
+                // 延迟跳转，让用户看到反馈
+                const page = sub.dataset.page;
+                if (page) {
+                    setTimeout(() => {
+                        window.location.href = page;
+                    }, 200);
+                }
+            });
+        });
+
         // 点击空白区域关闭相册
         document.addEventListener('click', function(e) {
             if (albumOpen && !e.target.closest('#item-planning')) {
+                albumSubImages.classList.remove('open');
+                albumStack.style.display = 'block';
+                albumStack.style.opacity = '1';
                 albumOpen = false;
-                document.getElementById('albumSubImages').classList.remove('open');
             }
         });
 
@@ -333,24 +400,23 @@
             document.getElementById('secretModal').classList.remove('show');
         }
 
-        // ========== 魔方 Three.js 动画 ==========
+        // ========== 魔方 Three.js ==========
         (function() {
             const area = document.getElementById('cubeArea');
             const canvas = document.getElementById('cubeCanvas');
             let scene, camera, renderer, cube, allParticles = [];
-            let state = 'cube'; // 'cube' | 'exploding' | 'text'
+            let state = 'cube';
             let hasTriggered = false;
 
             const cubeColors = [0xFF6B6B, 0x4ECDC4, 0xFFD93D, 0x6C5CE7, 0xFF8A5C, 0xA29BFE];
 
-            // 初始化场景
             scene = new THREE.Scene();
             scene.background = null;
             camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-            camera.position.set(2.5, 2, 4);
+            camera.position.set(3, 2, 4);
             camera.lookAt(0, 0, 0);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(120, 120);
+            renderer.setSize(130, 130);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             canvas.appendChild(renderer.domElement);
 
@@ -359,7 +425,6 @@
             dir.position.set(5, 10, 7);
             scene.add(ambient, dir);
 
-            // 创建魔方
             function createCube() {
                 const geo = new THREE.BoxGeometry(1, 1, 1);
                 const materials = cubeColors.map(c =>
@@ -369,16 +434,13 @@
                 scene.add(cube);
             }
 
-            // 创建字母"i"（完整实体：竖条 + 球体，金色）
             function createLetterI(x, y, z) {
                 const group = new THREE.Group();
-                // 竖条
                 const barGeo = new THREE.BoxGeometry(0.15, 0.65, 0.15);
                 const barMat = new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.2, metalness: 0.3 });
                 const bar = new THREE.Mesh(barGeo, barMat);
                 bar.position.y = -0.15;
                 group.add(bar);
-                // 球体（点）
                 const dotGeo = new THREE.SphereGeometry(0.1, 16, 16);
                 const dotMat = new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.2, metalness: 0.3 });
                 const dot = new THREE.Mesh(dotGeo, dotMat);
@@ -388,7 +450,6 @@
                 return group;
             }
 
-            // 字母矩阵（5宽 x 7高），1=有方块
             const letterMatrices = {
                 'P': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
                 'o': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
@@ -398,7 +459,6 @@
                 'l': [[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,0,0]]
             };
 
-            // 构建"Portfolio"字样的所有方块
             function buildTextParticles() {
                 const letters = ['P','o','r','t','f','o','l','i','o'];
                 const spacing = 0.65;
@@ -407,7 +467,6 @@
 
                 letters.forEach((char, li) => {
                     if (char === 'i') {
-                        // 完整实体字母i
                         const iGroup = createLetterI(startX + li * spacing, 0, 0);
                         scene.add(iGroup);
                         allParticles.push(iGroup);
@@ -441,7 +500,6 @@
                 });
             }
 
-            // 清理所有粒子
             function clearAllParticles() {
                 allParticles.forEach(p => {
                     if (p.parent) p.parent.remove(p);
@@ -453,7 +511,6 @@
                 }
             }
 
-            // 爆炸生成随机小方块
             function explodeToParticles() {
                 if (cube) {
                     scene.remove(cube);
@@ -481,7 +538,6 @@
                 state = 'exploding';
             }
 
-            // 动画循环
             function animate() {
                 requestAnimationFrame(animate);
 
@@ -502,7 +558,6 @@
                         }
                     });
                     if (allSettled) {
-                        // 爆炸完毕，聚合成文字
                         clearAllParticles();
                         buildTextParticles();
                         state = 'text';
@@ -516,14 +571,12 @@
             createCube();
             animate();
 
-            // 悬停触发
             area.addEventListener('mouseenter', () => {
                 if (!hasTriggered && state === 'cube') {
                     explodeToParticles();
                 }
             });
 
-            // 点击字母"i"触发彩蛋
             area.addEventListener('click', (e) => {
                 if (state === 'text') {
                     document.getElementById('secretModal').classList.add('show');
