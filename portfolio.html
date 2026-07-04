@@ -51,10 +51,10 @@
         #cubeArea {
             position: relative; width: 100%; height: 50vh;
             display: flex; align-items: center; justify-content: center;
-            background: #f9f7f4;
+            background: transparent;
         }
         #cubeContainer {
-            width: 320px; height: 320px;
+            width: 90%; height: 320px;
         }
 
         /* 时间轴 */
@@ -342,12 +342,13 @@
         albumStack.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!albumOpen) {
-                const containerWidth = 400;
                 const subWidth = 180;
-                // 从右向左排列：order 0 在最右，向左依次重叠
+        // project-planning-2.png (order 0) 固定在容器右边缘
+        // 其他图片依次向左偏移，每次偏移 subWidth * 0.65（重叠 35%）
                 sortedSubs.forEach((sub, index) => {
-                    const leftVal = containerWidth - subWidth - (index * subWidth * 0.65);
-                    sub.style.left = leftVal + 'px';
+            // 清除之前的 left 和 right
+                    sub.style.left = 'auto';
+                    sub.style.right = (index * subWidth * 0.65) + 'px';
                     sub.style.zIndex = 10 - index; // 右侧的 z-index 更高
                     sub.classList.remove('dimmed', 'active');
                     sub.style.opacity = 1;
@@ -403,7 +404,7 @@
             scene = new THREE.Scene();
             scene.background = null;
             const aspect = 1;
-            camera = new THREE.OrthographicCamera(-2.5, 2.5, 2.5, -2.5, 0.1, 10);
+            camera = new THREE.OrthographicCamera(-4, 4, 2.5, -2.5, 0.1, 10);
             camera.position.set(0, 0, 5);
             camera.lookAt(0, 0, 0);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
