@@ -56,11 +56,17 @@
         #cubeContainer {
             width: 320px;
             height: 320px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: visible; /* 让文字可以超出容器显示 */
+            margin: 0 auto;
+            position: relative;
          }
+        #cubeContainer canvas {
+            width: 320px !important;
+            height: 320px !important;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
 
         /* 时间轴 */
         .timeline-wrapper {
