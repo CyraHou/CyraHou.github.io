@@ -54,8 +54,13 @@
             background: transparent;
         }
         #cubeContainer {
-            width: 90%; height: 320px;
-        }
+            width: 320px;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible; /* 让文字可以超出容器显示 */
+         }
 
         /* 时间轴 */
         .timeline-wrapper {
@@ -404,11 +409,14 @@
             scene = new THREE.Scene();
             scene.background = null;
             const aspect = 1;
-            camera = new THREE.OrthographicCamera(-3, 3, 3, -3, 0.1, 10);
+            camera = new THREE.OrthographicCamera(-4.5, 4.5, 4.5, -4.5, 0.1, 10);
             camera.position.set(0, 0, 5);
             camera.lookAt(0, 0, 0);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(320, 320);
+            renderer.domElement.style.width = '320px';
+            renderer.domElement.style.height = '320px';
+            renderer.domElement.style.display = 'block';
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
