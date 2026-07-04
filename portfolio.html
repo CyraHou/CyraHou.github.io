@@ -16,6 +16,7 @@
             background: #f9f7f4;
         }
 
+        /* 导航栏 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
@@ -46,16 +47,17 @@
 
         #mainStage { margin-top: 70px; width: 100%; }
 
-        /* 魔方区域占 50% 视口 */
+        /* 魔方区域 —— 白色背景 */
         #cubeArea {
             position: relative; width: 100%; height: 50vh;
             display: flex; align-items: center; justify-content: center;
-            background: #f0f0f0;
+            background: #ffffff;
         }
         #cubeContainer {
-            width: 300px; height: 300px;
+            width: 320px; height: 320px;
         }
 
+        /* 时间轴 */
         .timeline-wrapper {
             position: relative; width: 100%; padding: 60px 0 100px;
         }
@@ -77,27 +79,28 @@
 
         .timeline-item {
             position: relative; display: flex; align-items: center;
-            justify-content: center; margin: 70px 0; z-index: 2;
+            justify-content: center; margin: 80px 0; z-index: 2;
         }
         .timeline-item:nth-child(odd) { flex-direction: row; }
         .timeline-item:nth-child(even) { flex-direction: row-reverse; }
 
+        /* 文字区域 —— 调整这里的 padding 值可以改变文字离轴线的距离 */
         .item-text {
             width: 280px;
             cursor: pointer;
         }
-        .timeline-item:nth-child(odd) .item-text { padding-right: 60px; text-align: right; }
-        .timeline-item:nth-child(even) .item-text { padding-left: 60px; text-align: left; }
+        .timeline-item:nth-child(odd) .item-text { padding-right: 80px; text-align: right; }
+        .timeline-item:nth-child(even) .item-text { padding-left: 80px; text-align: left; }
         .item-text h2 { font-size: 2rem; font-weight: 600; margin-bottom: 8px; color: #1a1a1a; }
         .item-text .subtitle { font-size: 0.95rem; color: #666; line-height: 1.5; }
 
+        /* 图片区域 —— 调整这里的 margin 值可以改变图片离轴线的距离 */
         .item-image {
             width: 400px;
             position: relative;
         }
-        /* 图片区与轴线距离 */
-        .timeline-item:nth-child(odd) .item-image { margin-left: 40px; }
-        .timeline-item:nth-child(even) .item-image { margin-right: 40px; }
+        .timeline-item:nth-child(odd) .item-image { margin-left: 80px; }
+        .timeline-item:nth-child(even) .item-image { margin-right: 80px; }
 
         .item-image img {
             width: 100%; height: auto; border-radius: 8px; display: block;
@@ -173,12 +176,16 @@
             width: 180px;
             border-radius: 6px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: opacity 0.3s, transform 0.3s ease;
+            transition: opacity 0.3s, transform 0.3s ease, z-index 0s;
             cursor: pointer;
             top: 10px;
         }
-        .album-sub.dimmed { opacity: 0.4 !important; }
-        .album-sub.active { transform: scale(1.15); z-index: 20; opacity: 1; }
+        .album-sub.dimmed { opacity: 0.3 !important; }
+        .album-sub.active {
+            transform: scale(1.15);
+            z-index: 20;
+            opacity: 1;
+        }
 
         .secret-modal {
             position: fixed; top: 0; left: 0;
@@ -227,13 +234,16 @@
     </nav>
 
     <div id="mainStage">
+        <!-- 魔方区域 -->
         <div id="cubeArea">
             <div id="cubeContainer"></div>
         </div>
 
+        <!-- 时间轴 -->
         <div class="timeline-wrapper">
             <div class="timeline-line"></div>
 
+            <!-- 规划设计 -->
             <div class="timeline-item" id="item-planning">
                 <div class="item-text">
                     <h2>规划设计</h2>
@@ -256,6 +266,7 @@
                 <div class="node-dot"></div>
             </div>
 
+            <!-- 体验设计 -->
             <div class="timeline-item" data-page="project-experience.html">
                 <div class="item-text" onclick="goTo('project-experience.html')">
                     <h2>体验设计</h2>
@@ -269,6 +280,7 @@
                 <div class="node-dot"></div>
             </div>
 
+            <!-- 视觉设计 -->
             <div class="timeline-item" data-page="project-visual.html">
                 <div class="item-text" onclick="goTo('project-visual.html')">
                     <h2>视觉设计</h2>
@@ -282,6 +294,7 @@
                 <div class="node-dot"></div>
             </div>
 
+            <!-- 数字创作 -->
             <div class="timeline-item" data-page="project-digital.html">
                 <div class="item-text" onclick="goTo('project-digital.html')">
                     <h2>数字创作</h2>
@@ -297,6 +310,7 @@
         </div>
     </div>
 
+    <!-- 彩蛋弹窗 -->
     <div class="secret-modal" id="secretModal">
         <div class="secret-card">
             <h2>🐣 Secret Project</h2>
@@ -305,19 +319,20 @@
         </div>
     </div>
 
+    <!-- Three.js -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
         function goTo(url) { if (url) window.location.href = url; }
 
-        // 相册交互
+        // ========== 相册逻辑 ==========
         const albumStack = document.getElementById('albumStack');
         const albumSubImages = document.getElementById('albumSubImages');
         const albumSubs = document.querySelectorAll('.album-sub');
         let albumOpen = false;
 
-        // 按 data-order 排序（2,3,1,4）
+        // 按 data-order 排序 (2,3,1,4)
         const sortedSubs = Array.from(albumSubs).sort((a,b) => {
             const o1 = a.dataset.order !== undefined ? parseInt(a.dataset.order) : 999;
             const o2 = b.dataset.order !== undefined ? parseInt(b.dataset.order) : 999;
@@ -329,12 +344,11 @@
             if (!albumOpen) {
                 const containerWidth = 400;
                 const subWidth = 180;
-                // project-planning-2.png 固定在最右侧（left = containerWidth - subWidth）
-                // 其他依次向左排列
+                // 从右向左排列：order 0 在最右，向左依次重叠
                 sortedSubs.forEach((sub, index) => {
                     const leftVal = containerWidth - subWidth - (index * subWidth * 0.65);
                     sub.style.left = leftVal + 'px';
-                    sub.style.zIndex = 10 - index; // 右侧最高
+                    sub.style.zIndex = 10 - index; // 右侧的 z-index 更高
                     sub.classList.remove('dimmed', 'active');
                     sub.style.opacity = 1;
                 });
@@ -345,6 +359,7 @@
             }
         });
 
+        // 悬停效果：被悬停图置顶放大，其他变暗
         albumSubs.forEach(sub => {
             sub.addEventListener('mouseenter', () => {
                 albumSubs.forEach(s => { s.classList.add('dimmed'); s.classList.remove('active'); });
@@ -361,6 +376,7 @@
             });
         });
 
+        // 点击空白关闭相册
         document.addEventListener('click', function(e) {
             if (albumOpen && !e.target.closest('#item-planning')) {
                 albumSubImages.classList.remove('open');
@@ -374,23 +390,24 @@
             document.getElementById('secretModal').classList.remove('show');
         }
 
-        // ---------- 魔方 ----------
+        // ========== 魔方 Three.js ==========
         (function() {
             const container = document.getElementById('cubeContainer');
             let scene, camera, renderer, cube, allParticles = [];
-            let state = 'cube';
+            let state = 'cube'; // 'cube' | 'exploding' | 'text'
             let hasTriggered = false;
+
             const cubeColors = [0xFF6B6B, 0x4ECDC4, 0xFFD93D, 0x6C5CE7, 0xFF8A5C, 0xA29BFE];
 
+            // 初始化正交相机，保证文字正面无透视
             scene = new THREE.Scene();
             scene.background = null;
-            // 使用正交相机保证文字正面
             const aspect = 1;
-            camera = new THREE.OrthographicCamera(-2, 2, 2, -2, 0.1, 10);
+            camera = new THREE.OrthographicCamera(-2.5, 2.5, 2.5, -2.5, 0.1, 10);
             camera.position.set(0, 0, 5);
             camera.lookAt(0, 0, 0);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(300, 300);
+            renderer.setSize(320, 320);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
@@ -399,8 +416,9 @@
             dir.position.set(5, 10, 7);
             scene.add(ambient, dir);
 
+            // 创建魔方（几何体大小 1.8，方便调整）
             function createCube() {
-                const geo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+                const geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
                 const materials = cubeColors.map(c =>
                     new THREE.MeshStandardMaterial({ color: c, roughness: 0.3, metalness: 0.1 })
                 );
@@ -408,6 +426,7 @@
                 scene.add(cube);
             }
 
+            // 字母 i 金色实体
             function createLetterI(x, y, z) {
                 const group = new THREE.Group();
                 const barGeo = new THREE.BoxGeometry(0.2, 0.8, 0.2);
@@ -424,6 +443,7 @@
                 return group;
             }
 
+            // 完整字母矩阵 (5x7)
             const letterMatrices = {
                 'P': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
                 'o': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
@@ -433,11 +453,11 @@
                 'l': [[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,0,0]]
             };
 
-            function buildTextParticles() {
+            function buildFullText() {
                 const letters = ['P','o','r','t','f','o','l','i','o'];
-                const spacing = 0.75;
+                const spacing = 0.85;
                 const startX = -(letters.length - 1) * spacing / 2;
-                const blockSize = 0.1;
+                const blockSize = 0.12;
 
                 letters.forEach((char, li) => {
                     if (char === 'i') {
@@ -485,7 +505,14 @@
                     });
                     const p = new THREE.Mesh(geo, mat);
                     p.position.set((Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 1.5);
-                    p.userData = { velocity: new THREE.Vector3((Math.random() - 0.5) * 0.06, (Math.random() - 0.5) * 0.06, 0), life: 0 };
+                    p.userData = {
+                        velocity: new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.06,
+                            (Math.random() - 0.5) * 0.06,
+                            0
+                        ),
+                        life: 0
+                    };
                     scene.add(p);
                     allParticles.push(p);
                 }
@@ -494,7 +521,12 @@
 
             function animate() {
                 requestAnimationFrame(animate);
-                if (state === 'cube' && cube) { cube.rotation.y += 0.015; cube.rotation.x += 0.005; }
+
+                if (state === 'cube' && cube) {
+                    cube.rotation.y += 0.015;
+                    cube.rotation.x += 0.005;
+                }
+
                 if (state === 'exploding') {
                     let allSettled = true;
                     allParticles.forEach(p => {
@@ -507,11 +539,12 @@
                     });
                     if (allSettled) {
                         clearAllParticles();
-                        buildTextParticles();
+                        buildFullText();
                         state = 'text';
                         hasTriggered = true;
                     }
                 }
+
                 renderer.render(scene, camera);
             }
 
@@ -519,10 +552,16 @@
             animate();
 
             container.addEventListener('mouseenter', () => {
-                if (!hasTriggered && state === 'cube') explodeToParticles();
+                if (!hasTriggered && state === 'cube') {
+                    explodeToParticles();
+                }
             });
-            container.addEventListener('dblclick', () => {
-                if (state === 'text') document.getElementById('secretModal').classList.add('show');
+
+            // 双击文字区域触发彩蛋
+            container.addEventListener('dblclick', (e) => {
+                if (state === 'text') {
+                    document.getElementById('secretModal').classList.add('show');
+                }
             });
         })();
     </script>
