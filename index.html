@@ -354,8 +354,8 @@
                     const texture = loader.load(path);
                     return new THREE.MeshStandardMaterial({
                         map: texture,
-                        roughness: 0.3,
-                        metalness: 0.1
+                        roughness: 0.7,
+                        metalness: 0
                     });
                 });
                 const cubeMesh = new THREE.Mesh(geo, materials);
