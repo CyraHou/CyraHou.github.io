@@ -490,3 +490,87 @@
             }
 
             // 波浪动效（鼠标扫过方块跳起）
+            let waveSources = [];
+            document.addEventListener('mousemove', (e) => {
+                if (state !== 'text') return;
+                const rect = container.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                const scaleX = 8 / rect.width;   // 透视相机范围适配
+                const scaleY = 8 / rect.height;
+                const wx = (e.clientX - cx) * scaleX;
+                const wy = -(e.clientY - cy) * scaleY;
+                waveSources.push({ x: wx, y: wy, time: 0, strength: 0.5 });
+                if (waveSources.length > 8) waveSources.shift();
+            });
+
+            function updateWave() {
+                if (state !== 'text') return;
+                waveSources.forEach(s => s.time += 0.016);
+                waveSources = waveSources.filter(s => s.time < 0.8);
+
+                textBlocks.forEach(block => {
+                    if (!block.userData || block.userData.isI) return;
+                    const bx = block.position.x;
+                    const by = block.userData.baseY;
+                    let totalOffset = 0;
+                    waveSources.forEach(source => {
+                        const dx = bx - source.x;
+                        const dy = by - source.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const radius = 1.5;
+                        if (dist < radius) {
+                            const strength = source.strength * (1 - source.time) * (1 - dist / radius);
+                            totalOffset += strength * 0.5 * Math.sin(dist * 3 - source.time * 10);
+                        }
+                    });
+                    block.position.y = by + totalOffset;
+                    block.position.z = Math.abs(totalOffset) * 1.2;
+                });
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if (state === 'cube' && cube) {
+                    cube.rotation.y += 0.015;
+                    cube.rotation.x += 0.005;
+                }
+                if (state === 'exploding') {
+                    let allSettled = true;
+                    allParticles.forEach(p => {
+                        if (p.userData && p.userData.velocity && p.userData.life < 50) {
+                            p.position.x += p.userData.velocity.x;
+                            p.position.y += p.userData.velocity.y;
+                            p.userData.life++;
+                            allSettled = false;
+                        }
+                    });
+                    if (allSettled) {
+                        clearAllParticles();
+                        buildFullText();
+                        state = 'text';
+                        hasTriggered = true;
+                    }
+                }
+                updateWave();
+                renderer.render(scene, camera);
+            }
+
+            createCube();
+            animate();
+
+            container.addEventListener('mouseenter', () => {
+                if (!hasTriggered && state === 'cube') {
+                    explodeToParticles();
+                }
+            });
+
+            container.addEventListener('dblclick', () => {
+                if (state === 'text') {
+                    document.getElementById('secretModal').classList.add('show');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
