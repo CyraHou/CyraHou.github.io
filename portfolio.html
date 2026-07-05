@@ -419,7 +419,7 @@
             // 初始化正交相机，左右范围足够大保证文字完整显示
             scene = new THREE.Scene();
             scene.background = null;
-            camera = new THREE.OrthographicCamera(-7, 7, 7, -7, 0.1, 10);
+            camera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 10);
             camera.position.set(0, 0, 5);
             camera.lookAt(0, 0, 0);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -430,14 +430,14 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-            const dir = new THREE.DirectionalLight(0xffffff, 0.4);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+            const dir = new THREE.DirectionalLight(0xffffff, 0.6);
             dir.position.set(5, 10, 7);
             scene.add(ambient, dir);
 
             // 创建魔方（六张图片贴图）
             function createCube() {
-                const geo = new THREE.BoxGeometry(3, 3, 3);
+                const geo = new THREE.BoxGeometry(2, 2, 2);
                 const imagePaths = [
                     'images/cube-face-1.png?v=1',
                     'images/cube-face-2.png?v=1',
@@ -451,8 +451,8 @@
                     const texture = loader.load(path);
                     return new THREE.MeshStandardMaterial({
                         map: texture,
-                        roughness: 0.7,
-                        metalness: 0
+                        roughness: 0.5,
+                        metalness: 0.1
                         emissive: new THREE.Color(0x000000)
                     });
                 });
