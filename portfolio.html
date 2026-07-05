@@ -47,7 +47,7 @@
 
         #mainStage { margin-top: 70px; width: 100%; }
 
-        /* 魔方区域 —— 白色背景 */
+        /* 魔方区域 */
        #cubeArea {
             position: relative;
             width: 100%;
@@ -437,7 +437,7 @@
 
             // 创建魔方（几何体大小 1.8，方便调整）
             function createCube() {
-                const geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+                const geo = new THREE.BoxGeometry(2,2, 2);
                 const materials = cubeColors.map(c =>
                     new THREE.MeshStandardMaterial({ color: c, roughness: 0.3, metalness: 0.1 })
                 );
@@ -476,7 +476,7 @@
                 const letters = ['P','o','r','t','f','o','l','i','o'];
                 const spacing = 0.85;
                 const startX = -(letters.length - 1) * spacing / 2;
-                const blockSize = 0.12;
+                const blockSize = 0.3;
 
                 letters.forEach((char, li) => {
                     if (char === 'i') {
