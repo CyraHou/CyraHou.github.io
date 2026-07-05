@@ -205,3 +205,288 @@
                             <img class="album-sub" src="images/project-planning-1.png?v=1" data-page="project-1.html" alt="城市更新">
                             <img class="album-sub" src="images/project-planning-4.png?v=1" data-page="project-4.html" alt="园区规划">
                         </div>
+                        </div>
+                    <div class="image-overlay">More</div>
+                </div>
+                <div class="node-dot"></div>
+            </div>
+
+            <div class="timeline-item" data-page="project-experience.html">
+                <div class="item-text" onclick="goTo('project-experience.html')">
+                    <h2>体验设计</h2>
+                    <p class="subtitle">展厅体验 · 空间叙事</p>
+                </div>
+                <div class="item-image" onclick="goTo('project-experience.html')">
+                    <img src="images/portfolio-experience.png?v=1" alt="体验设计"
+                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
+                    <div class="image-overlay">More</div>
+                </div>
+                <div class="node-dot"></div>
+            </div>
+
+            <div class="timeline-item" data-page="project-visual.html">
+                <div class="item-text" onclick="goTo('project-visual.html')">
+                    <h2>视觉设计</h2>
+                    <p class="subtitle">VI系统 · 包装设计 · 平面视觉</p>
+                </div>
+                <div class="item-image" onclick="goTo('project-visual.html')">
+                    <img src="images/portfolio-visual.png?v=1" alt="视觉设计"
+                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
+                    <div class="image-overlay">More</div>
+                </div>
+                <div class="node-dot"></div>
+            </div>
+
+            <div class="timeline-item" data-page="project-digital.html">
+                <div class="item-text" onclick="goTo('project-digital.html')">
+                    <h2>数字创作</h2>
+                    <p class="subtitle">AIGC · IP设计</p>
+                </div>
+                <div class="item-image" onclick="goTo('project-digital.html')">
+                    <img src="images/portfolio-digital.png?v=1" alt="数字创作"
+                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
+                    <div class="image-overlay">More</div>
+                </div>
+                <div class="node-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="secret-modal" id="secretModal">
+        <div class="secret-card">
+            <h2>🐣 Secret Project</h2>
+            <p>Something special is brewing...</p>
+            <button onclick="closeSecret()">Close</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+        function goTo(url) { if (url) window.location.href = url; }
+
+        // 相册逻辑（保持不变）
+        const albumStack = document.getElementById('albumStack');
+        const albumSubImages = document.getElementById('albumSubImages');
+        const albumSubs = document.querySelectorAll('.album-sub');
+        let albumOpen = false;
+        const sortedSubs = Array.from(albumSubs).sort((a,b) => {
+            const o1 = a.dataset.order !== undefined ? parseInt(a.dataset.order) : 999;
+            const o2 = b.dataset.order !== undefined ? parseInt(b.dataset.order) : 999;
+            return o1 - o2;
+        });
+        albumStack.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!albumOpen) {
+                const subWidth = 180;
+                sortedSubs.forEach((sub, index) => {
+                    sub.style.left = 'auto';
+                    sub.style.right = (index * subWidth * 0.65) + 'px';
+                    sub.style.zIndex = 10 - index;
+                    sub.classList.remove('dimmed', 'active');
+                    sub.style.opacity = 1;
+                });
+                albumSubImages.classList.add('open');
+                albumOpen = true;
+                albumStack.style.opacity = '0';
+                setTimeout(() => { albumStack.style.display = 'none'; }, 300);
+            }
+        });
+        albumSubs.forEach(sub => {
+            sub.addEventListener('mouseenter', () => {
+                albumSubs.forEach(s => { s.classList.add('dimmed'); s.classList.remove('active'); });
+                sub.classList.remove('dimmed');
+                sub.classList.add('active');
+            });
+            sub.addEventListener('mouseleave', () => {
+                albumSubs.forEach(s => { s.classList.remove('dimmed', 'active'); s.style.transform = ''; });
+            });
+            sub.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const page = sub.dataset.page;
+                if (page) window.location.href = page;
+            });
+        });
+        document.addEventListener('click', function(e) {
+            if (albumOpen && !e.target.closest('#item-planning')) {
+                albumSubImages.classList.remove('open');
+                albumStack.style.display = 'block';
+                albumStack.style.opacity = '1';
+                albumOpen = false;
+            }
+        });
+        function closeSecret() { document.getElementById('secretModal').classList.remove('show'); }
+
+        // ========== 魔方 Three.js ==========
+        (function() {
+            const container = document.getElementById('cubeContainer');
+            let scene, camera, renderer, cube, allParticles = [];
+            let state = 'cube';
+            let hasTriggered = false;
+            let mouseX = 0, mouseY = 0;
+            let targetMouseX = 0, targetMouseY = 0;
+
+            // 字母颜色顺序（P到最后一个O）
+            const letterColors = [
+                0xc3deef, // P 浅蓝
+                0xd9e8cb, // O 薄荷绿
+                0xe7f9b9, // R 浅草绿
+                0xfef4c1, // T 奶黄
+                0xf7d2c8, // F 蜜桃粉
+                0xffdeb0, // O 暖橙
+                0xeac0fd, // L 浅香芋紫
+                0xfff8dc, // I 乳白色
+                0xdeb4e3  // O 粉紫
+            ];
+            const iColor = 0xfff8dc; // I 同样乳白色
+
+            // 场景初始化
+            scene = new THREE.Scene();
+            scene.background = null;
+            // 斜45度俯视透视相机
+            camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
+            camera.position.set(0, 2.8, 5.5);
+            camera.lookAt(0, 0, 0);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(400, 400);
+            renderer.domElement.style.width = '400px';
+            renderer.domElement.style.height = '400px';
+            renderer.domElement.style.display = 'block';
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // 灯光：柔和漫反射
+            const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.55);
+            dirLight.position.set(3, 8, 5);
+            scene.add(ambient, dirLight);
+
+            // 创建魔方（六张图片贴图）
+            function createCube() {
+                const geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+                const imagePaths = [
+                    'images/cube-face-1.png?v=1',
+                    'images/cube-face-2.png?v=1',
+                    'images/cube-face-3.png?v=1',
+                    'images/cube-face-4.png?v=1',
+                    'images/cube-face-5.png?v=1',
+                    'images/cube-face-6.png?v=1'
+                ];
+                const loader = new THREE.TextureLoader();
+                const materials = imagePaths.map(path => {
+                    const texture = loader.load(path);
+                    return new THREE.MeshStandardMaterial({
+                        map: texture,
+                        roughness: 0.7,
+                        metalness: 0,
+                        emissive: new THREE.Color(0x000000)
+                    });
+                });
+                cube = new THREE.Mesh(geo, materials);
+                scene.add(cube);
+            }
+
+            // 字母 I 完整柱体（乳白色）
+            function createLetterI(x, y, z) {
+                const group = new THREE.Group();
+                const barGeo = new THREE.BoxGeometry(0.25, 1.2, 0.25);
+                const barMat = new THREE.MeshStandardMaterial({ color: iColor, roughness: 0.8, metalness: 0 });
+                const bar = new THREE.Mesh(barGeo, barMat);
+                bar.position.y = 0;
+                group.add(bar);
+                group.position.set(x, y, z);
+                return group;
+            }
+
+            // 字母矩阵
+            const letterMatrices = {
+                'P': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
+                'o': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
+                'r': [[1,1,1,0,0],[1,0,0,1,0],[1,0,0,0,1],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
+                't': [[1,1,1,1,1],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0]],
+                'f': [[0,0,1,1,1],[0,1,0,0,0],[1,1,1,1,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0]],
+                'l': [[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,0,0]]
+            };
+
+            let textBlocks = [];
+
+            function buildFullText() {
+                textBlocks = [];
+                const letters = ['P','o','r','t','f','o','l','i','o'];
+                const spacing = 1.0;
+                const startX = -(letters.length - 1) * spacing / 2;
+                const blockSize = 0.14;
+                const gap = blockSize * 1.45;
+
+                letters.forEach((char, li) => {
+                    const color = letterColors[li];
+                    if (char === 'i') {
+                        const iGroup = createLetterI(startX + li * spacing, 0, 0);
+                        iGroup.userData = { isI: true, baseY: 0, originalX: startX + li * spacing };
+                        scene.add(iGroup);
+                        allParticles.push(iGroup);
+                        textBlocks.push(iGroup);
+                    } else {
+                        const matrix = letterMatrices[char];
+                        if (!matrix) return;
+                        const h = matrix.length, w = matrix[0].length;
+                        const offsetX = startX + li * spacing - (w * gap) / 2;
+                        const offsetY = (h * gap) / 2;
+                        for (let row = 0; row < h; row++) {
+                            for (let col = 0; col < w; col++) {
+                                if (matrix[row][col]) {
+                                    const geo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+                                    const mat = new THREE.MeshStandardMaterial({
+                                        color: color,
+                                        roughness: 0.8,
+                                        metalness: 0
+                                    });
+                                    const block = new THREE.Mesh(geo, mat);
+                                    const bx = offsetX + col * gap;
+                                    const by = offsetY - row * gap;
+                                    block.position.set(bx, by, 0);
+                                    block.userData = { isI: false, baseY: by, baseZ: 0, originalX: bx };
+                                    scene.add(block);
+                                    allParticles.push(block);
+                                    textBlocks.push(block);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function clearAllParticles() {
+                allParticles.forEach(p => { if (p.parent) p.parent.remove(p); });
+                allParticles = [];
+                textBlocks = [];
+                if (cube) { scene.remove(cube); cube = null; }
+            }
+
+            function explodeToParticles() {
+                if (cube) { scene.remove(cube); cube = null; }
+                for (let i = 0; i < 40; i++) {
+                    const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
+                    const mat = new THREE.MeshStandardMaterial({
+                        color: letterColors[Math.floor(Math.random() * letterColors.length)],
+                        roughness: 0.8,
+                        metalness: 0
+                    });
+                    const p = new THREE.Mesh(geo, mat);
+                    p.position.set((Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 1.5);
+                    p.userData = {
+                        velocity: new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.06,
+                            (Math.random() - 0.5) * 0.06,
+                            0
+                        ),
+                        life: 0
+                    };
+                    scene.add(p);
+                    allParticles.push(p);
+                }
+                state = 'exploding';
+            }
+
+            // 波浪动效（鼠标扫过方块跳起）
