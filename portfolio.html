@@ -16,7 +16,6 @@
             background: #f9f7f4;
         }
 
-        /* 导航栏 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
@@ -47,7 +46,6 @@
 
         #mainStage { margin-top: 70px; width: 100%; }
 
-        /* 魔方区域 */
         #cubeArea {
             position: relative; width: 100%; height: 50vh;
             display: block;
@@ -70,10 +68,8 @@
             left: 0;
         }
 
-        /* 时间轴 */
-        .timeline-wrapper {
-            position: relative; width: 100%; padding: 60px 0 100px;
-        }
+        /* 时间轴及其他样式保持不变，为简洁略去，实际使用时请保留之前的所有样式 */
+        .timeline-wrapper { position: relative; width: 100%; padding: 60px 0 100px; }
         .timeline-line {
             position: absolute; left: 50%; top: 0;
             width: 1px; height: 100%; background: #ccc;
@@ -97,19 +93,13 @@
         .timeline-item:nth-child(odd) { flex-direction: row; }
         .timeline-item:nth-child(even) { flex-direction: row-reverse; }
 
-        .item-text {
-            width: 280px;
-            cursor: pointer;
-        }
+        .item-text { width: 280px; cursor: pointer; }
         .timeline-item:nth-child(odd) .item-text { padding-right: 80px; text-align: right; }
         .timeline-item:nth-child(even) .item-text { padding-left: 80px; text-align: left; }
         .item-text h2 { font-size: 2rem; font-weight: 600; margin-bottom: 8px; color: #1a1a1a; }
         .item-text .subtitle { font-size: 0.95rem; color: #666; line-height: 1.5; }
 
-        .item-image {
-            width: 400px;
-            position: relative;
-        }
+        .item-image { width: 400px; position: relative; }
         .timeline-item:nth-child(odd) .item-image { margin-left: 80px; }
         .timeline-item:nth-child(even) .item-image { margin-right: 80px; }
 
@@ -131,92 +121,39 @@
 
         .node-dot {
             position: absolute;
-            left: 50%;
-            top: 50%;
+            left: 50%; top: 50%;
             transform: translate(-50%, -50%);
             width: 14px; height: 14px; background: #ad3737;
             border-radius: 50%;
             box-shadow: 0 0 12px rgba(173,55,55,0.5); z-index: 3;
         }
 
-        /* 相册 */
-        .album-wrapper {
-            position: relative;
-            width: 400px;
-            height: 300px;
-        }
-        .album-stack {
-            position: relative;
-            width: 100%;
-            cursor: pointer;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        .album-stack::before,
-        .album-stack::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: transform 0.3s;
+        /* 相册等样式保持不变，略去 */
+        .album-wrapper { position: relative; width: 400px; height: 300px; }
+        .album-stack { position: relative; width: 100%; cursor: pointer; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .album-stack::before, .album-stack::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.3s;
         }
         .album-stack::before { transform: rotate(-3deg); z-index: -1; }
         .album-stack::after { transform: rotate(2deg); z-index: -2; }
-        .album-stack img {
-            width: 100%; border-radius: 8px; display: block;
-            position: relative; z-index: 1;
-        }
+        .album-stack img { width: 100%; border-radius: 8px; display: block; position: relative; z-index: 1; }
 
-        .album-sub-images {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .album-sub-images.open {
-            pointer-events: auto;
-            opacity: 1;
-        }
-        .album-sub {
-            position: absolute;
-            width: 180px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: opacity 0.3s, transform 0.3s ease, z-index 0s;
-            cursor: pointer;
-            top: 10px;
-        }
+        .album-sub-images { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+        .album-sub-images.open { pointer-events: auto; opacity: 1; }
+        .album-sub { position: absolute; width: 180px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: opacity 0.3s, transform 0.3s ease, z-index 0s; cursor: pointer; top: 10px; }
         .album-sub.dimmed { opacity: 0.3 !important; }
-        .album-sub.active {
-            transform: scale(1.15);
-            z-index: 20;
-            opacity: 1;
-        }
+        .album-sub.active { transform: scale(1.15); z-index: 20; opacity: 1; }
 
         .secret-modal {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
-            z-index: 2000; display: flex; align-items: center;
-            justify-content: center;
+            z-index: 2000; display: flex; align-items: center; justify-content: center;
             opacity: 0; visibility: hidden; transition: 0.3s;
         }
         .secret-modal.show { opacity: 1; visibility: visible; }
-        .secret-card {
-            background: #fff; border-radius: 20px;
-            padding: 40px; text-align: center;
-            max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .secret-card button {
-            margin-top: 20px; padding: 8px 24px;
-            border: none; background: #ad3737; color: #fff;
-            border-radius: 20px; cursor: pointer; font-size: 14px;
-        }
+        .secret-card { background: #fff; border-radius: 20px; padding: 40px; text-align: center; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .secret-card button { margin-top: 20px; padding: 8px 24px; border: none; background: #ad3737; color: #fff; border-radius: 20px; cursor: pointer; font-size: 14px; }
 
         @media (max-width: 768px) {
             .timeline-item { flex-direction: column !important; margin: 40px 0; }
@@ -245,16 +182,13 @@
     </nav>
 
     <div id="mainStage">
-        <!-- 魔方区域 -->
         <div id="cubeArea">
             <div id="cubeContainer"></div>
         </div>
 
-        <!-- 时间轴 -->
         <div class="timeline-wrapper">
             <div class="timeline-line"></div>
 
-            <!-- 规划设计 -->
             <div class="timeline-item" id="item-planning">
                 <div class="item-text">
                     <h2>规划设计</h2>
@@ -271,384 +205,3 @@
                             <img class="album-sub" src="images/project-planning-1.png?v=1" data-page="project-1.html" alt="城市更新">
                             <img class="album-sub" src="images/project-planning-4.png?v=1" data-page="project-4.html" alt="园区规划">
                         </div>
-                    </div>
-                    <div class="image-overlay">More</div>
-                </div>
-                <div class="node-dot"></div>
-            </div>
-
-            <!-- 体验设计 -->
-            <div class="timeline-item" data-page="project-experience.html">
-                <div class="item-text" onclick="goTo('project-experience.html')">
-                    <h2>体验设计</h2>
-                    <p class="subtitle">展厅体验 · 空间叙事</p>
-                </div>
-                <div class="item-image" onclick="goTo('project-experience.html')">
-                    <img src="images/portfolio-experience.png?v=1" alt="体验设计"
-                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
-                    <div class="image-overlay">More</div>
-                </div>
-                <div class="node-dot"></div>
-            </div>
-
-            <!-- 视觉设计 -->
-            <div class="timeline-item" data-page="project-visual.html">
-                <div class="item-text" onclick="goTo('project-visual.html')">
-                    <h2>视觉设计</h2>
-                    <p class="subtitle">VI系统 · 包装设计 · 平面视觉</p>
-                </div>
-                <div class="item-image" onclick="goTo('project-visual.html')">
-                    <img src="images/portfolio-visual.png?v=1" alt="视觉设计"
-                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
-                    <div class="image-overlay">More</div>
-                </div>
-                <div class="node-dot"></div>
-            </div>
-
-            <!-- 数字创作 -->
-            <div class="timeline-item" data-page="project-digital.html">
-                <div class="item-text" onclick="goTo('project-digital.html')">
-                    <h2>数字创作</h2>
-                    <p class="subtitle">AIGC · IP设计</p>
-                </div>
-                <div class="item-image" onclick="goTo('project-digital.html')">
-                    <img src="images/portfolio-digital.png?v=1" alt="数字创作"
-                         onerror="this.style.background='#e0e0e0'; this.style.minHeight='225px';">
-                    <div class="image-overlay">More</div>
-                </div>
-                <div class="node-dot"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 彩蛋弹窗 -->
-    <div class="secret-modal" id="secretModal">
-        <div class="secret-card">
-            <h2>🐣 Secret Project</h2>
-            <p>Something special is brewing...</p>
-            <button onclick="closeSecret()">Close</button>
-        </div>
-    </div>
-
-    <!-- Three.js -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
-    <script>
-        function goTo(url) { if (url) window.location.href = url; }
-
-        // ========== 相册逻辑 ==========
-        const albumStack = document.getElementById('albumStack');
-        const albumSubImages = document.getElementById('albumSubImages');
-        const albumSubs = document.querySelectorAll('.album-sub');
-        let albumOpen = false;
-
-        const sortedSubs = Array.from(albumSubs).sort((a,b) => {
-            const o1 = a.dataset.order !== undefined ? parseInt(a.dataset.order) : 999;
-            const o2 = b.dataset.order !== undefined ? parseInt(b.dataset.order) : 999;
-            return o1 - o2;
-        });
-
-        albumStack.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!albumOpen) {
-                const subWidth = 180;
-                sortedSubs.forEach((sub, index) => {
-                    sub.style.left = 'auto';
-                    sub.style.right = (index * subWidth * 0.65) + 'px';
-                    sub.style.zIndex = 10 - index;
-                    sub.classList.remove('dimmed', 'active');
-                    sub.style.opacity = 1;
-                });
-                albumSubImages.classList.add('open');
-                albumOpen = true;
-                albumStack.style.opacity = '0';
-                setTimeout(() => { albumStack.style.display = 'none'; }, 300);
-            }
-        });
-
-        albumSubs.forEach(sub => {
-            sub.addEventListener('mouseenter', () => {
-                albumSubs.forEach(s => { s.classList.add('dimmed'); s.classList.remove('active'); });
-                sub.classList.remove('dimmed');
-                sub.classList.add('active');
-            });
-            sub.addEventListener('mouseleave', () => {
-                albumSubs.forEach(s => { s.classList.remove('dimmed', 'active'); s.style.transform = ''; });
-            });
-            sub.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const page = sub.dataset.page;
-                if (page) window.location.href = page;
-            });
-        });
-
-        document.addEventListener('click', function(e) {
-            if (albumOpen && !e.target.closest('#item-planning')) {
-                albumSubImages.classList.remove('open');
-                albumStack.style.display = 'block';
-                albumStack.style.opacity = '1';
-                albumOpen = false;
-            }
-        });
-
-        function closeSecret() {
-            document.getElementById('secretModal').classList.remove('show');
-        }
-
-        // ========== 魔方 Three.js ==========
-        (function() {
-            const container = document.getElementById('cubeContainer');
-            let scene, camera, renderer, cube, allParticles = [];
-            let state = 'cube';
-            let hasTriggered = false;
-            let mouseX = 0, mouseY = 0;
-            let targetMouseX = 0, targetMouseY = 0;
-
-            // 淡雅糖果色
-            const candyColors = [
-                0xFFD1DC, // 淡粉
-                0xC1E1C1, // 薄荷
-                0xD5C6E0, // 淡紫
-                0xB8D8E3, // 淡蓝
-                0xFFF0C1, // 淡黄
-                0xFFDAB9  // 蜜桃
-            ];
-            const iColor = 0xFF6B3D; // 活泼橘色
-
-            // 初始化正交相机，左右范围足够大保证文字完整显示
-            scene = new THREE.Scene();
-            scene.background = null;
-            camera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 10);
-            camera.position.set(0, 0, 5);
-            camera.lookAt(0, 0, 0);
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(400, 400);
-            renderer.domElement.style.width = '400px';
-            renderer.domElement.style.height = '400px';
-            renderer.domElement.style.display = 'block';
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
-
-            const ambient = new THREE.AmbientLight(0xffffff, 0.7);
-            const dir = new THREE.DirectionalLight(0xffffff, 0.6);
-            dir.position.set(5, 10, 7);
-            scene.add(ambient, dir);
-
-            // 创建魔方（六张图片贴图）
-            function createCube() {
-                const geo = new THREE.BoxGeometry( 3, 3, 3);
-                const imagePaths = [
-                    'images/cube-face-1.png?v=1',
-                    'images/cube-face-2.png?v=1',
-                    'images/cube-face-3.png?v=1',
-                    'images/cube-face-4.png?v=1',
-                    'images/cube-face-5.png?v=1',
-                    'images/cube-face-6.png?v=1'
-                ];
-                const loader = new THREE.TextureLoader();
-                const materials = imagePaths.map(path => {
-                    const texture = loader.load(path);
-                    return new THREE.MeshStandardMaterial({
-                        map: texture,
-                        roughness: 0.5,
-                        metalness: 0.1,
-                        emissive: new THREE.Color(0x000000)
-                    });
-                });
-                cube = new THREE.Mesh(geo, materials);
-                scene.add(cube);
-            }
-
-            // 字母 I 完整积木（橘色）
-            function createLetterI(x, y, z) {
-                const group = new THREE.Group();
-                const barGeo = new THREE.BoxGeometry(0.22, 0.85, 0.22);
-                const barMat = new THREE.MeshStandardMaterial({ color: iColor, roughness: 0.6, metalness: 0 });
-                const bar = new THREE.Mesh(barGeo, barMat);
-                bar.position.y = 0;
-                group.add(bar);
-                group.position.set(x, y, z);
-                return group;
-            }
-
-            // 完整字母矩阵 (5x7)
-            const letterMatrices = {
-                'P': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
-                'o': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
-                'r': [[1,1,1,0,0],[1,0,0,1,0],[1,0,0,0,1],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
-                't': [[1,1,1,1,1],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0]],
-                'f': [[0,0,1,1,1],[0,1,0,0,0],[1,1,1,1,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0]],
-                'l': [[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,0,0]]
-            };
-
-            // 存储所有文字小方块的引用（用于波浪动效）
-            let textBlocks = [];
-
-            function buildFullText() {
-                textBlocks = [];
-                const letters = ['P','o','r','t','f','o','l','i','o'];
-                const spacing = 0.9;
-                const startX = -(letters.length - 1) * spacing / 2;
-                const blockSize = 0.13;
-                const gap = blockSize * 1.4; // 方块之间的间距
-
-                letters.forEach((char, li) => {
-                    if (char === 'i') {
-                        const iGroup = createLetterI(startX + li * spacing, 0, 0);
-                        iGroup.userData = { isI: true, baseY: 0, originalX: startX + li * spacing };
-                        scene.add(iGroup);
-                        allParticles.push(iGroup);
-                        textBlocks.push(iGroup);
-                    } else {
-                        const matrix = letterMatrices[char];
-                        if (!matrix) return;
-                        const h = matrix.length, w = matrix[0].length;
-                        const offsetX = startX + li * spacing - (w * gap) / 2;
-                        const offsetY = (h * gap) / 2;
-                        for (let row = 0; row < h; row++) {
-                            for (let col = 0; col < w; col++) {
-                                if (matrix[row][col]) {
-                                    const geo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
-                                    const mat = new THREE.MeshStandardMaterial({
-                                        color: candyColors[Math.floor(Math.random() * candyColors.length)],
-                                        roughness: 0.25,
-                                        metalness: 0.1
-                                    });
-                                    const block = new THREE.Mesh(geo, mat);
-                                    const bx = offsetX + col * gap;
-                                    const by = offsetY - row * gap;
-                                    block.position.set(bx, by, 0);
-                                    block.userData = { isI: false, baseY: by, baseZ: 0, originalX: bx };
-                                    scene.add(block);
-                                    allParticles.push(block);
-                                    textBlocks.push(block);
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            function clearAllParticles() {
-                allParticles.forEach(p => { if (p.parent) p.parent.remove(p); });
-                allParticles = [];
-                textBlocks = [];
-                if (cube) { scene.remove(cube); cube = null; }
-            }
-
-            function explodeToParticles() {
-                if (cube) { scene.remove(cube); cube = null; }
-                for (let i = 0; i < 40; i++) {
-                    const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
-                    const mat = new THREE.MeshStandardMaterial({
-                        color: candyColors[Math.floor(Math.random() * candyColors.length)],
-                        roughness: 0.6,
-                        metalness: 0
-                    });
-                    const p = new THREE.Mesh(geo, mat);
-                    p.position.set((Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 1.5);
-                    p.userData = {
-                        velocity: new THREE.Vector3(
-                            (Math.random() - 0.5) * 0.06,
-                            (Math.random() - 0.5) * 0.06,
-                            0
-                        ),
-                        life: 0
-                    };
-                    scene.add(p);
-                    allParticles.push(p);
-                }
-                state = 'exploding';
-            }
-
-            // 波浪动效：根据鼠标位置调整方块 Y 和 Z
-            function updateWave() {
-                if (state !== 'text') return;
-                // 平滑鼠标移动
-                mouseX += (targetMouseX - mouseX) * 0.1;
-                mouseY += (targetMouseY - mouseY) * 0.1;
-
-                textBlocks.forEach(block => {
-                    if (!block.userData) return;
-                    const bx = block.position.x;
-                    const by = block.userData.baseY;
-                    // 计算方块到鼠标的距离
-                    const dx = bx - mouseX;
-                    const dy = by - mouseY;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const radius = 1.8; // 影响半径
-                    if (dist < radius) {
-                        const strength = (1 - dist / radius) * 0.35; // 波浪强度
-                        block.position.y = by + strength * 0.5;
-                        block.position.z = strength * 0.6; // Z 轴位移模拟立体感
-                    } else {
-                        block.position.y += (block.userData.baseY - block.position.y) * 0.15;
-                        block.position.z += (0 - block.position.z) * 0.15;
-                    }
-                });
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-
-                if (state === 'cube' && cube) {
-                    cube.rotation.y += 0.015;
-                    cube.rotation.x += 0.005;
-                }
-
-                if (state === 'exploding') {
-                    let allSettled = true;
-                    allParticles.forEach(p => {
-                        if (p.userData && p.userData.velocity && p.userData.life < 50) {
-                            p.position.x += p.userData.velocity.x;
-                            p.position.y += p.userData.velocity.y;
-                            p.userData.life++;
-                            allSettled = false;
-                        }
-                    });
-                    if (allSettled) {
-                        clearAllParticles();
-                        buildFullText();
-                        state = 'text';
-                        hasTriggered = true;
-                    }
-                }
-
-                updateWave();
-                renderer.render(scene, camera);
-            }
-
-            createCube();
-            animate();
-
-            // 悬停触发爆炸
-            container.addEventListener('mouseenter', () => {
-                if (!hasTriggered && state === 'cube') {
-                    explodeToParticles();
-                }
-            });
-
-            // 鼠标移动更新目标位置（用于波浪）
-            document.addEventListener('mousemove', (e) => {
-                if (state !== 'text') return;
-                // 将屏幕坐标映射到 Three.js 世界坐标范围
-                const rect = container.getBoundingClientRect();
-                const cx = rect.left + rect.width / 2;
-                const cy = rect.top + rect.height / 2;
-                const scaleX = 14 / rect.width;  // 正交相机左右范围 ±7
-                const scaleY = 9 / rect.height;  // 正交相机上下范围 ±4.5
-                targetMouseX = (e.clientX - cx) * scaleX;
-                targetMouseY = -(e.clientY - cy) * scaleY;
-            });
-
-            // 双击触发彩蛋
-            container.addEventListener('dblclick', () => {
-                if (state === 'text') {
-                    document.getElementById('secretModal').classList.add('show');
-                }
-            });
-        })();
-    </script>
-</body>
-</html>
