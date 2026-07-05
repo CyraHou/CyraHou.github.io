@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -341,11 +341,23 @@
                 scene.add(ambient, dir);
 
                 const geo = new THREE.BoxGeometry(1,1,1);
-                const colors = [0xFF6B6B,0x4ECDC4,0xFFD93D,0x6C5CE7,0xFF8A5C,0xA29BFE];
-                const materials = colors.map(c => new THREE.MeshStandardMaterial({
-                    color: c, roughness: 0.3, metalness: 0.1,
-                    emissive: new THREE.Color(c).multiplyScalar(0.15)
-                }));
+                const imagePaths = [
+                    'images/cube-face-1.png?v=1',
+                    'images/cube-face-2.png?v=1',
+                    'images/cube-face-3.png?v=1',
+                    'images/cube-face-4.png?v=1',
+                    'images/cube-face-5.png?v=1',
+                    'images/cube-face-6.png?v=1'
+                ];
+                const loader = new THREE.TextureLoader();
+                const materials = imagePaths.map(path => {
+                    const texture = loader.load(path);
+                    return new THREE.MeshStandardMaterial({
+                        map: texture,
+                        roughness: 0.3,
+                        metalness: 0.1
+                    });
+                });
                 const cubeMesh = new THREE.Mesh(geo, materials);
                 scene.add(cubeMesh);
                 const edges = new THREE.EdgesGeometry(geo);
