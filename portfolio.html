@@ -437,7 +437,7 @@
 
             // 创建魔方（几何体大小 1.8，方便调整）
             function createCube() {
-                const geo = new THREE.BoxGeometry(2,2, 2);
+                const geo = new THREE.BoxGeometry( 3, 3, 3);
                 const materials = cubeColors.map(c =>
                     new THREE.MeshStandardMaterial({ color: c, roughness: 0.3, metalness: 0.1 })
                 );
@@ -474,7 +474,7 @@
 
             function buildFullText() {
                 const letters = ['P','o','r','t','f','o','l','i','o'];
-                const spacing = 0.85;
+                const spacing = 1.5;
                 const startX = -(letters.length - 1) * spacing / 2;
                 const blockSize = 0.3;
 
