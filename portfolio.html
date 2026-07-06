@@ -357,8 +357,8 @@
             container.appendChild(renderer.domElement);
 
             // 灯光：柔和漫反射
-            const ambient = new THREE.AmbientLight(0xffffff, 0.65);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.55);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
             dirLight.position.set(3, 8, 5);
             scene.add(ambient, dirLight);
 
@@ -385,6 +385,11 @@
                 });
                 cube = new THREE.Mesh(geo, materials);
                 scene.add(cube);
+
+                // 添加黑色边框线，让魔方在任何情况下都可见
+                const edges = new THREE.EdgesGeometry(geo);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+                cube.add(line);
             }
 
             // 字母 I 完整柱体（乳白色）
