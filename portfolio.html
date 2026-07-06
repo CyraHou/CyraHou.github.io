@@ -250,14 +250,6 @@
         </div>
     </div>
 
-    <div class="secret-modal" id="secretModal">
-        <div class="secret-card">
-            <h2>🐣 Secret Project</h2>
-            <p>Something special is brewing...</p>
-            <button onclick="closeSecret()">Close</button>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -314,7 +306,6 @@
                 albumOpen = false;
             }
         });
-        function closeSecret() { document.getElementById('secretModal').classList.remove('show'); }
 
         // ========== 魔方 & 文字 ==========
         (function() {
@@ -407,7 +398,7 @@
                 letters.forEach((char, li) => {
                     const color = letterColors[li];
                     if (char === 'i') {
-                        const iGroup = createLetterI(startX + li * spacing, 0.1 + textOffsetY, 1, 0);
+                        const iGroup = createLetterI(startX + li * spacing, 0 + textOffsetY, 1, 0);
                         iGroup.userData = { isI: true, baseY: 0, originalX: startX + li * spacing };
                         scene.add(iGroup);
                         allParticles.push(iGroup);
@@ -564,11 +555,6 @@
                             window.location.href = 'contact.html';
                             return;
                         }
-                    }
-
-                    // 双击显示彩蛋
-                    if (event.detail === 2) {
-                        document.getElementById('secretModal').classList.add('show');
                     }
                 }
             });
