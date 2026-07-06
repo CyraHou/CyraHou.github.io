@@ -46,7 +46,6 @@
 
         #mainStage { margin-top: 70px; width: 100%; }
 
-        /* 魔方区域 */
         #cubeArea {
             position: relative; width: 100%; height: 50vh;
             display: block;
@@ -69,41 +68,6 @@
             left: 0;
         }
 
-        /* 波浪文字区域 */
-        #textWave {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
-            pointer-events: none; /* 让鼠标事件穿透到 canvas */
-            z-index: 10;
-        }
-        .wave-letter {
-            display: inline-block;
-            font-size: 4rem;
-            font-weight: bold;
-            margin: 0 0.3rem;
-            transition: transform 0.1s ease;
-            pointer-events: auto; /* 字母可响应鼠标 */
-            cursor: default;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            background: linear-gradient(180deg, #b6e3e9 0%, #d9f1f1 25%, #d2efd7 50%, #ebf7c8 75%, #f9ffb9 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        /* 为每个字母单独设置颜色（方便调整） */
-        .wave-letter:nth-child(1) { background: #b6e3e9; -webkit-text-fill-color: #b6e3e9; }
-        .wave-letter:nth-child(2) { background: #d9f1f1; -webkit-text-fill-color: #d9f1f1; }
-        .wave-letter:nth-child(3) { background: #d2efd7; -webkit-text-fill-color: #d2efd7; }
-        .wave-letter:nth-child(4) { background: #ebf7c8; -webkit-text-fill-color: #ebf7c8; }
-        .wave-letter:nth-child(5) { background: #f9ffb9; -webkit-text-fill-color: #f9ffb9; }
-        .wave-letter:nth-child(6) { background: #fff5b0; -webkit-text-fill-color: #fff5b0; }
-        .wave-letter:nth-child(7) { background: #ffd7b9; -webkit-text-fill-color: #ffd7b9; }
-        .wave-letter:nth-child(8) { background: #ffc1b9; -webkit-text-fill-color: #ffc1b9; }
-        .wave-letter:nth-child(9) { background: #d9c7f5; -webkit-text-fill-color: #d9c7f5; }
-
-        /* 时间轴 */
         .timeline-wrapper { position: relative; width: 100%; padding: 60px 0 100px; }
         .timeline-line {
             position: absolute; left: 50%; top: 0;
@@ -196,7 +160,6 @@
             .timeline-line { left: 20px; }
             .album-wrapper { width: 90vw; height: auto; }
             .album-sub { width: 130px; }
-            .wave-letter { font-size: 2.5rem; }
         }
     </style>
 </head>
@@ -219,18 +182,6 @@
     <div id="mainStage">
         <div id="cubeArea">
             <div id="cubeContainer"></div>
-            <!-- 波浪文字覆盖层 -->
-            <div id="textWave">
-                <span class="wave-letter">P</span>
-                <span class="wave-letter">O</span>
-                <span class="wave-letter">R</span>
-                <span class="wave-letter">T</span>
-                <span class="wave-letter">F</span>
-                <span class="wave-letter">O</span>
-                <span class="wave-letter">L</span>
-                <span class="wave-letter">I</span>
-                <span class="wave-letter">O</span>
-            </div>
         </div>
 
         <div class="timeline-wrapper">
@@ -365,17 +316,28 @@
         });
         function closeSecret() { document.getElementById('secretModal').classList.remove('show'); }
 
-        // ========== 魔方 Three.js（仅魔方，文字由 HTML/CSS 处理） ==========
+        // ========== 魔方 & 文字（正交相机 + MeshBasicMaterial） ==========
         (function() {
             const container = document.getElementById('cubeContainer');
             let scene, camera, renderer, cube, allParticles = [];
             let state = 'cube';
             let hasTriggered = false;
+            let mouseX = 0, mouseY = 0;
+            let targetMouseX = 0, targetMouseY = 0;
+
+            // 柔和颜色
+            const letterColors = [
+                0xb6e3e9, 0xd9f1f1, 0xd2efd7, 0xebf7c8,
+                0xfed367, 0xfeb567, 0xff9f75, 0xff757f, 0xd0b4fd
+            ];
+            const iColor = 0xff757f;
 
             scene = new THREE.Scene();
             scene.background = null;
-            camera = new THREE.PerspectiveCamera(35, 1, 0.1, 20);
-            camera.position.set(0, 0, 6);
+
+            // 正交相机：固定视口，物体大小不变
+            camera = new THREE.OrthographicCamera(-6, 6, 6, -6, 0.1, 10);
+            camera.position.set(0, 0, 5);
             camera.lookAt(0, 0, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -386,14 +348,14 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // 灯光柔和
-            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+            // 灯光可以保留，但 Basic 材质不需要，这里仅用于魔方贴图（如果有的话）
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.3);
             dirLight.position.set(3, 5, 6);
             scene.add(ambient, dirLight);
 
             function createCube() {
-                const geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+                const geo = new THREE.BoxGeometry(3, 3, 3);
                 const imagePaths = [
                     'images/cube-face-1.png?v=1',
                     'images/cube-face-2.png?v=1',
@@ -403,30 +365,99 @@
                     'images/cube-face-6.png?v=1'
                 ];
                 const loader = new THREE.TextureLoader();
+                // 对贴图面使用 Basic 材质，不受光照影响，颜色更真实
                 const materials = imagePaths.map(path => {
                     const texture = loader.load(path);
-                    return new THREE.MeshStandardMaterial({
-                        map: texture,
-                        roughness: 0.6,
-                        metalness: 0.1
+                    return new THREE.MeshBasicMaterial({
+                        map: texture
                     });
                 });
                 cube = new THREE.Mesh(geo, materials);
                 scene.add(cube);
 
+                // 添加边框线
                 const edges = new THREE.EdgesGeometry(geo);
                 const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
                 cube.add(line);
+            }
+
+            function createLetterI(x, y, z) {
+                const group = new THREE.Group();
+                const barGeo = new THREE.BoxGeometry(0.3, 1.6, 0.3);
+                const barMat = new THREE.MeshBasicMaterial({ color: iColor });
+                const bar = new THREE.Mesh(barGeo, barMat);
+                bar.position.y = 0;
+                group.add(bar);
+                group.position.set(x, y, z);
+                return group;
+            }
+
+            const letterMatrices = {
+                'P': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
+                'o': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
+                'r': [[1,1,1,0,0],[1,0,0,1,0],[1,0,0,0,1],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
+                't': [[1,1,1,1,1],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0]],
+                'f': [[0,0,1,1,1],[0,1,0,0,0],[1,1,1,1,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0]],
+                'l': [[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,0,0]]
+            };
+
+            let textBlocks = [];
+
+            function buildFullText() {
+                textBlocks = [];
+                const letters = ['P','o','r','t','f','o','l','i','o'];
+                const spacing = 1.4;          // 字母间距 1.0
+                const startX = -(letters.length - 1) * spacing / 2;
+                const blockSize = 0.18;
+                const gap = blockSize * 1.15;
+
+                letters.forEach((char, li) => {
+                    const color = letterColors[li];
+                    if (char === 'i') {
+                        const iGroup = createLetterI(startX + li * spacing, - 0.15, 0, 0);
+                        iGroup.userData = { isI: true, baseY: 0, originalX: startX + li * spacing };
+                        scene.add(iGroup);
+                        allParticles.push(iGroup);
+                        textBlocks.push(iGroup);
+                    } else {
+                        const matrix = letterMatrices[char];
+                        if (!matrix) return;
+                        const h = matrix.length, w = matrix[0].length;
+                        const offsetX = startX + li * spacing - (w * gap) / 2;
+                        const offsetY = (h * gap) / 2;
+                        for (let row = 0; row < h; row++) {
+                            for (let col = 0; col < w; col++) {
+                                if (matrix[row][col]) {
+                                    const geo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+                                    const mat = new THREE.MeshBasicMaterial({ color: color });
+                                    const block = new THREE.Mesh(geo, mat);
+                                    const bx = offsetX + col * gap;
+                                    const by = offsetY - row * gap;
+                                    block.position.set(bx, by, 0);
+                                    block.userData = { isI: false, baseY: by, baseZ: 0, originalX: bx };
+                                    scene.add(block);
+                                    allParticles.push(block);
+                                    textBlocks.push(block);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function clearAllParticles() {
+                allParticles.forEach(p => { if (p.parent) p.parent.remove(p); });
+                allParticles = [];
+                textBlocks = [];
+                if (cube) { scene.remove(cube); cube = null; }
             }
 
             function explodeToParticles() {
                 if (cube) { scene.remove(cube); cube = null; }
                 for (let i = 0; i < 40; i++) {
                     const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
-                    const mat = new THREE.MeshStandardMaterial({
-                        color: Math.random() * 0xffffff,
-                        roughness: 0.6,
-                        metalness: 0.1
+                    const mat = new THREE.MeshBasicMaterial({
+                        color: letterColors[Math.floor(Math.random() * letterColors.length)]
                     });
                     const p = new THREE.Mesh(geo, mat);
                     p.position.set((Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 1.5);
@@ -442,6 +473,47 @@
                     allParticles.push(p);
                 }
                 state = 'exploding';
+            }
+
+            // 波浪动效（保留 Y 轴跳动，Z 轴也可保留但 Basic 材质不可见，所以仅跳动）
+            let waveSources = [];
+            document.addEventListener('mousemove', (e) => {
+                if (state !== 'text') return;
+                const rect = container.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                const scaleX = 12 / rect.width;   // 正交相机范围 ±6
+                const scaleY = 12 / rect.height;
+                const wx = (e.clientX - cx) * scaleX;
+                const wy = -(e.clientY - cy) * scaleY;
+                waveSources.push({ x: wx, y: wy, time: 0, strength: 0.25 });
+                if (waveSources.length > 6) waveSources.shift();
+            });
+
+            function updateWave() {
+                if (state !== 'text') return;
+                waveSources.forEach(s => s.time += 0.016);
+                waveSources = waveSources.filter(s => s.time < 0.7);
+
+                textBlocks.forEach(block => {
+                    if (!block.userData || block.userData.isI) return;
+                    const bx = block.position.x;
+                    const by = block.userData.baseY;
+                    let totalOffset = 0;
+                    waveSources.forEach(source => {
+                        const dx = bx - source.x;
+                        const dy = by - source.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const radius = 1.8;
+                        if (dist < radius) {
+                            const strength = source.strength * (1 - source.time) * (1 - dist / radius);
+                            totalOffset += strength * 0.2 * Math.sin(dist * 2.5 - source.time * 12);
+                        }
+                    });
+                    block.position.y = by + totalOffset;
+                    // Z 轴位移在 Basic 材质下不可见，但仍保留不影响
+                    block.position.z = Math.abs(totalOffset) * 0.3;
+                });
             }
 
             function animate() {
@@ -461,13 +533,13 @@
                         }
                     });
                     if (allSettled) {
-                        // 粒子消散后不再生成文字，文字由 HTML/CSS 层显示
+                        clearAllParticles();
+                        buildFullText();
                         state = 'text';
                         hasTriggered = true;
-                        // 显示文字层
-                        document.getElementById('textWave').style.display = 'flex';
                     }
                 }
+                updateWave();
                 renderer.render(scene, camera);
             }
 
@@ -480,64 +552,11 @@
                 }
             });
 
-            // 双击触发彩蛋
             container.addEventListener('dblclick', () => {
                 if (state === 'text') {
                     document.getElementById('secretModal').classList.add('show');
                 }
             });
-        })();
-
-        // ========== 波浪动效（纯 HTML/CSS） ==========
-        (function() {
-            const waveContainer = document.getElementById('textWave');
-            const letters = document.querySelectorAll('.wave-letter');
-            let waveSources = [];
-
-            waveContainer.addEventListener('mousemove', (e) => {
-                const rect = waveContainer.getBoundingClientRect();
-                const cx = rect.left + rect.width / 2;
-                const cy = rect.top + rect.height / 2;
-                const scaleX = 1 / (rect.width / 2);
-                const scaleY = 1 / (rect.height / 2);
-                const wx = (e.clientX - cx) * scaleX;
-                const wy = -(e.clientY - cy) * scaleY;
-                waveSources.push({ x: wx, y: wy, time: 0, strength: 0.4 });
-                if (waveSources.length > 6) waveSources.shift();
-            });
-
-            function updateWave() {
-                waveSources.forEach(s => s.time += 0.016);
-                waveSources = waveSources.filter(s => s.time < 0.7);
-
-                letters.forEach(letter => {
-                    const rect = letter.getBoundingClientRect();
-                    const lx = rect.left + rect.width / 2;
-                    const ly = rect.top + rect.height / 2;
-                    const containerRect = waveContainer.getBoundingClientRect();
-                    const cx = containerRect.left + containerRect.width / 2;
-                    const cy = containerRect.top + containerRect.height / 2;
-                    const bx = (lx - cx) / (containerRect.width / 2);
-                    const by = (ly - cy) / (containerRect.height / 2);
-
-                    let totalOffset = 0;
-                    waveSources.forEach(source => {
-                        const dx = bx - source.x;
-                        const dy = by - source.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        const radius = 1.5;
-                        if (dist < radius) {
-                            const strength = source.strength * (1 - source.time) * (1 - dist / radius);
-                            totalOffset += strength * 0.5 * Math.sin(dist * 3 - source.time * 12);
-                        }
-                    });
-                    letter.style.transform = `translateY(${totalOffset * 30}px)`;
-                });
-
-                requestAnimationFrame(updateWave);
-            }
-
-            updateWave();
         })();
     </script>
 </body>
