@@ -316,7 +316,7 @@
         });
         function closeSecret() { document.getElementById('secretModal').classList.remove('show'); }
 
-        // ========== 魔方 & 文字 ==========
+        // ========== 魔方 & 文字（正交相机 + MeshBasicMaterial） ==========
         (function() {
             const container = document.getElementById('cubeContainer');
             let scene, camera, renderer, cube, allParticles = [];
@@ -325,20 +325,20 @@
             let mouseX = 0, mouseY = 0;
             let targetMouseX = 0, targetMouseY = 0;
 
-            // 指定的柔和颜色
+            // 柔和颜色
             const letterColors = [
                 0xb6e3e9, 0xd9f1f1, 0xd2efd7, 0xebf7c8,
                 0xf9ffb9, 0xfff5b0, 0xffd7b9, 0xffc1b9, 0xd9c7f5
             ];
-            const iColor = 0xffc1b9; // I 的颜色
+            const iColor = 0xffc1b9;
 
             scene = new THREE.Scene();
             scene.background = null;
 
-            // 透视相机，拉远确保间距1.0时全部可见，保持轻微仰视
-            camera = new THREE.PerspectiveCamera(35, 1, 0.1, 30);
-            camera.position.set(0, -1.2, 16);
-            camera.lookAt(0, 0.2, 0);
+            // 正交相机：固定视口，物体大小不变
+            camera = new THREE.OrthographicCamera(-6, 6, 6, -6, 0.1, 10);
+            camera.position.set(0, 0, 5);
+            camera.lookAt(0, 0, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(400, 400);
@@ -348,9 +348,9 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // 灯光：适度提高，让颜色鲜亮但不过曝
-            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+            // 灯光可以保留，但 Basic 材质不需要，这里仅用于魔方贴图（如果有的话）
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.3);
             dirLight.position.set(3, 5, 6);
             scene.add(ambient, dirLight);
 
@@ -365,18 +365,17 @@
                     'images/cube-face-6.png?v=1'
                 ];
                 const loader = new THREE.TextureLoader();
+                // 对贴图面使用 Basic 材质，不受光照影响，颜色更真实
                 const materials = imagePaths.map(path => {
                     const texture = loader.load(path);
-                    return new THREE.MeshStandardMaterial({
-                        map: texture,
-                        roughness: 0.7,
-                        metalness: 0.1,
-                        emissive: new THREE.Color(0x000000)
+                    return new THREE.MeshBasicMaterial({
+                        map: texture
                     });
                 });
                 cube = new THREE.Mesh(geo, materials);
                 scene.add(cube);
 
+                // 添加边框线
                 const edges = new THREE.EdgesGeometry(geo);
                 const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
                 cube.add(line);
@@ -385,7 +384,7 @@
             function createLetterI(x, y, z) {
                 const group = new THREE.Group();
                 const barGeo = new THREE.BoxGeometry(0.26, 1.2, 0.26);
-                const barMat = new THREE.MeshStandardMaterial({ color: iColor, roughness: 0.5, metalness: 0.1 });
+                const barMat = new THREE.MeshBasicMaterial({ color: iColor });
                 const bar = new THREE.Mesh(barGeo, barMat);
                 bar.position.y = 0;
                 group.add(bar);
@@ -407,10 +406,10 @@
             function buildFullText() {
                 textBlocks = [];
                 const letters = ['P','o','r','t','f','o','l','i','o'];
-                const spacing = 1.0;          // 使用你想要的间距
+                const spacing = 1.0;          // 字母间距 1.0
                 const startX = -(letters.length - 1) * spacing / 2;
                 const blockSize = 0.14;
-                const gap = blockSize * 1.15;  // 方块间隙
+                const gap = blockSize * 1.15;
 
                 letters.forEach((char, li) => {
                     const color = letterColors[li];
@@ -430,11 +429,7 @@
                             for (let col = 0; col < w; col++) {
                                 if (matrix[row][col]) {
                                     const geo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
-                                    const mat = new THREE.MeshStandardMaterial({
-                                        color: color,
-                                        roughness: 0.5,
-                                        metalness: 0.1
-                                    });
+                                    const mat = new THREE.MeshBasicMaterial({ color: color });
                                     const block = new THREE.Mesh(geo, mat);
                                     const bx = offsetX + col * gap;
                                     const by = offsetY - row * gap;
@@ -461,10 +456,8 @@
                 if (cube) { scene.remove(cube); cube = null; }
                 for (let i = 0; i < 40; i++) {
                     const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
-                    const mat = new THREE.MeshStandardMaterial({
-                        color: letterColors[Math.floor(Math.random() * letterColors.length)],
-                        roughness: 0.5,
-                        metalness: 0.1
+                    const mat = new THREE.MeshBasicMaterial({
+                        color: letterColors[Math.floor(Math.random() * letterColors.length)]
                     });
                     const p = new THREE.Mesh(geo, mat);
                     p.position.set((Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 1.5);
@@ -482,15 +475,15 @@
                 state = 'exploding';
             }
 
-            // 波浪动效（柔和）
+            // 波浪动效（保留 Y 轴跳动，Z 轴也可保留但 Basic 材质不可见，所以仅跳动）
             let waveSources = [];
             document.addEventListener('mousemove', (e) => {
                 if (state !== 'text') return;
                 const rect = container.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2;
                 const cy = rect.top + rect.height / 2;
-                const scaleX = 9 / rect.width;
-                const scaleY = 9 / rect.height;
+                const scaleX = 12 / rect.width;   // 正交相机范围 ±6
+                const scaleY = 12 / rect.height;
                 const wx = (e.clientX - cx) * scaleX;
                 const wy = -(e.clientY - cy) * scaleY;
                 waveSources.push({ x: wx, y: wy, time: 0, strength: 0.25 });
@@ -518,7 +511,8 @@
                         }
                     });
                     block.position.y = by + totalOffset;
-                    block.position.z = Math.abs(totalOffset) * 0.5;
+                    // Z 轴位移在 Basic 材质下不可见，但仍保留不影响
+                    block.position.z = Math.abs(totalOffset) * 0.3;
                 });
             }
 
