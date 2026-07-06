@@ -316,14 +316,13 @@
         });
         function closeSecret() { document.getElementById('secretModal').classList.remove('show'); }
 
-        // ========== 魔方 & 文字（点击触发） ==========
+        // ========== 魔方 & 文字 ==========
         (function() {
             const container = document.getElementById('cubeContainer');
             let scene, camera, renderer, cube, allParticles = [];
             let state = 'cube';
             let hasTriggered = false;
-            let mouseX = 0, mouseY = 0;
-            let targetMouseX = 0, targetMouseY = 0;
+            let letterI = null; // 用于记录字母 I 的对象
 
             // 柔和颜色
             const letterColors = [
@@ -372,7 +371,6 @@
                 });
                 cube = new THREE.Mesh(geo, materials);
                 scene.add(cube);
-                // 已去除黑色边框线
             }
 
             function createLetterI(x, y, z) {
@@ -404,15 +402,17 @@
                 const startX = -(letters.length - 1) * spacing / 2;
                 const blockSize = 0.2;
                 const gap = blockSize * 1.15;
+                const textOffsetY = 0.6; // 字母整体上移
 
                 letters.forEach((char, li) => {
                     const color = letterColors[li];
                     if (char === 'i') {
-                        const iGroup = createLetterI(startX + li * spacing, 0.1, 1, 0);
+                        const iGroup = createLetterI(startX + li * spacing, 0.1 + textOffsetY, 1, 0);
                         iGroup.userData = { isI: true, baseY: 0, originalX: startX + li * spacing };
                         scene.add(iGroup);
                         allParticles.push(iGroup);
                         textBlocks.push(iGroup);
+                        letterI = iGroup; // 保存引用
                     } else {
                         const matrix = letterMatrices[char];
                         if (!matrix) return;
@@ -427,7 +427,7 @@
                                     const block = new THREE.Mesh(geo, mat);
                                     const bx = offsetX + col * gap;
                                     const by = offsetY - row * gap;
-                                    block.position.set(bx, by, 0);
+                                    block.position.set(bx, by + textOffsetY, 0);
                                     block.userData = { isI: false, baseY: by, baseZ: 0, originalX: bx };
                                     scene.add(block);
                                     allParticles.push(block);
@@ -539,16 +539,37 @@
             createCube();
             animate();
 
-            // 改为点击触发
-            container.addEventListener('click', () => {
+            // 使用 Raycaster 检测点击
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            container.addEventListener('click', (event) => {
                 if (!hasTriggered && state === 'cube') {
                     explodeToParticles();
+                    return;
                 }
-            });
 
-            container.addEventListener('dblclick', () => {
                 if (state === 'text') {
-                    document.getElementById('secretModal').classList.add('show');
+                    // 计算鼠标位置归一化坐标
+                    const rect = container.getBoundingClientRect();
+                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                    raycaster.setFromCamera(mouse, camera);
+
+                    // 检测字母 I
+                    if (letterI) {
+                        const intersects = raycaster.intersectObject(letterI, true);
+                        if (intersects.length > 0) {
+                            window.location.href = 'contact.html';
+                            return;
+                        }
+                    }
+
+                    // 双击显示彩蛋
+                    if (event.detail === 2) {
+                        document.getElementById('secretModal').classList.add('show');
+                    }
                 }
             });
         })();
