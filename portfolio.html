@@ -316,7 +316,7 @@
         });
         function closeSecret() { document.getElementById('secretModal').classList.remove('show'); }
 
-        // ========== 魔方 & 文字（正交相机 + MeshBasicMaterial） ==========
+        // ========== 魔方 & 文字（点击触发） ==========
         (function() {
             const container = document.getElementById('cubeContainer');
             let scene, camera, renderer, cube, allParticles = [];
@@ -335,7 +335,7 @@
             scene = new THREE.Scene();
             scene.background = null;
 
-            // 正交相机：固定视口，物体大小不变
+            // 正交相机
             camera = new THREE.OrthographicCamera(-8, 8, 6, -6, 0.1, 10);
             camera.position.set(0, 0, 5);
             camera.lookAt(0, 0, 0);
@@ -348,7 +348,6 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // 灯光可以保留，但 Basic 材质不需要，这里仅用于魔方贴图（如果有的话）
             const ambient = new THREE.AmbientLight(0xffffff, 0.4);
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.3);
             dirLight.position.set(3, 5, 6);
@@ -365,7 +364,6 @@
                     'images/cube-face-6.png?v=1'
                 ];
                 const loader = new THREE.TextureLoader();
-                // 对贴图面使用 Basic 材质，不受光照影响，颜色更真实
                 const materials = imagePaths.map(path => {
                     const texture = loader.load(path);
                     return new THREE.MeshBasicMaterial({
@@ -374,11 +372,7 @@
                 });
                 cube = new THREE.Mesh(geo, materials);
                 scene.add(cube);
-
-                // 添加边框线
-                const edges = new THREE.EdgesGeometry(geo);
-                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-                cube.add(line);
+                // 已去除黑色边框线
             }
 
             function createLetterI(x, y, z) {
@@ -406,7 +400,7 @@
             function buildFullText() {
                 textBlocks = [];
                 const letters = ['P','o','r','t','f','o','l','i','o'];
-                const spacing = 1.4;          // 字母间距 1.0
+                const spacing = 1.4;
                 const startX = -(letters.length - 1) * spacing / 2;
                 const blockSize = 0.2;
                 const gap = blockSize * 1.15;
@@ -414,7 +408,7 @@
                 letters.forEach((char, li) => {
                     const color = letterColors[li];
                     if (char === 'i') {
-                        const iGroup = createLetterI(startX + li * spacing, 0.5, 2, 0);
+                        const iGroup = createLetterI(startX + li * spacing, 0.1, 1, 0);
                         iGroup.userData = { isI: true, baseY: 0, originalX: startX + li * spacing };
                         scene.add(iGroup);
                         allParticles.push(iGroup);
@@ -475,14 +469,14 @@
                 state = 'exploding';
             }
 
-            // 波浪动效（保留 Y 轴跳动，Z 轴也可保留但 Basic 材质不可见，所以仅跳动）
+            // 波浪动效
             let waveSources = [];
             document.addEventListener('mousemove', (e) => {
                 if (state !== 'text') return;
                 const rect = container.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2;
                 const cy = rect.top + rect.height / 2;
-                const scaleX = 12 / rect.width;   // 正交相机范围 ±6
+                const scaleX = 12 / rect.width;
                 const scaleY = 12 / rect.height;
                 const wx = (e.clientX - cx) * scaleX;
                 const wy = -(e.clientY - cy) * scaleY;
@@ -511,7 +505,6 @@
                         }
                     });
                     block.position.y = by + totalOffset;
-                    // Z 轴位移在 Basic 材质下不可见，但仍保留不影响
                     block.position.z = Math.abs(totalOffset) * 0.3;
                 });
             }
@@ -546,7 +539,8 @@
             createCube();
             animate();
 
-            container.addEventListener('mouseenter', () => {
+            // 改为点击触发
+            container.addEventListener('click', () => {
                 if (!hasTriggered && state === 'cube') {
                     explodeToParticles();
                 }
