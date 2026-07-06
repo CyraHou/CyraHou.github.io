@@ -68,6 +68,7 @@
             left: 0;
         }
 
+        /* 时间轴及其他样式保持不变 */
         .timeline-wrapper { position: relative; width: 100%; padding: 60px 0 100px; }
         .timeline-line {
             position: absolute; left: 50%; top: 0;
@@ -325,19 +326,27 @@
             let mouseX = 0, mouseY = 0;
             let targetMouseX = 0, targetMouseY = 0;
 
+            // 更新为指定的马卡龙渐变色
             const letterColors = [
-                0xc3deef, 0xd9e8cb, 0xe7f9b9, 0xfef4c1,
-                0xf7d2c8, 0xffdeb0, 0xeac0fd, 0xfff8dc, 0xdeb4e3
+                0xb6e3e9, // P
+                0xd9f1f1, // O
+                0xd2efd7, // R
+                0xebf7c8, // T
+                0xf9ffb9, // F
+                0xfff5b0, // O
+                0xffd7b9, // L
+                0xffc1b9, // I
+                0xd9c7f5  // O
             ];
-            const iColor = 0xfff8dc;
+            const iColor = 0xffc1b9; // I 的颜色
 
             scene = new THREE.Scene();
             scene.background = null;
 
-            // 透视相机，视角调整为仰视倾斜感
-            camera = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
-            camera.position.set(0, -0.8, 6.5);
-            camera.lookAt(0, 0.4, 0);
+            // 调整相机，拉远视野确保字母完整显示，同时保持仰视感
+            camera = new THREE.PerspectiveCamera(35, 1, 0.1, 20);
+            camera.position.set(0, -1.5, 12);
+            camera.lookAt(0, 0.3, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(400, 400);
@@ -347,7 +356,7 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // 降低灯光强度，消除曝光
+            // 灯光：柔和漫反射
             const ambient = new THREE.AmbientLight(0xffffff, 0.55);
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
             dirLight.position.set(3, 5, 6);
@@ -376,7 +385,6 @@
                 cube = new THREE.Mesh(geo, materials);
                 scene.add(cube);
 
-                // 添加黑色边框线，确保魔方可见
                 const edges = new THREE.EdgesGeometry(geo);
                 const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
                 cube.add(line);
@@ -384,7 +392,8 @@
 
             function createLetterI(x, y, z) {
                 const group = new THREE.Group();
-                const barGeo = new THREE.BoxGeometry(0.25, 1.2, 0.25);
+                // 调整 I 的高度与其他字母匹配
+                const barGeo = new THREE.BoxGeometry(0.25, 1.1, 0.25);
                 const barMat = new THREE.MeshStandardMaterial({ color: iColor, roughness: 0.9, metalness: 0 });
                 const bar = new THREE.Mesh(barGeo, barMat);
                 bar.position.y = 0;
@@ -407,10 +416,10 @@
             function buildFullText() {
                 textBlocks = [];
                 const letters = ['P','o','r','t','f','o','l','i','o'];
-                const spacing = 1.0;
+                const spacing = 0.7;          // 字母间距
                 const startX = -(letters.length - 1) * spacing / 2;
                 const blockSize = 0.14;
-                const gap = blockSize * 1.45;
+                const gap = blockSize * 1.15;  // 方块间隙更紧凑
 
                 letters.forEach((char, li) => {
                     const color = letterColors[li];
@@ -482,7 +491,7 @@
                 state = 'exploding';
             }
 
-            // 柔和波浪，避免畸变
+            // 柔和波浪，保留活泼感但不畸变
             let waveSources = [];
             document.addEventListener('mousemove', (e) => {
                 if (state !== 'text') return;
@@ -518,7 +527,7 @@
                         }
                     });
                     block.position.y = by + totalOffset;
-                    block.position.z = Math.abs(totalOffset) * 0.5; // 轻微 Z 轴位移，保持立体感
+                    block.position.z = Math.abs(totalOffset) * 0.5;
                 });
             }
 
