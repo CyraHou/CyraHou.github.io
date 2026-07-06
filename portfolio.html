@@ -68,7 +68,6 @@
             left: 0;
         }
 
-        /* 时间轴及其他样式保持不变 */
         .timeline-wrapper { position: relative; width: 100%; padding: 60px 0 100px; }
         .timeline-line {
             position: absolute; left: 50%; top: 0;
@@ -225,8 +224,8 @@
 
             <div class="timeline-item" data-page="project-visual.html">
                 <div class="item-text" onclick="goTo('project-visual.html')">
-                    <h2>视觉传达</h2>
-                    <p class="subtitle">VI系统 · 包装设计 · 平面设计</p>
+                    <h2>视觉设计</h2>
+                    <p class="subtitle">VI系统 · 包装设计 · 平面视觉</p>
                 </div>
                 <div class="item-image" onclick="goTo('project-visual.html')">
                     <img src="images/portfolio-visual.png?v=1" alt="视觉设计"
@@ -238,7 +237,7 @@
 
             <div class="timeline-item" data-page="project-digital.html">
                 <div class="item-text" onclick="goTo('project-digital.html')">
-                    <h2>数字艺术</h2>
+                    <h2>数字创作</h2>
                     <p class="subtitle">AIGC · IP设计</p>
                 </div>
                 <div class="item-image" onclick="goTo('project-digital.html')">
@@ -326,27 +325,20 @@
             let mouseX = 0, mouseY = 0;
             let targetMouseX = 0, targetMouseY = 0;
 
-            // 更新为指定的马卡龙渐变色
+            // 指定的柔和颜色
             const letterColors = [
-                0xb6e3e9, // P
-                0xd9f1f1, // O
-                0xd2efd7, // R
-                0xebf7c8, // T
-                0xf9ffb9, // F
-                0xfff5b0, // O
-                0xffd7b9, // L
-                0xffc1b9, // I
-                0xd9c7f5  // O
+                0xb6e3e9, 0xd9f1f1, 0xd2efd7, 0xebf7c8,
+                0xf9ffb9, 0xfff5b0, 0xffd7b9, 0xffc1b9, 0xd9c7f5
             ];
             const iColor = 0xffc1b9; // I 的颜色
 
             scene = new THREE.Scene();
             scene.background = null;
 
-            // 调整相机，拉远视野确保字母完整显示，同时保持仰视感
-            camera = new THREE.PerspectiveCamera(35, 1, 0.1, 20);
-            camera.position.set(0, -1.5, 12);
-            camera.lookAt(0, 0.3, 0);
+            // 透视相机，拉远确保间距1.0时全部可见，保持轻微仰视
+            camera = new THREE.PerspectiveCamera(35, 1, 0.1, 30);
+            camera.position.set(0, -1.2, 14);
+            camera.lookAt(0, 0.2, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(400, 400);
@@ -356,9 +348,9 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // 灯光：柔和漫反射
-            const ambient = new THREE.AmbientLight(0xffffff, 0.9);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            // 灯光：适度提高，让颜色鲜亮但不过曝
+            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
             dirLight.position.set(3, 5, 6);
             scene.add(ambient, dirLight);
 
@@ -377,8 +369,8 @@
                     const texture = loader.load(path);
                     return new THREE.MeshStandardMaterial({
                         map: texture,
-                        roughness: 0.9,
-                        metalness: 0,
+                        roughness: 0.7,
+                        metalness: 0.1,
                         emissive: new THREE.Color(0x000000)
                     });
                 });
@@ -392,9 +384,8 @@
 
             function createLetterI(x, y, z) {
                 const group = new THREE.Group();
-                // 调整 I 的高度与其他字母匹配
-                const barGeo = new THREE.BoxGeometry(0.25, 1.1, 0.25);
-                const barMat = new THREE.MeshStandardMaterial({ color: iColor, roughness: 0.4, metalness: 0.1 });
+                const barGeo = new THREE.BoxGeometry(0.26, 1.2, 0.26);
+                const barMat = new THREE.MeshStandardMaterial({ color: iColor, roughness: 0.5, metalness: 0.1 });
                 const bar = new THREE.Mesh(barGeo, barMat);
                 bar.position.y = 0;
                 group.add(bar);
@@ -416,10 +407,10 @@
             function buildFullText() {
                 textBlocks = [];
                 const letters = ['P','o','r','t','f','o','l','i','o'];
-                const spacing = 1.0;          // 字母间距
+                const spacing = 1.0;          // 使用你想要的间距
                 const startX = -(letters.length - 1) * spacing / 2;
                 const blockSize = 0.14;
-                const gap = blockSize * 1.15;  // 方块间隙更紧凑
+                const gap = blockSize * 1.15;  // 方块间隙
 
                 letters.forEach((char, li) => {
                     const color = letterColors[li];
@@ -441,7 +432,7 @@
                                     const geo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
                                     const mat = new THREE.MeshStandardMaterial({
                                         color: color,
-                                        roughness: 0.4,
+                                        roughness: 0.5,
                                         metalness: 0.1
                                     });
                                     const block = new THREE.Mesh(geo, mat);
@@ -472,7 +463,7 @@
                     const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
                     const mat = new THREE.MeshStandardMaterial({
                         color: letterColors[Math.floor(Math.random() * letterColors.length)],
-                        roughness: 0.4,
+                        roughness: 0.5,
                         metalness: 0.1
                     });
                     const p = new THREE.Mesh(geo, mat);
@@ -491,7 +482,7 @@
                 state = 'exploding';
             }
 
-            // 柔和波浪，保留活泼感但不畸变
+            // 波浪动效（柔和）
             let waveSources = [];
             document.addEventListener('mousemove', (e) => {
                 if (state !== 'text') return;
@@ -502,7 +493,7 @@
                 const scaleY = 9 / rect.height;
                 const wx = (e.clientX - cx) * scaleX;
                 const wy = -(e.clientY - cy) * scaleY;
-                waveSources.push({ x: wx, y: wy, time: 0, strength: 0.3 });
+                waveSources.push({ x: wx, y: wy, time: 0, strength: 0.25 });
                 if (waveSources.length > 6) waveSources.shift();
             });
 
