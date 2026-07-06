@@ -68,7 +68,6 @@
             left: 0;
         }
 
-        /* 时间轴及其他样式保持不变，为简洁略去，实际使用时请保留之前的所有样式 */
         .timeline-wrapper { position: relative; width: 100%; padding: 60px 0 100px; }
         .timeline-line {
             position: absolute; left: 50%; top: 0;
@@ -128,7 +127,6 @@
             box-shadow: 0 0 12px rgba(173,55,55,0.5); z-index: 3;
         }
 
-        /* 相册等样式保持不变，略去 */
         .album-wrapper { position: relative; width: 400px; height: 300px; }
         .album-stack { position: relative; width: 100%; cursor: pointer; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .album-stack::before, .album-stack::after {
@@ -266,7 +264,7 @@
     <script>
         function goTo(url) { if (url) window.location.href = url; }
 
-        // 相册逻辑（保持不变）
+        // 相册逻辑
         const albumStack = document.getElementById('albumStack');
         const albumSubImages = document.getElementById('albumSubImages');
         const albumSubs = document.querySelectorAll('.album-sub');
@@ -318,7 +316,7 @@
         });
         function closeSecret() { document.getElementById('secretModal').classList.remove('show'); }
 
-        // ========== 魔方 Three.js ==========
+        // ========== 魔方 & 文字 ==========
         (function() {
             const container = document.getElementById('cubeContainer');
             let scene, camera, renderer, cube, allParticles = [];
@@ -327,27 +325,20 @@
             let mouseX = 0, mouseY = 0;
             let targetMouseX = 0, targetMouseY = 0;
 
-            // 字母颜色顺序（P到最后一个O）
             const letterColors = [
-                0xc3deef, // P 浅蓝
-                0xd9e8cb, // O 薄荷绿
-                0xe7f9b9, // R 浅草绿
-                0xfef4c1, // T 奶黄
-                0xf7d2c8, // F 蜜桃粉
-                0xffdeb0, // O 暖橙
-                0xeac0fd, // L 浅香芋紫
-                0xfff8dc, // I 乳白色
-                0xdeb4e3  // O 粉紫
+                0xc3deef, 0xd9e8cb, 0xe7f9b9, 0xfef4c1,
+                0xf7d2c8, 0xffdeb0, 0xeac0fd, 0xfff8dc, 0xdeb4e3
             ];
-            const iColor = 0xfff8dc; // I 同样乳白色
+            const iColor = 0xfff8dc;
 
-            // 场景初始化
             scene = new THREE.Scene();
             scene.background = null;
-            // 斜45度俯视透视相机
-            camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
-            camera.position.set(0, 2.8, 5.5);
-            camera.lookAt(0, 0, 0);
+
+            // 透视相机，视角调整为仰视倾斜感
+            camera = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
+            camera.position.set(0, -0.8, 6.5);
+            camera.lookAt(0, 0.4, 0);
+
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(400, 400);
             renderer.domElement.style.width = '400px';
@@ -356,13 +347,12 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // 灯光：柔和漫反射
-            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-            dirLight.position.set(3, 8, 5);
+            // 降低灯光强度，消除曝光
+            const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight.position.set(3, 5, 6);
             scene.add(ambient, dirLight);
 
-            // 创建魔方（六张图片贴图）
             function createCube() {
                 const geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
                 const imagePaths = [
@@ -378,7 +368,7 @@
                     const texture = loader.load(path);
                     return new THREE.MeshStandardMaterial({
                         map: texture,
-                        roughness: 0.7,
+                        roughness: 0.9,
                         metalness: 0,
                         emissive: new THREE.Color(0x000000)
                     });
@@ -386,17 +376,16 @@
                 cube = new THREE.Mesh(geo, materials);
                 scene.add(cube);
 
-                // 添加黑色边框线，让魔方在任何情况下都可见
+                // 添加黑色边框线，确保魔方可见
                 const edges = new THREE.EdgesGeometry(geo);
                 const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
                 cube.add(line);
             }
 
-            // 字母 I 完整柱体（乳白色）
             function createLetterI(x, y, z) {
                 const group = new THREE.Group();
                 const barGeo = new THREE.BoxGeometry(0.25, 1.2, 0.25);
-                const barMat = new THREE.MeshStandardMaterial({ color: iColor, roughness: 0.8, metalness: 0 });
+                const barMat = new THREE.MeshStandardMaterial({ color: iColor, roughness: 0.9, metalness: 0 });
                 const bar = new THREE.Mesh(barGeo, barMat);
                 bar.position.y = 0;
                 group.add(bar);
@@ -404,7 +393,6 @@
                 return group;
             }
 
-            // 字母矩阵
             const letterMatrices = {
                 'P': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0]],
                 'o': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
@@ -444,7 +432,7 @@
                                     const geo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
                                     const mat = new THREE.MeshStandardMaterial({
                                         color: color,
-                                        roughness: 0.8,
+                                        roughness: 0.9,
                                         metalness: 0
                                     });
                                     const block = new THREE.Mesh(geo, mat);
@@ -475,7 +463,7 @@
                     const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
                     const mat = new THREE.MeshStandardMaterial({
                         color: letterColors[Math.floor(Math.random() * letterColors.length)],
-                        roughness: 0.8,
+                        roughness: 0.9,
                         metalness: 0
                     });
                     const p = new THREE.Mesh(geo, mat);
@@ -494,25 +482,25 @@
                 state = 'exploding';
             }
 
-            // 波浪动效（鼠标扫过方块跳起）
+            // 柔和波浪，避免畸变
             let waveSources = [];
             document.addEventListener('mousemove', (e) => {
                 if (state !== 'text') return;
                 const rect = container.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2;
                 const cy = rect.top + rect.height / 2;
-                const scaleX = 8 / rect.width;   // 透视相机范围适配
-                const scaleY = 8 / rect.height;
+                const scaleX = 9 / rect.width;
+                const scaleY = 9 / rect.height;
                 const wx = (e.clientX - cx) * scaleX;
                 const wy = -(e.clientY - cy) * scaleY;
-                waveSources.push({ x: wx, y: wy, time: 0, strength: 0.5 });
-                if (waveSources.length > 8) waveSources.shift();
+                waveSources.push({ x: wx, y: wy, time: 0, strength: 0.3 });
+                if (waveSources.length > 6) waveSources.shift();
             });
 
             function updateWave() {
                 if (state !== 'text') return;
                 waveSources.forEach(s => s.time += 0.016);
-                waveSources = waveSources.filter(s => s.time < 0.8);
+                waveSources = waveSources.filter(s => s.time < 0.7);
 
                 textBlocks.forEach(block => {
                     if (!block.userData || block.userData.isI) return;
@@ -523,14 +511,14 @@
                         const dx = bx - source.x;
                         const dy = by - source.y;
                         const dist = Math.sqrt(dx * dx + dy * dy);
-                        const radius = 1.5;
+                        const radius = 1.8;
                         if (dist < radius) {
                             const strength = source.strength * (1 - source.time) * (1 - dist / radius);
-                            totalOffset += strength * 0.5 * Math.sin(dist * 3 - source.time * 10);
+                            totalOffset += strength * 0.2 * Math.sin(dist * 2.5 - source.time * 12);
                         }
                     });
                     block.position.y = by + totalOffset;
-                    block.position.z = Math.abs(totalOffset) * 1.2;
+                    block.position.z = Math.abs(totalOffset) * 0.5; // 轻微 Z 轴位移，保持立体感
                 });
             }
 
