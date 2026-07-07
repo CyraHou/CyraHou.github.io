@@ -261,11 +261,14 @@
         const albumSubImages = document.getElementById('albumSubImages');
         const albumSubs = document.querySelectorAll('.album-sub');
         let albumOpen = false;
-        const sortedSubs = Array.from(albumSubs).sort((a,b) => {
+
+        // 按 data-order 排序（0最右，3最左）
+        const sortedSubs = Array.from(albumSubs).sort((a, b) => {
             const o1 = a.dataset.order !== undefined ? parseInt(a.dataset.order) : 999;
             const o2 = b.dataset.order !== undefined ? parseInt(b.dataset.order) : 999;
             return o1 - o2;
         });
+
         albumStack.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!albumOpen) {
@@ -273,6 +276,7 @@
                 sortedSubs.forEach((sub, index) => {
                     sub.style.left = 'auto';
                     sub.style.right = (index * subWidth * 0.65) + 'px';
+                    // index=0 最右，赋予最高层
                     sub.style.zIndex = 10 - index;
                     sub.classList.remove('dimmed', 'active');
                     sub.style.opacity = 1;
@@ -283,23 +287,26 @@
                 setTimeout(() => { albumStack.style.display = 'none'; }, 300);
             }
         });
+
+        // 悬停效果：保持默认层叠，当前图置顶并放大
         albumSubs.forEach(sub => {
             sub.addEventListener('mouseenter', () => {
-                // 移除所有图片的激活和变暗状态
+                if (!albumOpen) return;
                 albumSubs.forEach(s => {
-                    s.classList.remove('active');
                     s.classList.add('dimmed');
+                    s.classList.remove('active');
                 });
-                // 激活当前图片，去除变暗
                 sub.classList.remove('dimmed');
                 sub.classList.add('active');
-                sub.style.zIndex = 20; // 确保置于顶层
+                sub.style.zIndex = 20; // 悬停时置顶
             });
             sub.addEventListener('mouseleave', () => {
-                // 鼠标离开时，恢复所有图片的正常状态
+                if (!albumOpen) return;
                 albumSubs.forEach(s => {
                     s.classList.remove('dimmed', 'active');
-                    s.style.zIndex = ''; // 恢复默认层叠
+                    // 恢复展开时的默认层叠
+                    const idx = sortedSubs.indexOf(s);
+                    if (idx !== -1) s.style.zIndex = 10 - idx;
                 });
             });
             sub.addEventListener('click', (e) => {
@@ -308,12 +315,19 @@
                 if (page) window.location.href = page;
             });
         });
+
+        // 点击空白区域关闭相册
         document.addEventListener('click', function(e) {
             if (albumOpen && !e.target.closest('#item-planning')) {
                 albumSubImages.classList.remove('open');
                 albumStack.style.display = 'block';
                 albumStack.style.opacity = '1';
                 albumOpen = false;
+                // 重置所有子图样式
+                albumSubs.forEach(s => {
+                    s.style.zIndex = '';
+                    s.classList.remove('dimmed', 'active');
+                });
             }
         });
 
@@ -354,7 +368,7 @@
             scene.add(ambient, dirLight);
 
             function createCube() {
-                const geo = new THREE.BoxGeometry(4, 4, 4);
+                const geo = new THREE.BoxGeometry(4.5, 4, 4);
                 const imagePaths = [
                     'images/cube-face-1.png?v=1',
                     'images/cube-face-2.png?v=1',
