@@ -326,7 +326,7 @@
             scene.background = null;
 
             // 正交相机
-            camera = new THREE.OrthographicCamera(-9, 8, 6, -6, 0.1, 10);
+            camera = new THREE.OrthographicCamera(-6, 6, 6, -6, 0.1, 10);
             camera.position.set(0, 0, 5);
             camera.lookAt(0, 0, 0);
 
@@ -344,7 +344,7 @@
             scene.add(ambient, dirLight);
 
             function createCube() {
-                const geo = new THREE.BoxGeometry(4, 4, 4);
+                const geo = new THREE.BoxGeometry(8, 4, 4);
                 const imagePaths = [
                     'images/cube-face-1.png?v=1',
                     'images/cube-face-2.png?v=1',
@@ -366,7 +366,7 @@
 
             function createLetterI(x, y, z) {
                 const group = new THREE.Group();
-                const barGeo = new THREE.BoxGeometry(0.3, 2.5, 0.3);
+                const barGeo = new THREE.BoxGeometry(0.3, 2, 0.3);
                 const barMat = new THREE.MeshBasicMaterial({ color: iColor });
                 const bar = new THREE.Mesh(barGeo, barMat);
                 bar.position.y = 0;
