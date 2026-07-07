@@ -344,7 +344,7 @@
             scene.add(ambient, dirLight);
 
             function createCube() {
-                const geo = new THREE.BoxGeometry(7, 4, 4);
+                const geo = new THREE.BoxGeometry(5.5, 4, 4);
                 const imagePaths = [
                     'images/cube-face-1.png?v=1',
                     'images/cube-face-2.png?v=1',
@@ -398,7 +398,7 @@
                 letters.forEach((char, li) => {
                     const color = letterColors[li];
                     if (char === 'i') {
-                        const iGroup = createLetterI(startX + li * spacing, 0 + textOffsetY, 1, 0);
+                        const iGroup = createLetterI(startX + li * spacing, -0.5 + textOffsetY, 1, 0);
                         iGroup.userData = { isI: true, baseY: 0, originalX: startX + li * spacing };
                         scene.add(iGroup);
                         allParticles.push(iGroup);
