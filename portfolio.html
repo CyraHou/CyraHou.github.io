@@ -190,7 +190,7 @@
             <div class="timeline-item" id="item-planning">
                 <div class="item-text">
                     <h2>规划设计</h2>
-                    <p class="subtitle">城市更新 · 城市设计 · 生态修复 · 园区规划</p>
+                    <p class="subtitle">城市更新 · 城市设计 <br> 生态修复 · 园区规划</p>
                 </div>
                 <div class="item-image">
                     <div class="album-wrapper" id="albumWrapper">
@@ -200,8 +200,8 @@
                         <div class="album-sub-images" id="albumSubImages">
                             <img class="album-sub" src="images/project-planning-2.png?v=1" data-page="project-2.html" data-order="0" alt="城市设计">
                             <img class="album-sub" src="images/project-planning-3.png?v=1" data-page="project-3.html" data-order="1" alt="生态修复">
-                            <img class="album-sub" src="images/project-planning-1.png?v=1" data-page="project-1.html" alt="城市更新">
-                            <img class="album-sub" src="images/project-planning-4.png?v=1" data-page="project-4.html" alt="园区规划">
+                            <img class="album-sub" src="images/project-planning-1.png?v=1" data-page="project-1.html" data-order="2" alt="城市更新">
+                            <img class="album-sub" src="images/project-planning-4.png?v=1" data-page="project-4.html" data-order="3" alt="园区规划">
                         </div>
                     </div>
                     <div class="image-overlay">More</div>
@@ -273,7 +273,7 @@
                 sortedSubs.forEach((sub, index) => {
                     sub.style.left = 'auto';
                     sub.style.right = (index * subWidth * 0.65) + 'px';
-                    sub.style.zIndex = index + 1;
+                    sub.style.zIndex = 10 - index;
                     sub.classList.remove('dimmed', 'active');
                     sub.style.opacity = 1;
                 });
@@ -354,7 +354,7 @@
             scene.add(ambient, dirLight);
 
             function createCube() {
-                const geo = new THREE.BoxGeometry(5, 4, 4);
+                const geo = new THREE.BoxGeometry(4, 4, 4);
                 const imagePaths = [
                     'images/cube-face-1.png?v=1',
                     'images/cube-face-2.png?v=1',
