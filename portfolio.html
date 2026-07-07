@@ -366,7 +366,7 @@
 
             function createLetterI(x, y, z) {
                 const group = new THREE.Group();
-                const barGeo = new THREE.BoxGeometry(0.3, 3, 0.3);
+                const barGeo = new THREE.BoxGeometry(0.3, 2.5, 0.3);
                 const barMat = new THREE.MeshBasicMaterial({ color: iColor });
                 const bar = new THREE.Mesh(barGeo, barMat);
                 bar.position.y = 0;
@@ -389,7 +389,7 @@
             function buildFullText() {
                 textBlocks = [];
                 const letters = ['P','o','r','t','f','o','l','i','o'];
-                const spacing = 1.8;
+                const spacing = 2;
                 const startX = -(letters.length - 1) * spacing / 2;
                 const blockSize = 0.3;
                 const gap = blockSize * 1.15;
