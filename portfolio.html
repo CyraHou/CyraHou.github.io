@@ -285,12 +285,22 @@
         });
         albumSubs.forEach(sub => {
             sub.addEventListener('mouseenter', () => {
-                albumSubs.forEach(s => { s.classList.add('dimmed'); s.classList.remove('active'); });
+                // 移除所有图片的激活和变暗状态
+                albumSubs.forEach(s => {
+                    s.classList.remove('active');
+                    s.classList.add('dimmed');
+                });
+                // 激活当前图片，去除变暗
                 sub.classList.remove('dimmed');
                 sub.classList.add('active');
+                sub.style.zIndex = 20; // 确保置于顶层
             });
             sub.addEventListener('mouseleave', () => {
-                albumSubs.forEach(s => { s.classList.remove('dimmed', 'active'); s.style.transform = ''; });
+                // 鼠标离开时，恢复所有图片的正常状态
+                albumSubs.forEach(s => {
+                    s.classList.remove('dimmed', 'active');
+                    s.style.zIndex = ''; // 恢复默认层叠
+                });
             });
             sub.addEventListener('click', (e) => {
                 e.stopPropagation();
