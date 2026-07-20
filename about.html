@@ -13,10 +13,9 @@
             width: 100vw; height: 100vh;
             overflow: hidden;
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
-            background: #FFF8F0; /* 奶油暖色背景 */
+            background: #FFF8F0;
         }
 
-        /* 导航栏 */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
@@ -25,8 +24,8 @@
         }
         .top-nav a, .dropdown-toggle {
             text-decoration: none; font-size: 18px; color: #1a1a1a;
-            transition: color 0.2s; cursor: pointer; background: none; border: none;
-            font-weight: 600;
+            font-weight: 600; transition: color 0.2s; cursor: pointer;
+            background: none; border: none;
         }
         .top-nav a:hover, .dropdown-toggle:hover { color: #FF9A76; }
         .top-nav a.active { color: #FF9A76; }
@@ -46,18 +45,16 @@
         }
         .dropdown-menu a:hover { background: #FFF0E5; color: #FF9A76; }
 
-        /* 地图区域 */
         #map-container {
             position: fixed; top: 70px; left: 0;
             width: 100%; height: calc(100vh - 70px);
-            background-image: url('images/map-bg.png?v=3');
+            background-image: url('https://cyrahou.github.io/images/map-bg.png?v=5');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             z-index: 1;
         }
 
-        /* 红点样式 */
         .city-marker {
             position: absolute;
             width: 18px; height: 18px;
@@ -80,7 +77,6 @@
             100% { box-shadow: 0 0 0 0 rgba(173, 55, 55, 0); }
         }
 
-        /* 粒子画布 */
         #particleCanvas {
             position: fixed;
             top: 0; left: 0;
@@ -88,12 +84,11 @@
             z-index: 9999;
         }
 
-        /* 聊天气泡按钮 */
         .chat-bubble {
             position: fixed;
             bottom: 30px; right: 30px;
             width: 70px; height: 70px;
-            background: rgba(255, 154, 118, 0.7); /* 半透明珊瑚橘 */
+            background: rgba(255, 154, 118, 0.7);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
@@ -117,17 +112,12 @@
             75% { border-radius: 50% 50% 50% 50% / 60% 40% 60% 40%; width: 72px; height: 68px; }
         }
 
-        /* 聊天窗口 */
         .chat-window {
             position: fixed;
             bottom: 30px;
-            right: 120px;          /* 放在气泡左侧 */
-            top: auto; left: auto;
-            transform: none;
-            width: 400px;
-            max-width: 50vw;
-            height: 550px;
-            max-height: 70vh;
+            right: 120px;
+            width: 400px; max-width: 50vw;
+            height: 550px; max-height: 70vh;
             background: #FFFFFF;
             border-radius: 24px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
@@ -136,14 +126,11 @@
             flex-direction: column;
             overflow: hidden;
         }
-        .chat-window.open {
-            display: flex;
-        }
+        .chat-window.open { display: flex; }
         .chat-header {
             background: #FFF5E6;
             padding: 16px 20px;
-            display: flex; align-items: center;
-            gap: 12px;
+            display: flex; align-items: center; gap: 12px;
             border-bottom: 1px solid #FFE4CC;
         }
         .chat-avatar {
@@ -161,90 +148,34 @@
             0%, 100% { box-shadow: 0 0 0 3px rgba(255,154,118,0.3); }
             50% { box-shadow: 0 0 0 8px rgba(255,154,118,0.1); }
         }
-        .chat-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #3a3a3a;
-        }
-        .chat-close {
-            margin-left: auto;
-            background: none; border: none;
-            font-size: 1.6rem; cursor: pointer;
-            color: #999;
-        }
+        .chat-title { font-weight: 700; font-size: 1.1rem; color: #3a3a3a; }
+        .chat-close { margin-left: auto; background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #999; }
         .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #FFFAF5;
-            display: flex; flex-direction: column;
-            gap: 12px;
+            flex: 1; padding: 20px; overflow-y: auto;
+            background: #FFFAF5; display: flex; flex-direction: column; gap: 12px;
         }
         .message {
-            max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            word-break: break-word;
+            max-width: 80%; padding: 10px 14px; border-radius: 18px;
+            font-size: 0.95rem; line-height: 1.4; word-break: break-word;
             animation: msgPop 0.25s ease;
         }
-        @keyframes msgPop {
-            from { transform: translateY(10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .message.user {
-            align-self: flex-end;
-            background: #FF9A76;
-            color: #fff;
-            border-bottom-right-radius: 6px;
-        }
-        .message.agent {
-            align-self: flex-start;
-            background: #fff;
-            border: 1px solid #FFE4CC;
-            border-bottom-left-radius: 6px;
-        }
-        .message.agent.typing::after {
-            content: '';
-            display: inline-block;
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: #FF9A76;
-            animation: blink-cursor 0.7s step-end infinite;
-            margin-left: 4px;
-        }
-        @keyframes blink-cursor {
-            0%,100%{opacity:1;} 50%{opacity:0;}
-        }
+        @keyframes msgPop { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .message.user { align-self: flex-end; background: #FF9A76; color: #fff; border-bottom-right-radius: 6px; }
+        .message.agent { align-self: flex-start; background: #fff; border: 1px solid #FFE4CC; border-bottom-left-radius: 6px; }
         .chat-input-area {
-            padding: 16px;
-            background: #fff;
-            border-top: 1px solid #FFE4CC;
+            padding: 16px; background: #fff; border-top: 1px solid #FFE4CC;
             display: flex; gap: 8px;
         }
         .chat-input-area input {
-            flex: 1;
-            border: 1px solid #FFE4CC;
-            border-radius: 30px;
-            padding: 12px 18px;
-            font-size: 0.95rem;
-            outline: none;
-            background: #FFFAF5;
+            flex: 1; border: 1px solid #FFE4CC; border-radius: 30px;
+            padding: 12px 18px; font-size: 0.95rem; outline: none; background: #FFFAF5;
         }
         .chat-input-area button {
-            background: #FF9A76;
-            border: none;
-            border-radius: 50%;
-            width: 44px; height: 44px;
-            color: #fff;
-            font-size: 1.3rem;
-            cursor: pointer;
-            transition: transform 0.2s;
+            background: #FF9A76; border: none; border-radius: 50%;
+            width: 44px; height: 44px; color: #fff; font-size: 1.3rem;
+            cursor: pointer; transition: transform 0.2s;
         }
-        .chat-input-area button:hover {
-            transform: scale(1.1);
-        }
+        .chat-input-area button:hover { transform: scale(1.1); }
 
         @media (max-width: 768px) {
             .chat-window { right: 10px; bottom: 80px; width: 90vw; height: 60vh; }
@@ -269,7 +200,6 @@
     </nav>
 
     <div id="map-container">
-        <!-- 城市红点 -->
         <div class="city-marker" data-city="牡丹江" style="left: 52.97%; top: 33.79%;"></div>
         <div class="city-marker" data-city="哈尔滨" style="left: 50.84%; top: 32.53%;"></div>
         <div class="city-marker" data-city="北京" style="left: 40.66%; top: 46.90%;"></div>
@@ -278,10 +208,8 @@
 
     <canvas id="particleCanvas"></canvas>
 
-    <!-- 聊天气泡 -->
     <div class="chat-bubble" id="chatBubble">Chat</div>
 
-    <!-- 聊天窗口 -->
     <div class="chat-window" id="chatWindow">
         <div class="chat-header">
             <div class="chat-avatar"></div>
@@ -298,182 +226,49 @@
     </div>
 
     <script>
-        // ========== 粒子拖尾 ==========
+        // 粒子拖尾
         (function() {
             const canvas = document.getElementById('particleCanvas');
             const ctx = canvas.getContext('2d');
-            let width, height;
-            let particles = [];
+            let width, height, particles = [];
             const maxParticles = 25;
-            const colors = [
-                '#FFD1DC', '#C1E1C1', '#D5C6E0', '#B8D8E3',
-                '#FFF0C1', '#FFDAB9', '#FF9A76', '#FFC3A0',
-                '#FFE5B4', '#E8D1B5'
-            ];
-
-            function drawHeart(ctx,x,y,s) {
-                ctx.beginPath();
-                ctx.moveTo(x,y+s/4);
-                ctx.bezierCurveTo(x,y,x-s/2,y,x-s/2,y+s/4);
-                ctx.bezierCurveTo(x-s/2,y+s/2,x,y+s*3/4,x,y+s);
-                ctx.bezierCurveTo(x,y+s*3/4,x+s/2,y+s/2,x+s/2,y+s/4);
-                ctx.bezierCurveTo(x+s/2,y,x,y,x,y+s/4);
-                ctx.fill();
-            }
-            function drawStar(ctx,x,y,s) {
-                const spikes=5, outer=s, inner=s/2;
-                let rot=Math.PI/2*3, step=Math.PI/spikes;
-                ctx.beginPath(); ctx.moveTo(x,y-outer);
-                for(let i=0;i<spikes;i++){
-                    ctx.lineTo(x+Math.cos(rot)*outer,y+Math.sin(rot)*outer);
-                    rot+=step;
-                    ctx.lineTo(x+Math.cos(rot)*inner,y+Math.sin(rot)*inner);
-                    rot+=step;
-                }
-                ctx.lineTo(x,y-outer); ctx.fill();
-            }
-            function drawSun(ctx,x,y,s) {
-                ctx.beginPath(); ctx.arc(x,y,s/2,0,Math.PI*2); ctx.fill();
-                for(let i=0;i<8;i++){
-                    let angle=i/8*Math.PI*2;
-                    let dx=Math.cos(angle)*s*0.6, dy=Math.sin(angle)*s*0.6;
-                    ctx.beginPath(); ctx.arc(x+dx,y+dy,s/6,0,Math.PI*2); ctx.fill();
-                }
-            }
-            function drawMoon(ctx,x,y,s) {
-                ctx.beginPath(); ctx.arc(x,y,s/2,0,Math.PI*2); ctx.fill();
-                ctx.save(); ctx.globalCompositeOperation='destination-out';
-                ctx.beginPath(); ctx.arc(x+s/3,y-s/6,s/2.5,0,Math.PI*2); ctx.fill();
-                ctx.restore();
-            }
+            const colors = ['#FFD1DC','#C1E1C1','#D5C6E0','#B8D8E3','#FFF0C1','#FFDAB9','#FF9A76','#FFC3A0','#FFE5B4','#E8D1B5'];
+            function drawHeart(ctx,x,y,s){ ctx.beginPath(); ctx.moveTo(x,y+s/4); ctx.bezierCurveTo(x,y,x-s/2,y,x-s/2,y+s/4); ctx.bezierCurveTo(x-s/2,y+s/2,x,y+s*3/4,x,y+s); ctx.bezierCurveTo(x,y+s*3/4,x+s/2,y+s/2,x+s/2,y+s/4); ctx.bezierCurveTo(x+s/2,y,x,y,x,y+s/4); ctx.fill(); }
+            function drawStar(ctx,x,y,s){ const spikes=5,outer=s,inner=s/2; let rot=Math.PI/2*3,step=Math.PI/spikes; ctx.beginPath(); ctx.moveTo(x,y-outer); for(let i=0;i<spikes;i++){ ctx.lineTo(x+Math.cos(rot)*outer,y+Math.sin(rot)*outer); rot+=step; ctx.lineTo(x+Math.cos(rot)*inner,y+Math.sin(rot)*inner); rot+=step; } ctx.lineTo(x,y-outer); ctx.fill(); }
+            function drawSun(ctx,x,y,s){ ctx.beginPath(); ctx.arc(x,y,s/2,0,Math.PI*2); ctx.fill(); for(let i=0;i<8;i++){ let a=i/8*Math.PI*2,dx=Math.cos(a)*s*0.6,dy=Math.sin(a)*s*0.6; ctx.beginPath(); ctx.arc(x+dx,y+dy,s/6,0,Math.PI*2); ctx.fill(); } }
+            function drawMoon(ctx,x,y,s){ ctx.beginPath(); ctx.arc(x,y,s/2,0,Math.PI*2); ctx.fill(); ctx.save(); ctx.globalCompositeOperation='destination-out'; ctx.beginPath(); ctx.arc(x+s/3,y-s/6,s/2.5,0,Math.PI*2); ctx.fill(); ctx.restore(); }
             const shapes=[drawHeart,drawStar,drawSun,drawMoon];
-
             function resize(){ width=canvas.width=window.innerWidth; height=canvas.height=window.innerHeight; }
             window.addEventListener('resize',resize); resize();
-
-            class Particle{
-                constructor(x,y){
-                    this.x=x; this.y=y;
-                    this.size=Math.random()*14+8; // 变大
-                    this.color=colors[Math.floor(Math.random()*colors.length)];
-                    this.shape=shapes[Math.floor(Math.random()*shapes.length)];
-                    this.life=1;
-                    this.decay=0.012;
-                    this.vx=(Math.random()-0.5)*0.5;
-                    this.vy=(Math.random()-0.5)*0.5;
-                }
-                update(){ this.life-=this.decay; this.x+=this.vx; this.y+=this.vy; }
-                draw(ctx){
-                    ctx.globalAlpha=this.life;
-                    ctx.fillStyle=this.color;
-                    this.shape(ctx,this.x,this.y,this.size);
-                    ctx.globalAlpha=1;
-                }
-            }
-
-            let mouseX=-100, mouseY=-100, mouseInRestricted=false;
-            document.addEventListener('mousemove',e=>{
-                mouseX=e.clientX; mouseY=e.clientY;
-                const nav=document.querySelector('.top-nav');
-                const chatWin=document.getElementById('chatWindow');
-                const bubble=document.getElementById('chatBubble');
-                const navRect=nav.getBoundingClientRect();
-                let inRestrict=(e.clientY>=navRect.top&&e.clientY<=navRect.bottom);
-                if(chatWin.classList.contains('open')){
-                    const cr=chatWin.getBoundingClientRect();
-                    if(e.clientX>=cr.left&&e.clientX<=cr.right&&e.clientY>=cr.top&&e.clientY<=cr.bottom) inRestrict=true;
-                }
-                const br=bubble.getBoundingClientRect();
-                if(e.clientX>=br.left&&e.clientX<=br.right&&e.clientY>=br.top&&e.clientY<=br.bottom) inRestrict=true;
-                mouseInRestricted=inRestrict;
-            });
-
-            function animate(){
-                ctx.clearRect(0,0,width,height);
-                if(!mouseInRestricted&&mouseX>0&&mouseY>0){
-                    for(let i=0;i<1;i++){ // 降低生成频率，加大间距
-                        particles.push(new Particle(mouseX,mouseY));
-                    }
-                }
-                particles=particles.filter(p=>p.life>0);
-                particles.forEach(p=>{p.update(); p.draw(ctx);});
-                if(particles.length>maxParticles) particles=particles.slice(-maxParticles);
-                requestAnimationFrame(animate);
-            }
+            class Particle{ constructor(x,y){ this.x=x; this.y=y; this.size=Math.random()*14+8; this.color=colors[Math.floor(Math.random()*colors.length)]; this.shape=shapes[Math.floor(Math.random()*shapes.length)]; this.life=1; this.decay=0.012; this.vx=(Math.random()-0.5)*0.5; this.vy=(Math.random()-0.5)*0.5; } update(){ this.life-=this.decay; this.x+=this.vx; this.y+=this.vy; } draw(ctx){ ctx.globalAlpha=this.life; ctx.fillStyle=this.color; this.shape(ctx,this.x,this.y,this.size); ctx.globalAlpha=1; } }
+            let mouseX=-100,mouseY=-100,mouseInRestricted=false;
+            document.addEventListener('mousemove',e=>{ mouseX=e.clientX; mouseY=e.clientY; const nav=document.querySelector('.top-nav'),chatWin=document.getElementById('chatWindow'),bubble=document.getElementById('chatBubble'),navRect=nav.getBoundingClientRect(); let inRestrict=(e.clientY>=navRect.top&&e.clientY<=navRect.bottom); if(chatWin.classList.contains('open')){ const cr=chatWin.getBoundingClientRect(); if(e.clientX>=cr.left&&e.clientX<=cr.right&&e.clientY>=cr.top&&e.clientY<=cr.bottom) inRestrict=true; } const br=bubble.getBoundingClientRect(); if(e.clientX>=br.left&&e.clientX<=br.right&&e.clientY>=br.top&&e.clientY<=br.bottom) inRestrict=true; mouseInRestricted=inRestrict; });
+            function animate(){ ctx.clearRect(0,0,width,height); if(!mouseInRestricted&&mouseX>0&&mouseY>0){ for(let i=0;i<1;i++) particles.push(new Particle(mouseX,mouseY)); } particles=particles.filter(p=>p.life>0); particles.forEach(p=>{p.update(); p.draw(ctx);}); if(particles.length>maxParticles) particles=particles.slice(-maxParticles); requestAnimationFrame(animate); }
             animate();
         })();
 
-        // ========== 聊天逻辑 ==========
+        // 聊天逻辑
         (function(){
-            const bubble=document.getElementById('chatBubble');
-            const windowEl=document.getElementById('chatWindow');
-            const closeBtn=document.getElementById('chatClose');
-            const messagesContainer=document.getElementById('chatMessages');
-            const input=document.getElementById('chatInput');
-            const sendBtn=document.getElementById('sendBtn');
-
+            const bubble=document.getElementById('chatBubble'),windowEl=document.getElementById('chatWindow'),closeBtn=document.getElementById('chatClose'),messagesContainer=document.getElementById('chatMessages'),input=document.getElementById('chatInput'),sendBtn=document.getElementById('sendBtn');
             let conversationId='';
             const API_URL='https://cyra-hou-github-io.vercel.app/api/chat';
-
-            function openChat(){
-                windowEl.classList.add('open');
-            }
-            function closeChat(){
-                windowEl.classList.remove('open');
-            }
-            bubble.addEventListener('click',openChat);
-            closeBtn.addEventListener('click',closeChat);
-
-            function addMessage(text, sender, isTyping=false){
-                const div=document.createElement('div');
-                div.className='message '+sender;
-                if(isTyping) div.classList.add('typing');
-                div.textContent=text;
-                messagesContainer.appendChild(div);
-                messagesContainer.scrollTop=messagesContainer.scrollHeight;
-                return div;
-            }
-
+            function openChat(){ windowEl.classList.add('open'); }
+            function closeChat(){ windowEl.classList.remove('open'); }
+            bubble.addEventListener('click',openChat); closeBtn.addEventListener('click',closeChat);
+            function addMessage(text,sender){ const div=document.createElement('div'); div.className='message '+sender; div.textContent=text; messagesContainer.appendChild(div); messagesContainer.scrollTop=messagesContainer.scrollHeight; return div; }
             async function sendMessage(query){
                 if(!query.trim()) return;
-                addMessage(query,'user');
-                input.value='';
-                const typingDiv=addMessage('...','agent',true);
+                addMessage(query,'user'); input.value='';
                 try{
-                    const res=await fetch(API_URL,{
-                        method:'POST',
-                        headers:{'Content-Type':'application/json'},
-                        body:JSON.stringify({
-                            query:query,
-                            conversation_id:conversationId,
-                            user:'visitor'
-                        })
-                    });
+                    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,conversation_id:conversationId,user:'visitor'})});
                     const data=await res.json();
-                    typingDiv.remove();
-                    if(data.answer){
-                        addMessage(data.answer,'agent');
-                        if(data.conversation_id) conversationId=data.conversation_id;
-                    }else{
-                        addMessage('抱歉，我暂时无法回复。','agent');
-                    }
-                }catch(e){
-                    typingDiv.remove();
-                    addMessage('网络错误，请稍后再试。','agent');
-                }
+                    if(data.answer){ addMessage(data.answer,'agent'); if(data.conversation_id) conversationId=data.conversation_id; }
+                    else addMessage('抱歉，我暂时无法回复。','agent');
+                }catch(e){ addMessage('网络错误，请稍后再试。','agent'); }
             }
-
             sendBtn.addEventListener('click',()=>sendMessage(input.value));
             input.addEventListener('keydown',e=>{ if(e.key==='Enter') sendMessage(input.value); });
-
-            // 点击地图红点
-            document.querySelectorAll('.city-marker').forEach(marker=>{
-                marker.addEventListener('click',function(){
-                    const city=this.dataset.city;
-                    openChat();
-                    sendMessage('介绍一下'+city);
-                });
-            });
+            document.querySelectorAll('.city-marker').forEach(marker=>{ marker.addEventListener('click',function(){ const city=this.dataset.city; openChat(); sendMessage('介绍一下'+city); }); });
         })();
     </script>
 </body>
