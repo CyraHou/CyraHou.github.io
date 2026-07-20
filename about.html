@@ -76,6 +76,7 @@
             animation: pulse 2s infinite;
             transition: transform 0.2s;
             pointer-events: auto;
+            /* 清空行内style的left/top，由JS动态赋值 */
         }
         .city-marker:hover {
             transform: translate(-50%, -50%) scale(1.4);
@@ -198,70 +199,6 @@
             .chat-window { right: 10px; bottom: 80px; width: 90vw; height: 60vh; }
             .chat-bubble { bottom: 20px; right: 20px; width: 60px; height: 60px; font-size: 1.2rem; }
         }
-   // ---------- 红点自适应定位 ----------
-(function() {
-    const wrapper = document.getElementById('map-wrapper');
-    const img = wrapper.querySelector('img');
-    const markers = document.querySelectorAll('.city-marker');
-
-    function updateMarkers() {
-        if (!img.complete || img.naturalWidth === 0) {
-            // 图片还没加载完，稍后再试
-            img.addEventListener('load', updateMarkers, { once: true });
-            return;
-        }
-
-        const containerW = wrapper.clientWidth;
-        const containerH = wrapper.clientHeight;
-        const imgW = img.naturalWidth;
-        const imgH = img.naturalHeight;
-        if (containerW === 0 || containerH === 0) return;
-
-        const containerRatio = containerW / containerH;
-        const imgRatio = imgW / imgH;
-
-        // 根据 object-fit: cover 计算实际渲染区域
-        let renderW, renderH, offsetX, offsetY;
-        if (containerRatio > imgRatio) {
-            // 容器更宽，图片按高度撑满，宽度被裁切
-            renderH = containerH;
-            renderW = renderH * imgRatio;
-            offsetX = (containerW - renderW) / 2;
-            offsetY = 0;
-        } else {
-            // 容器更高（或相等），图片按宽度撑满，高度被裁切
-            renderW = containerW;
-            renderH = renderW / imgRatio;
-            offsetX = 0;
-            offsetY = (containerH - renderH) / 2;
-        }
-
-        markers.forEach(marker => {
-            const xPercent = parseFloat(marker.dataset.x);  // 原图上的 X 百分比
-            const yPercent = parseFloat(marker.dataset.y);  // 原图上的 Y 百分比
-
-            // 在原图上的像素坐标
-            const imgX = (xPercent / 100) * imgW;
-            const imgY = (yPercent / 100) * imgH;
-
-            // 映射到渲染区域中的像素坐标
-            const renderX = (imgX / imgW) * renderW + offsetX;
-            const renderY = (imgY / imgH) * renderH + offsetY;
-
-            // 转换为相对于容器的百分比
-            const leftPercent = (renderX / containerW) * 100;
-            const topPercent = (renderY / containerH) * 100;
-
-            marker.style.left = leftPercent + '%';
-            marker.style.top = topPercent + '%';
-        });
-    }
-
-    // 初始执行 & 窗口大小变化时重新计算
-    window.addEventListener('resize', updateMarkers);
-    img.addEventListener('load', updateMarkers);
-    if (img.complete) updateMarkers();
-})();
     </style>
 </head>
 <body>
@@ -281,12 +218,13 @@
     </nav>
 
     <div id="map-wrapper">
-        <img src="images/map-bg.png?v=5" alt="Hand-drawn map" />
+        <img id="mapImg" src="images/map-bg.png?v=5" alt="Hand-drawn map" />
         <div id="markers-container">
-            <div class="city-marker" data-city="牡丹江" style="left: 52.97%; top: 33.79%;"></div>
-            <div class="city-marker" data-city="哈尔滨" style="left: 50.84%; top: 32.53%;"></div>
-            <div class="city-marker" data-city="北京" style="left: 40.66%; top: 46.90%;"></div>
-            <div class="city-marker" data-city="东营" style="left: 43.08%; top: 52.47%;"></div>
+            <!-- 把百分比坐标存入自定义data属性，移除行内style left/top -->
+            <div class="city-marker" data-city="牡丹江" data-xpct="52.97" data-ypct="33.79"></div>
+            <div class="city-marker" data-city="哈尔滨" data-xpct="50.84" data-ypct="32.53"></div>
+            <div class="city-marker" data-city="北京" data-xpct="40.66" data-ypct="46.90"></div>
+            <div class="city-marker" data-city="东营" data-xpct="43.08" data-ypct="52.47"></div>
         </div>
     </div>
 
@@ -317,6 +255,33 @@
     </div>
 
     <script>
+        // ===== 新增：红点自适应定位核心逻辑 =====
+        (function(){
+            const mapWrapper = document.getElementById('map-wrapper');
+            const mapImg = document.getElementById('mapImg');
+            const markers = document.querySelectorAll('.city-marker');
+
+            function updateMarkersPos() {
+                const wrapRect = mapWrapper.getBoundingClientRect();
+                const wrapW = wrapRect.width;
+                const wrapH = wrapRect.height;
+                markers.forEach(marker => {
+                    const xPct = Number(marker.dataset.xpct);
+                    const yPct = Number(marker.dataset.ypct);
+                    // 根据容器宽高计算像素坐标
+                    const px = wrapW * (xPct / 100);
+                    const py = wrapH * (yPct / 100);
+                    marker.style.left = px + 'px';
+                    marker.style.top = py + 'px';
+                })
+            }
+            // 图片加载完成、窗口缩放、页面初始化都重新计算位置
+            mapImg.onload = updateMarkersPos;
+            window.addEventListener('resize', updateMarkersPos);
+            // 页面初次渲染执行
+            updateMarkersPos();
+        })();
+
         // 粒子拖尾
         (function() {
             const canvas = document.getElementById('particleCanvas');
