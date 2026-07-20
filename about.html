@@ -198,6 +198,70 @@
             .chat-window { right: 10px; bottom: 80px; width: 90vw; height: 60vh; }
             .chat-bubble { bottom: 20px; right: 20px; width: 60px; height: 60px; font-size: 1.2rem; }
         }
+   // ---------- 红点自适应定位 ----------
+(function() {
+    const wrapper = document.getElementById('map-wrapper');
+    const img = wrapper.querySelector('img');
+    const markers = document.querySelectorAll('.city-marker');
+
+    function updateMarkers() {
+        if (!img.complete || img.naturalWidth === 0) {
+            // 图片还没加载完，稍后再试
+            img.addEventListener('load', updateMarkers, { once: true });
+            return;
+        }
+
+        const containerW = wrapper.clientWidth;
+        const containerH = wrapper.clientHeight;
+        const imgW = img.naturalWidth;
+        const imgH = img.naturalHeight;
+        if (containerW === 0 || containerH === 0) return;
+
+        const containerRatio = containerW / containerH;
+        const imgRatio = imgW / imgH;
+
+        // 根据 object-fit: cover 计算实际渲染区域
+        let renderW, renderH, offsetX, offsetY;
+        if (containerRatio > imgRatio) {
+            // 容器更宽，图片按高度撑满，宽度被裁切
+            renderH = containerH;
+            renderW = renderH * imgRatio;
+            offsetX = (containerW - renderW) / 2;
+            offsetY = 0;
+        } else {
+            // 容器更高（或相等），图片按宽度撑满，高度被裁切
+            renderW = containerW;
+            renderH = renderW / imgRatio;
+            offsetX = 0;
+            offsetY = (containerH - renderH) / 2;
+        }
+
+        markers.forEach(marker => {
+            const xPercent = parseFloat(marker.dataset.x);  // 原图上的 X 百分比
+            const yPercent = parseFloat(marker.dataset.y);  // 原图上的 Y 百分比
+
+            // 在原图上的像素坐标
+            const imgX = (xPercent / 100) * imgW;
+            const imgY = (yPercent / 100) * imgH;
+
+            // 映射到渲染区域中的像素坐标
+            const renderX = (imgX / imgW) * renderW + offsetX;
+            const renderY = (imgY / imgH) * renderH + offsetY;
+
+            // 转换为相对于容器的百分比
+            const leftPercent = (renderX / containerW) * 100;
+            const topPercent = (renderY / containerH) * 100;
+
+            marker.style.left = leftPercent + '%';
+            marker.style.top = topPercent + '%';
+        });
+    }
+
+    // 初始执行 & 窗口大小变化时重新计算
+    window.addEventListener('resize', updateMarkers);
+    img.addEventListener('load', updateMarkers);
+    if (img.complete) updateMarkers();
+})();
     </style>
 </head>
 <body>
