@@ -306,7 +306,20 @@
             sendBtn.addEventListener('click',()=>sendMessage(input.value));
             input.addEventListener('keydown',e=>{ if(e.key==='Enter') sendMessage(input.value); });
             // 红点点击时发送纯地名
-            document.querySelectorAll('.city-marker').forEach(marker=>{ marker.addEventListener('click',function(){ const city=this.dataset.city; openChat(); sendMessage(city); }); });
+            document.querySelectorAll('.city-marker').forEach(marker => {
+                marker.addEventListener('click', function() {
+                    const city = this.dataset.city;
+                    const messages = {
+                        '牡丹江': '聊聊你的家乡牡丹江',
+                        '哈尔滨': '聊聊你的大学时光',
+                        '北京': '聊聊你在北京的工作经历',
+                        '东营': '聊聊你现在的工作和生活'
+                    };
+                    const query = messages[city] || city;
+                    openChat();
+                    sendMessage(query);
+                });
+            });
         })();
     </script>
 </body>
