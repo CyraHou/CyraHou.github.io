@@ -45,19 +45,28 @@
         }
         .dropdown-menu a:hover { background: #FFF0E5; color: #FF9A76; }
 
-        #map-container {
+        /* 地图区域 —— 改用 img 标签 + 红点容器重叠 */
+        #map-wrapper {
             position: fixed; top: 70px; left: 0;
             width: 100%; height: calc(100vh - 70px);
-            background-image: url('https://cyrahou.github.io/images/map-bg.png?v=5');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
             z-index: 1;
         }
-
+        #map-wrapper img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        #markers-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
         .city-marker {
             position: absolute;
-            width: 18px; height: 18px;
+            width: clamp(10px, 1.5vw, 18px);
+            height: clamp(10px, 1.5vw, 18px);
             background: #ad3737;
             border-radius: 50%;
             transform: translate(-50%, -50%);
@@ -66,6 +75,7 @@
             box-shadow: 0 0 0 0 rgba(173, 55, 55, 0.5);
             animation: pulse 2s infinite;
             transition: transform 0.2s;
+            pointer-events: auto;
         }
         .city-marker:hover {
             transform: translate(-50%, -50%) scale(1.4);
@@ -137,10 +147,9 @@
             width: 42px; height: 42px;
             border-radius: 50%;
             background: #FF9A76;
-            position: relative;
             box-shadow: 0 0 0 3px rgba(255,154,118,0.3);
             animation: breathe 2s ease-in-out infinite;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>');
+            background-image: url('images/agent-avatar.png');
             background-size: cover;
             background-position: center;
         }
@@ -162,6 +171,14 @@
         @keyframes msgPop { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .message.user { align-self: flex-end; background: #FF9A76; color: #fff; border-bottom-right-radius: 6px; }
         .message.agent { align-self: flex-start; background: #fff; border: 1px solid #FFE4CC; border-bottom-left-radius: 6px; }
+        .message.thinking {
+            align-self: flex-start;
+            background: #fff;
+            border: 1px dashed #FF9A76;
+            border-bottom-left-radius: 6px;
+            font-style: italic;
+            color: #FF9A76;
+        }
         .chat-input-area {
             padding: 16px; background: #fff; border-top: 1px solid #FFE4CC;
             display: flex; gap: 8px;
@@ -199,11 +216,14 @@
         <a href="contact.html">Contact me</a>
     </nav>
 
-    <div id="map-container">
-        <div class="city-marker" data-city="牡丹江" style="left: 52.97%; top: 33.79%;"></div>
-        <div class="city-marker" data-city="哈尔滨" style="left: 50.84%; top: 32.53%;"></div>
-        <div class="city-marker" data-city="北京" style="left: 40.66%; top: 46.90%;"></div>
-        <div class="city-marker" data-city="东营" style="left: 43.08%; top: 52.47%;"></div>
+    <div id="map-wrapper">
+        <img src="images/map-bg.png?v=5" alt="Hand-drawn map" />
+        <div id="markers-container">
+            <div class="city-marker" data-city="牡丹江" style="left: 52.97%; top: 33.79%;"></div>
+            <div class="city-marker" data-city="哈尔滨" style="left: 50.84%; top: 32.53%;"></div>
+            <div class="city-marker" data-city="北京" style="left: 40.66%; top: 46.90%;"></div>
+            <div class="city-marker" data-city="东营" style="left: 43.08%; top: 52.47%;"></div>
+        </div>
     </div>
 
     <canvas id="particleCanvas"></canvas>
@@ -247,7 +267,7 @@
             animate();
         })();
 
-        // 聊天逻辑
+        // 聊天逻辑 (含等待提示、超时、头像呼吸灯)
         (function(){
             const bubble=document.getElementById('chatBubble'),windowEl=document.getElementById('chatWindow'),closeBtn=document.getElementById('chatClose'),messagesContainer=document.getElementById('chatMessages'),input=document.getElementById('chatInput'),sendBtn=document.getElementById('sendBtn');
             let conversationId='';
@@ -255,16 +275,26 @@
             function openChat(){ windowEl.classList.add('open'); }
             function closeChat(){ windowEl.classList.remove('open'); }
             bubble.addEventListener('click',openChat); closeBtn.addEventListener('click',closeChat);
-            function addMessage(text,sender){ const div=document.createElement('div'); div.className='message '+sender; div.textContent=text; messagesContainer.appendChild(div); messagesContainer.scrollTop=messagesContainer.scrollHeight; return div; }
+            function addMessage(text,sender,className=''){ const div=document.createElement('div'); div.className='message '+sender; if(className) div.classList.add(className); div.textContent=text; messagesContainer.appendChild(div); messagesContainer.scrollTop=messagesContainer.scrollHeight; return div; }
             async function sendMessage(query){
                 if(!query.trim()) return;
                 addMessage(query,'user'); input.value='';
+                const thinkingDiv=addMessage('让我想想……','agent','thinking');
+                const controller=new AbortController();
+                const timeoutId=setTimeout(()=>controller.abort(),15000);
                 try{
-                    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,conversation_id:conversationId,user:'visitor'})});
+                    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,conversation_id:conversationId,user:'visitor'}),signal:controller.signal});
+                    clearTimeout(timeoutId);
+                    thinkingDiv.remove();
                     const data=await res.json();
                     if(data.answer){ addMessage(data.answer,'agent'); if(data.conversation_id) conversationId=data.conversation_id; }
                     else addMessage('抱歉，我暂时无法回复。','agent');
-                }catch(e){ addMessage('网络错误，请稍后再试。','agent'); }
+                }catch(e){
+                    clearTimeout(timeoutId);
+                    thinkingDiv.remove();
+                    if(e.name==='AbortError') addMessage('网络不太稳定，请稍后再试～','agent');
+                    else addMessage('网络错误，请稍后再试。','agent');
+                }
             }
             sendBtn.addEventListener('click',()=>sendMessage(input.value));
             input.addEventListener('keydown',e=>{ if(e.key==='Enter') sendMessage(input.value); });
