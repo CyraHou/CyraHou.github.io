@@ -267,7 +267,7 @@
             animate();
         })();
 
-        // 聊天逻辑 (含等待提示、超时、头像呼吸灯)
+        // 聊天逻辑
         (function(){
             const bubble=document.getElementById('chatBubble'),windowEl=document.getElementById('chatWindow'),closeBtn=document.getElementById('chatClose'),messagesContainer=document.getElementById('chatMessages'),input=document.getElementById('chatInput'),sendBtn=document.getElementById('sendBtn');
             let conversationId='';
@@ -298,7 +298,8 @@
             }
             sendBtn.addEventListener('click',()=>sendMessage(input.value));
             input.addEventListener('keydown',e=>{ if(e.key==='Enter') sendMessage(input.value); });
-            document.querySelectorAll('.city-marker').forEach(marker=>{ marker.addEventListener('click',function(){ const city=this.dataset.city; openChat(); sendMessage('介绍一下'+city); }); });
+            // 红点点击时发送纯地名
+            document.querySelectorAll('.city-marker').forEach(marker=>{ marker.addEventListener('click',function(){ const city=this.dataset.city; openChat(); sendMessage(city); }); });
         })();
     </script>
 </body>
