@@ -120,10 +120,14 @@
         /* 聊天窗口 */
         .chat-window {
             position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 400px; max-width: 90vw;
-            height: 550px; max-height: 80vh;
+            bottom: 30px;
+            right: 120px;          /* 放在气泡左侧 */
+            top: auto; left: auto;
+            transform: none;
+            width: 400px;
+            max-width: 50vw;
+            height: 550px;
+            max-height: 70vh;
             background: #FFFFFF;
             border-radius: 24px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
@@ -243,7 +247,7 @@
         }
 
         @media (max-width: 768px) {
-            .chat-window { width: 95vw; height: 75vh; }
+            .chat-window { right: 10px; bottom: 80px; width: 90vw; height: 60vh; }
             .chat-bubble { bottom: 20px; right: 20px; width: 60px; height: 60px; font-size: 1.2rem; }
         }
     </style>
