@@ -9,74 +9,57 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; background: #1a1a1a; }
 
-        /* 1. 视频播放层 */
+        /* 1. 视频播放层 - 纯净无缩放 */
         #video-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 10;
-            background: #fff; overflow: hidden;
-            transition: opacity 0.3s ease-in-out; /* 1秒缓慢淡出 */
+            /* 保留这个米白底色作为极限防御：即使新导出的视频边缘还有一两像素没切干净，也会被米色盖住，看不出黑边 */
+            background-color: #f5f5f0; 
+            overflow: hidden;
         }
         #video-container video {
-            width: 100%; height: 100%; object-fit: cover; display: block;
-        }
-        /* 视频结束后的隐藏状态 */
-        #video-container.fade-out {
-            opacity: 0; pointer-events: none;
+            width: 100%; height: 100%; 
+            object-fit: cover; /* 原比例填充 */
+            display: block;
+            /* 注意：这里没有 scale(1.05)，100%和平面图对齐 */
         }
 
         /* 2. 长图地图内容层 */
         #interactive-content {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1;
-            display: none; opacity: 0; transition: opacity 1.5s ease;
-            background: #f5f5f0; /* 底色调 */
-            overflow-x: auto; overflow-y: hidden; /* 纵向隐藏，横向滚动 */
-            cursor: grab; /* 鼠标抓取感 */
+            display: none; /* 默认隐藏 */
+            background: #f5f5f0; /* 底色一致 */
+            overflow-x: auto; overflow-y: hidden; /* 横向滚动 */
+            cursor: grab;
         }
         #interactive-content:active { cursor: grabbing; }
         
-        /* 横向长图样式：高度撑满屏幕，宽度自适应（会超出视口） */
+        /* 横向长图：高度撑满屏幕，宽度自适应 */
         #interactive-content img {
             height: 100vh; width: auto; max-width: none; display: block;
         }
 
         /* 3. 移动端横屏提示层 */
         #rotate-notice {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 100;
-            display: flex; justify-content: center; align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 999;
+            display: none; justify-content: center; align-items: center;
             background: rgba(0, 0, 0, 0.85); color: white; text-align: center; padding: 40px;
             flex-direction: column;
-            /* 默认隐藏，仅在竖屏时显示 */
-            display: none; 
         }
         #rotate-notice h2 { font-size: 24px; margin-bottom: 20px; font-weight: 400; }
         #rotate-notice p { font-size: 14px; opacity: 0.7; }
-        /* 图标 */
-        .rotate-icon {
-            font-size: 60px; margin-bottom: 20px; display: inline-block;
-            animation: spin-phone 2s infinite ease-in-out;
-        }
-        @keyframes spin-phone {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(90deg); }
-            100% { transform: rotate(90deg); }
-        }
+        .rotate-icon { font-size: 60px; margin-bottom: 20px; animation: spin-phone 2s infinite ease-in-out; }
+        @keyframes spin-phone { 0% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } 100% { transform: rotate(90deg); } }
 
-        /* 竖屏媒体查询：激活提示层 */
-        @media screen and (orientation: portrait) {
-            #rotate-notice { display: flex; }
-            #interactive-content { display: none !important; }
-        }
-        /* 横屏时确保提示层隐藏，地图显示 */
-        @media screen and (orientation: landscape) {
-            #rotate-notice { display: none !important; }
-            #interactive-content { display: block !important; }
-        }
+        /* 横竖屏媒体查询逻辑 */
+        @media screen and (orientation: portrait) { #rotate-notice { display: flex; } }
+        @media screen and (orientation: landscape) { #rotate-notice { display: none !important; } }
     </style>
 </head>
 <body>
 
     <!-- 第一层：场景动画视频 -->
     <div id="video-container">
-        <video id="intro-video" playsinline webkit-playsinline muted>
+        <video id="intro-video" playsinline webkit-playsinline muted preload="auto">
             <source src="images/project_hutong/intro.webm" type="video/webm">
             <source src="images/project_hutong/intro.mp4" type="video/mp4">
             您的浏览器不支持 HTML5 视频。
@@ -85,8 +68,7 @@
 
     <!-- 第二层：横向长图漫游 -->
     <div id="interactive-content">
-        <img src="images/project_hutong/hutong_map.png" alt="西总布胡同横向平面漫游图">
-        <!-- 提示：长图漫游交互 -->
+        <img src="images/project_hutong/hutong_map.png" alt="西总布胡同平面图">
     </div>
 
     <!-- 第三层：手机横屏提示 -->
@@ -101,44 +83,30 @@
             const video = document.getElementById('intro-video');
             const videoContainer = document.getElementById('video-container');
             const interactiveContent = document.getElementById('interactive-content');
-            const mapImage = document.querySelector('#interactive-content img');
 
             // 1. 视频自动播放
-            // 注意：因为加了 muted，浏览器允许自动播放
-            video.play().catch(e => console.log("自动播放被阻止，需用户交互", e));
+            video.play().catch(e => console.log("自动播放被阻止", e));
 
-            // 2. 视频结束，接力到地图
+            // 2. 视频结束，瞬间无缝切换到地图（没有任何淡出过渡）
             video.addEventListener('ended', function() {
-                // 让视频层淡出
-                videoContainer.classList.add('fade-out');
-
-                // 等1秒淡出动画结束，彻底隐藏视频，显示地图层
-                setTimeout(() => {
-                    videoContainer.style.display = 'none';
-                    interactiveContent.style.display = 'block';
-                    
-                    // 稍微延迟一点后，让地图层也淡入（透明度从0到1）
-                    setTimeout(() => {
-                        interactiveContent.style.opacity = '1';
-                    }, 50);
-                }, 1000); // 这里的 1000 对应 CSS 里的 1s
+                // 直接隐藏视频容器（不留黑屏机会）
+                videoContainer.style.display = 'none';
+                // 瞬间显示底层地图层
+                interactiveContent.style.display = 'block';
             });
 
-            // 3. 鼠标滚轮变为横向移动（体验优化）
+            // 3. 鼠标滚轮变为横向移动（长图横向漫游的体验）
             interactiveContent.addEventListener('wheel', function(e) {
-                if (e.deltaX === 0) { // 如果是上下滚动
-                    e.preventDefault(); // 阻止默认的纵向滚动
-                    this.scrollLeft += e.deltaY; // 将纵向滚动的值转化为横向滚动
+                if (e.deltaX === 0) {
+                    e.preventDefault(); // 阻止默认纵向滚动
+                    this.scrollLeft += e.deltaY; // 转化为横向滚动
                 }
             }, { passive: false });
 
-            // 4. （可选）由于 CSS 媒体查询已处理“横竖屏”切换，
-            // 但为了防极少数竖屏用户在旋转手机时没有自动更新显示，
-            // 加一个监听横竖屏变化的刷新
+            // 4. 监控手机横竖屏切换
             if (window.screen && window.screen.orientation) {
                 window.screen.orientation.addEventListener('change', function() {
-                    // 强制重新布局/刷新
-                    window.location.reload(); 
+                    window.location.reload(); // 切换时刷新避免布局错位
                 });
             }
         });
